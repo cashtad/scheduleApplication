@@ -18,7 +18,7 @@ class Competition:
     performances: list['Performance'] = field(default_factory=list)
 
     def __str__(self):
-        text = f"{self.name}, juries: "
+        text = f"Competition: {self.name}, juries: "
 
         for jury in self.juries:
             text += f"{jury.name}, "

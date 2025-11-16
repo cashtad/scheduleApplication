@@ -13,3 +13,6 @@ class Performance:
     competition: Competition | None
     round_type: str
 
+    def __str__(self):
+        text = f"Perfomance: {self.round_type} {self.start_time}-{self.end_time}"
+        return text
