@@ -1,0 +1,38 @@
+files:
+  competitions:
+    path: C:\Users\Leonid\PycharmProjects\scheduleApplication\src\tables\DANS_250906 competitions.xlsx
+    sheet: Competitions
+  competitors:
+    path: C:\Users\Leonid\PycharmProjects\scheduleApplication\src\tables\DANS_250906 Kdyně registered.xlsx
+    sheet: Competitors
+  jury:
+    path: C:\Users\Leonid\PycharmProjects\scheduleApplication\src\tables\Porota Kdyně 6.9.2025.xlsx
+    sheet: List1
+  schedule:
+    path: C:\Users\Leonid\PycharmProjects\scheduleApplication\src\tables\Časový harmonogram TPV Kdyně.xlsx
+    sheet: List1
+columns:
+  competitions:
+    id: number
+    title: composite
+    discipline: discipline
+    age: age
+    rank: class
+    competitor_count: people
+    round_count: round_count
+  competitors:
+    assignment_prefix: "#"
+    count: count
+    p1_name_surname: p1_name_surname
+    p2_name_surname: p2_name_surname
+  jury:
+    id: id
+    fullname: fullname
+    assignment_prefix: "#"
+  schedule:
+    start_time: čas zahájení
+    end_time: čas ukončení
+    duration: minut
+    competitor_number: číslo soutěže
+    round_type: kolo
+
