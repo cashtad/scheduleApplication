@@ -23,6 +23,9 @@ class ScheduleGraph:
                 return competition
         return None
 
+    def get_competitors(self):
+        return self.competitors
+
     def get_competitor_by_fullname(self, fullname) -> Competitor | None:
         for competitor in self.competitors:
             if competitor.full_name_1 == fullname or competitor.full_name_2 == fullname:
