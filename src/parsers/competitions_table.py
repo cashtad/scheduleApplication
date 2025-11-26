@@ -18,7 +18,7 @@ class CompetitionParser:
                     discipline=row[self._cols["discipline"]],
                     age=row[self._cols["age"]],
                     rank=row[self._cols["rank"]],
-                    competitor_count=row[self._cols["competitor_count"]],
+                    competitor_count=int(row[self._cols["competitor_count"]]),
                     round_count=int(row[self._cols["round_count"]] or 0),
                     competitors=[],
                     performances=[],

@@ -26,7 +26,7 @@ class CompetitorsParser:
             ]
             competitor = Competitor(
                 id=str(i),
-                count=count,
+                count=int(count),
                 full_name_1=full_name_1,
                 full_name_2=full_name_2,
             )

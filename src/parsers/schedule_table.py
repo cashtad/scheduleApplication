@@ -18,7 +18,7 @@ class PerformanceParser:
                 (Performance(
                     start_time=row[self._cols["start_time"]],
                     end_time=row[self._cols["end_time"]],
-                    duration=row[self._cols["duration"]],
+                    duration=int(row[self._cols["duration"]]),
                     round_type=row[self._cols["round_type"]],
                     competition=None
                 ), int(row[self._cols["competitor_number"]])))
