@@ -1,0 +1,68 @@
+# Configurational file for the expert system rules
+
+# Rule 1. Maximum duration of dancing without breaks
+max_continuous_dancing:
+  enabled: true
+  thresholds:
+    critical: 90  # in minutes
+    medium: 60
+    low: 45
+  weights:
+    base_critical: 100
+    base_medium: 50
+    base_low: 20
+    coefficient_per_minute: 2  # additional weight for each minute above the threshold
+
+# Rule 2. Costume change time between LAT and STT
+costume_change_time:
+  enabled: true
+  disciplines:
+    - "lat"
+    - "stt"
+  min_gap_minutes: 30  # min time between costume changes
+  thresholds:
+    critical: 10  # less than 10 minutes - critical
+    medium: 20    # less than 20 minutes - medium
+    low: 30       # less than 30 minutes - low
+  weights:
+    base_critical: 150
+    base_medium: 75
+    base_low: 30
+    coefficient_per_minute: 3  # additional weight for each minute above the threshold
+
+# Rule 3. Maximum duration of jury's work without breaks
+max_continuous_judging:
+  enabled: true
+  thresholds:
+    critical: 180  # in minutes
+    medium: 120
+    low: 90
+  weights:
+    base_critical: 80
+    base_medium: 40
+    base_low: 15
+    coefficient_per_minute: 1.5
+
+# Rule 4. Maximum gap between performances
+max_gap_between_performances:
+  enabled: true
+  thresholds:
+    critical: 240  # minutes (4 hours)
+    medium: 180    # minutes (3 hours)
+    low: 120       # minutes (2 hours)
+  weights:
+    base_critical: 60
+    base_medium: 30
+    base_low: 10
+    coefficient_per_minute: 0.5
+
+# Global settings
+general:
+  # Ranks of the schedule
+  schedule_rating:
+    excellent: 0      # no problems at all
+    good: 100         # fine
+    acceptable: 300   # there are some problems
+    poor: 600         # there are serious problems
+    critical: 1000    # too many problems
+

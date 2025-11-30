@@ -5,10 +5,10 @@ from dataclasses import dataclass, field
 
 @dataclass
 class Competition:
-    """Узел графа: соревнование"""
+    """Vertex of graph: competition"""
     id: int
     name: str
-    discipline: str  # латина/стандарт
+    discipline: str
     age: str
     rank: str
     competitor_count: int

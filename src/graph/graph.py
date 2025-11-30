@@ -1,3 +1,5 @@
+from traceback import print_exception
+
 from src.classes.competition import Competition
 from src.classes.competitor import Competitor
 from src.classes.jury import Jury
@@ -25,6 +27,9 @@ class ScheduleGraph:
 
     def get_competitors(self):
         return self.competitors
+
+    def get_juries(self):
+        return self.juries
 
     def get_competitor_by_fullname(self, fullname) -> Competitor | None:
         for competitor in self.competitors:
@@ -74,7 +79,8 @@ class ScheduleGraph:
                     competition.juries.append(jury)
                 else:
                     print(f"Competition with id {competition_id} not found")
-                jury.performances.append(competition)
+                for performance in competition.performances:
+                    jury.performances.append(performance)
             self.juries.append(jury)
 
         # Connecting competitors to competitions
@@ -82,8 +88,6 @@ class ScheduleGraph:
         for pairs in dancers:
             dancer = pairs[0]
             competitions = pairs[1]
-
-
             for competition_id in competitions:
                 competition = self.get_competition_by_id(competition_id)
                 if competition:
@@ -93,6 +97,3 @@ class ScheduleGraph:
                 for performance in competition.performances:
                     dancer.performances.append(performance)
             self.competitors.append(dancer)
-
-        print("Data filled")
-

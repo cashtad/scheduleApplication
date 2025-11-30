@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class Competitor:
+    """Vertex of graph: competitor"""
     id: str
     count: int
     full_name_1: str
