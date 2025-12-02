@@ -385,7 +385,7 @@ class MaxContinuousJudgingRule(Rule):
                 rule_name="MaxContinuousJudging",
                 severity=severity,
                 weight=weight,
-                description=f"Rozhodčí {jury.name} rozhoduje {duration:.0f} minut bez přestávky",
+                description=f"Porotce {jury.name} porotuje {duration:.0f} minut bez přestávky",
                 entity_id=jury.id,
                 entity_name=jury.name,
                 details={

@@ -11,11 +11,11 @@ max_continuous_dancing:
     base_critical: 100
     base_medium: 50
     base_low: 20
-    coefficient_per_minute: 2  # additional weight for each minute above the threshold
+    coefficient_per_minute: 1  # additional weight for each minute above the threshold
 
 # Rule 2. Costume change time between LAT and STT
 costume_change_time:
-  enabled: true
+  enabled: false
   disciplines:
     - "lat"
     - "stt"
@@ -28,7 +28,7 @@ costume_change_time:
     base_critical: 150
     base_medium: 75
     base_low: 30
-    coefficient_per_minute: 3  # additional weight for each minute above the threshold
+    coefficient_per_minute: 1  # additional weight for each minute above the threshold
 
 # Rule 3. Maximum duration of jury's work without breaks
 max_continuous_judging:
@@ -41,7 +41,7 @@ max_continuous_judging:
     base_critical: 80
     base_medium: 40
     base_low: 15
-    coefficient_per_minute: 1.5
+    coefficient_per_minute: 1
 
 # Rule 4. Maximum gap between performances
 max_gap_between_performances:
@@ -51,9 +51,9 @@ max_gap_between_performances:
     medium: 180    # minutes (3 hours)
     low: 120       # minutes (2 hours)
   weights:
-    base_critical: 60
-    base_medium: 30
-    base_low: 10
+    base_critical: 30
+    base_medium: 15
+    base_low: 5
     coefficient_per_minute: 0.5
 
 # Global settings
