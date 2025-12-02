@@ -71,7 +71,7 @@ class ExplanationGenerator:
             # Sort by severity
             sorted_violations = sorted(
                 violations,
-                key=lambda v: (v.severity.value, -v.weight)
+                key=lambda v: (-v.weight)
             )
 
             for violation in sorted_violations:
@@ -268,7 +268,7 @@ class ExplanationGenerator:
         </div>
 """
 
-                sorted_violations = sorted(violations, key=lambda v: (v.severity.value, -v.weight))
+                sorted_violations = sorted(violations, key=lambda v: (-v.weight))
 
                 for violation in sorted_violations:
                     html += self._format_violation_html(violation)

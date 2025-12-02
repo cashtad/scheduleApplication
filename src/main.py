@@ -30,11 +30,6 @@ if __name__ == "__main__":
     console_report = explanation_gen.generate_console_report(result)
     print(console_report)
 
-    # HTML report
-    output_html = BASE_DIR.parent / "schedule_analysis_report.html"
-    explanation_gen.generate_html_report(result, str(output_html))
-    print(f"\n💾 HTML zpráva uložena: {output_html}")
-
     # Additional demonstration: violations by participants
     print("\n" + "=" * 80)
     print("DETAILNÍ INFORMACE O PORUŠENÍCH PODLE ÚČASTNÍKŮ")
@@ -56,7 +51,15 @@ if __name__ == "__main__":
     ):
         total_weight = sum(v.weight for v in violations)
         print(f"👤 {entity_name}: {len(violations)} porušení (váha: {total_weight:.1f})")
-        for v in violations:
+        sorted_violations = sorted(violations, key=lambda v: -v.weight)
+        for v in sorted_violations:
             icon = explanation_gen.SEVERITY_COLORS[v.severity]
             print(f"   {icon} {v.rule_name}: {v.description}")
         print()
+
+    # HTML report
+    output_html = BASE_DIR.parent / "schedule_analysis_report.html"
+    explanation_gen.generate_html_report(result, str(output_html))
+    print(f"\n💾 HTML zpráva uložena: {output_html}")
+
+

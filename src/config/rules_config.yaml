@@ -8,7 +8,7 @@ max_continuous_dancing:
     medium: 60
     low: 45
   weights:
-    base_critical: 100
+    base_critical: 110
     base_medium: 50
     base_low: 20
     coefficient_per_minute: 2  # additional weight for each minute above the threshold
@@ -38,8 +38,8 @@ max_continuous_judging:
     medium: 120
     low: 90
   weights:
-    base_critical: 80
-    base_medium: 40
+    base_critical: 105
+    base_medium: 60
     base_low: 15
     coefficient_per_minute: 1.5
 
@@ -51,9 +51,9 @@ max_gap_between_performances:
     medium: 180    # minutes (3 hours)
     low: 120       # minutes (2 hours)
   weights:
-    base_critical: 60
-    base_medium: 30
-    base_low: 10
+    base_critical: 80
+    base_medium: 50
+    base_low: 20
     coefficient_per_minute: 0.5
 
 # Global settings
