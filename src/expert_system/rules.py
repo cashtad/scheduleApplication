@@ -454,8 +454,8 @@ class MaxGapBetweenPerformancesRule(Rule):
                             'gap_minutes': gap_minutes,
                             'threshold_minutes': threshold,
                             'excess_minutes': excess,
-                            'first_performance_end': curr_end,
-                            'second_performance_start': next_start
+                            'from_time': curr_end,
+                            'to_time': next_start
                         }
                     ))
 

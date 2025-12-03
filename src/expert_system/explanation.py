@@ -323,6 +323,15 @@ class ExplanationGenerator:
             gap = violation.details['gap_minutes']
             html += f"                <p>⏱️ Přestávka: {gap:.0f} minut</p>\n"
 
+        if 'from_time'in violation.details and 'to_time' in violation.details:
+            from_time = violation.details['from_time']
+            to_time = violation.details['to_time']
+            html += f"                <p>🕐 Časový úsek: {from_time.strftime('%H:%M')} - {to_time.strftime('%H:%M')}</p>\n"
+            if 'from_discipline' in violation.details and 'to_discipline' in violation.details:
+                from_discipline = violation.details['from_discipline']
+                to_discipline = violation.details['to_discipline']
+                html += f"                <p>💃 Disciplíny: {from_discipline} → {to_discipline}</p>\n"
+
         if 'duration_minutes' in violation.details:
             duration = violation.details['duration_minutes']
             html += f"                <p>⏱️ Délka: {duration:.0f} minut</p>\n"

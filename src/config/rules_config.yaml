@@ -21,14 +21,14 @@ costume_change_time:
     - "stt"
   min_gap_minutes: 30  # min time between costume changes
   thresholds:
-    critical: 10  # less than 10 minutes - critical
-    medium: 20    # less than 20 minutes - medium
-    low: 30       # less than 30 minutes - low
+    critical: 5  # less than 10 minutes - critical
+    medium: 8    # less than 20 minutes - medium
+    low: 10       # less than 30 minutes - low
   weights:
-    base_critical: 150
-    base_medium: 75
+    base_critical: 80
+    base_medium: 50
     base_low: 30
-    coefficient_per_minute: 3  # additional weight for each minute above the threshold
+    coefficient_per_minute: 10  # additional weight for each minute above the threshold
 
 # Rule 3. Maximum duration of jury's work without breaks
 max_continuous_judging:
@@ -47,11 +47,11 @@ max_continuous_judging:
 max_gap_between_performances:
   enabled: true
   thresholds:
-    critical: 240  # minutes (4 hours)
-    medium: 180    # minutes (3 hours)
-    low: 120       # minutes (2 hours)
+    critical: 480  # minutes (6 hours)
+    medium: 240    # minutes (4 hours)
+    low: 180       # minutes (3 hours)
   weights:
-    base_critical: 80
+    base_critical: 100
     base_medium: 50
     base_low: 20
     coefficient_per_minute: 0.5

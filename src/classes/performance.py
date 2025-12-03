@@ -14,5 +14,5 @@ class Performance:
     round_type: str
 
     def __str__(self):
-        text = f"Perfomance: {self.competition.name}-{self.round_type}  {self.start_time}-{self.end_time}"
+        text = f"Perfomance: {self.competition.name}-{self.round_type} {self.competition.discipline}  {self.start_time}-{self.end_time}"
         return text

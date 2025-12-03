@@ -33,6 +33,6 @@ columns:
     start_time: čas zahájení
     end_time: čas ukončení
     duration: minut
-    competitor_number: číslo soutěže
+    competitor_number: id_competition
     round_type: kolo
 

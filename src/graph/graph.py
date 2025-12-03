@@ -54,10 +54,8 @@ class ScheduleGraph:
         jury_df = ExcelTableLoader(**cfg.files["jury"]).load()
         schedule_df = ExcelTableLoader(**cfg.files["schedule"]).load()
 
-
         # Simple parse of competitions, they are currently not linked to any other table
         self.competitions = CompetitionParser(cfg.columns["competitions"]).parse(competitions_df)
-
 
         # Connecting performances to competitions
         performances = PerformanceParser(cfg.columns["schedule"]).parse(schedule_df)
