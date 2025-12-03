@@ -62,4 +62,8 @@ if __name__ == "__main__":
     explanation_gen.generate_html_report(result, str(output_html))
     print(f"\n💾 HTML zpráva uložena: {output_html}")
 
+    results = graph.get_performances_by_fullname("Eva Chovancová")
+    for result in results:
+        print(result)
+
 

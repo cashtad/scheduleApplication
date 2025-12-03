@@ -25,7 +25,9 @@ class ExplanationGenerator:
         'MaxContinuousDancing': 'Nepřetržitý čas tance',
         'CostumeChangeTime': 'Čas na převlečení kostýmu',
         'MaxContinuousJudging': 'Nepřetržitý čas rozhodování',
-        'MaxGapBetweenPerformances': 'Velká přestávka mezi vystoupeními'
+        'MaxGapBetweenPerformances': 'Velká přestávka mezi vystoupeními',
+        'SimultaneousDancing': 'Současné taneční vystoupení',
+        'SimultaneousJudging': 'Současné rozhodování'
     }
 
     def generate_console_report(self, result: ScheduleAnalysisResult) -> str:
@@ -335,6 +337,21 @@ class ExplanationGenerator:
         if 'duration_minutes' in violation.details:
             duration = violation.details['duration_minutes']
             html += f"                <p>⏱️ Délka: {duration:.0f} minut</p>\n"
+
+        # Add details for simultaneous performance/judging violations
+        if 'overlap_minutes' in violation.details:
+            overlap = violation.details['overlap_minutes']
+            html += f"                <p>⚠️ Překrytí: {overlap:.0f} minut</p>\n"
+
+        if 'overlap_start' in violation.details and 'overlap_end' in violation.details:
+            overlap_start = violation.details['overlap_start']
+            overlap_end = violation.details['overlap_end']
+            html += f"                <p>🕐 Čas překrytí: {overlap_start.strftime('%H:%M')} - {overlap_end.strftime('%H:%M')}</p>\n"
+
+        if 'competition1' in violation.details and 'competition2' in violation.details:
+            comp1 = violation.details['competition1']
+            comp2 = violation.details['competition2']
+            html += f"                <p>🏆 Soutěže: {comp1} ↔ {comp2}</p>\n"
 
         html += """
             </div>

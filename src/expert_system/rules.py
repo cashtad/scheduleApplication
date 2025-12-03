@@ -170,7 +170,7 @@ class MaxContinuousDancingRule(Rule):
                 # If gap is less than 12 minutes, consider it continuous
                 gap = (curr_start - prev_end).total_seconds() / 60
 
-                if gap < 10:  # TODO: Move constant to config file
+                if gap < self.config['rest_time']:
                     continuous_duration += curr.duration
                 else:
                     # Check completed block
@@ -341,7 +341,7 @@ class MaxContinuousJudgingRule(Rule):
 
                 gap = (curr_start - prev_end).total_seconds() / 60
 
-                if gap < 10:  # Consider continuous if gap < 10 minutes
+                if gap < self.config['rest_time']:  # Consider continuous if gap < 10 minutes
                     continuous_duration += curr.duration
                 else:
                     violation = self._check_judging_duration(
@@ -462,6 +462,176 @@ class MaxGapBetweenPerformancesRule(Rule):
         return violations
 
 
+class SimultaneousDancingRule(Rule):
+    """Rule: Dancer cannot participate in multiple performances simultaneously"""
+
+    def check(self, graph) -> list[Violation]:
+        """Check for dancers scheduled in overlapping performances
+
+        Args:
+            graph: Schedule graph
+
+        Returns:
+            List of violations found
+        """
+        violations = []
+
+        if not self.enabled:
+            return violations
+
+        competitors = graph.get_competitors()
+
+        for competitor in competitors:
+            if len(competitor.performances) < 2:
+                continue
+
+            performances = sorted(
+                competitor.performances,
+                key=lambda p: self._ensure_datetime(p.start_time)
+            )
+
+            # Check each pair of performances for time overlap
+            for i in range(len(performances)):
+                for j in range(i + 1, len(performances)):
+                    perf1 = performances[i]
+                    perf2 = performances[j]
+
+                    start1 = self._ensure_datetime(perf1.start_time)
+                    end1 = self._ensure_datetime(perf1.end_time)
+                    start2 = self._ensure_datetime(perf2.start_time)
+                    end2 = self._ensure_datetime(perf2.end_time)
+
+                    # Check if performances overlap
+                    if self._is_overlapping(start1, end1, start2, end2):
+                        weight = self.config['weights']['base_critical']
+
+                        overlap_start = max(start1, start2)
+                        overlap_end = min(end1, end2)
+                        overlap_minutes = (overlap_end - overlap_start).total_seconds() / 60
+
+                        violations.append(Violation(
+                            rule_name="SimultaneousDancing",
+                            severity=Severity.CRITICAL,
+                            weight=weight,
+                            description=f"Tanečník {competitor.full_name_1} má současně {len([p for p in performances if self._is_overlapping(start1, end1, self._ensure_datetime(p.start_time), self._ensure_datetime(p.end_time))])} vystoupení v čase {overlap_start.strftime('%H:%M')}-{overlap_end.strftime('%H:%M')}",
+                            entity_id=competitor.id,
+                            entity_name=competitor.full_name_1,
+                            details={
+                                'overlap_minutes': overlap_minutes,
+                                'performance1_start': start1,
+                                'performance1_end': end1,
+                                'performance2_start': start2,
+                                'performance2_end': end2,
+                                'overlap_start': overlap_start,
+                                'overlap_end': overlap_end,
+                                'competition1': perf1.competition.name if perf1.competition else 'N/A',
+                                'competition2': perf2.competition.name if perf2.competition else 'N/A'
+                            }
+                        ))
+
+        return violations
+
+    @staticmethod
+    def _is_overlapping(start1: datetime, end1: datetime, start2: datetime, end2: datetime) -> bool:
+        """Check if two time intervals overlap
+
+        Args:
+            start1: Start time of first interval
+            end1: End time of first interval
+            start2: Start time of second interval
+            end2: End time of second interval
+
+        Returns:
+            True if intervals overlap, False otherwise
+        """
+        return start1 < end2 and start2 < end1
+
+
+class SimultaneousJudgingRule(Rule):
+    """Rule: Judge cannot judge multiple performances simultaneously"""
+
+    def check(self, graph) -> list[Violation]:
+        """Check for judges scheduled to judge overlapping performances
+
+        Args:
+            graph: Schedule graph
+
+        Returns:
+            List of violations found
+        """
+        violations = []
+
+        if not self.enabled:
+            return violations
+
+        juries = graph.get_juries()
+
+        for jury in juries:
+            if len(jury.performances) < 2:
+                continue
+
+            performances = sorted(
+                jury.performances,
+                key=lambda p: self._ensure_datetime(p.start_time)
+            )
+
+            # Check each pair of performances for time overlap
+            for i in range(len(performances)):
+                for j in range(i + 1, len(performances)):
+                    perf1 = performances[i]
+                    perf2 = performances[j]
+
+                    start1 = self._ensure_datetime(perf1.start_time)
+                    end1 = self._ensure_datetime(perf1.end_time)
+                    start2 = self._ensure_datetime(perf2.start_time)
+                    end2 = self._ensure_datetime(perf2.end_time)
+
+                    # Check if performances overlap
+                    if self._is_overlapping(start1, end1, start2, end2):
+                        weight = self.config['weights']['base_critical']
+
+                        overlap_start = max(start1, start2)
+                        overlap_end = min(end1, end2)
+                        overlap_minutes = (overlap_end - overlap_start).total_seconds() / 60
+
+                        violations.append(Violation(
+                            rule_name="SimultaneousJudging",
+                            severity=Severity.CRITICAL,
+                            weight=weight,
+                            description=f"Porotce {jury.name} musí soudit současně {len([p for p in performances if self._is_overlapping(start1, end1, self._ensure_datetime(p.start_time), self._ensure_datetime(p.end_time))])} vystoupení v čase {overlap_start.strftime('%H:%M')}-{overlap_end.strftime('%H:%M')}",
+                            entity_id=jury.id,
+                            entity_name=jury.name,
+                            details={
+                                'overlap_minutes': overlap_minutes,
+                                'performance1_start': start1,
+                                'performance1_end': end1,
+                                'performance2_start': start2,
+                                'performance2_end': end2,
+                                'overlap_start': overlap_start,
+                                'overlap_end': overlap_end,
+                                'competition1': perf1.competition.name if perf1.competition else 'N/A',
+                                'competition2': perf2.competition.name if perf2.competition else 'N/A'
+                            }
+                        ))
+
+        return violations
+
+    @staticmethod
+    def _is_overlapping(start1: datetime, end1: datetime, start2: datetime, end2: datetime) -> bool:
+        """Check if two time intervals overlap
+
+        Args:
+            start1: Start time of first interval
+            end1: End time of first interval
+            start2: Start time of second interval
+            end2: End time of second interval
+
+        Returns:
+            True if intervals overlap, False otherwise
+        """
+        return start1 < end2 and start2 < end1
+
+
 def load_rules_from_config(config_path: str) -> list[Rule]:
     """Load all rules from configuration file
 
@@ -478,7 +648,9 @@ def load_rules_from_config(config_path: str) -> list[Rule]:
         MaxContinuousDancingRule(config['max_continuous_dancing']),
         CostumeChangeTimeRule(config['costume_change_time']),
         MaxContinuousJudgingRule(config['max_continuous_judging']),
-        MaxGapBetweenPerformancesRule(config['max_gap_between_performances'])
+        MaxGapBetweenPerformancesRule(config['max_gap_between_performances']),
+        SimultaneousDancingRule(config['simultaneous_dancing']),
+        SimultaneousJudgingRule(config['simultaneous_judging'])
     ]
 
     return rules

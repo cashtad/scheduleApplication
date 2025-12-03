@@ -3,6 +3,7 @@
 # Rule 1. Maximum duration of dancing without breaks
 max_continuous_dancing:
   enabled: true
+  rest_time: 10
   thresholds:
     critical: 90  # in minutes
     medium: 60
@@ -19,11 +20,11 @@ costume_change_time:
   disciplines:
     - "lat"
     - "stt"
-  min_gap_minutes: 30  # min time between costume changes
+  min_gap_minutes: 10  # min time between costume changes
   thresholds:
-    critical: 5  # less than 10 minutes - critical
-    medium: 8    # less than 20 minutes - medium
-    low: 10       # less than 30 minutes - low
+    critical: 5  # less than 5 minutes - critical
+    medium: 8    # less than 8 minutes - medium
+    low: 10       # less than 10 minutes - low
   weights:
     base_critical: 80
     base_medium: 50
@@ -33,6 +34,7 @@ costume_change_time:
 # Rule 3. Maximum duration of jury's work without breaks
 max_continuous_judging:
   enabled: true
+  rest_time: 10
   thresholds:
     critical: 180  # in minutes
     medium: 120
@@ -56,6 +58,18 @@ max_gap_between_performances:
     base_low: 20
     coefficient_per_minute: 0.5
 
+# Rule 5. Simultaneous dancing check (dancer cannot dance in multiple performances at once)
+simultaneous_dancing:
+  enabled: true
+  weights:
+    base_critical: 1000  # This is always critical - physical impossibility
+
+# Rule 6. Simultaneous judging check (judge cannot judge multiple performances at once)
+simultaneous_judging:
+  enabled: true
+  weights:
+    base_critical: 1000  # This is always critical - physical impossibility
+
 # Global settings
 general:
   # Ranks of the schedule
@@ -65,4 +79,3 @@ general:
     acceptable: 2000   # there are some problems
     poor: 3000         # there are serious problems
     critical: 5000    # too many problems
-
