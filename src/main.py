@@ -25,37 +25,37 @@ if __name__ == "__main__":
 
     # Generate reports
     explanation_gen = ExplanationGenerator()
-
-    # Console report
-    console_report = explanation_gen.generate_console_report(result)
-    print(console_report)
-
-    # Additional demonstration: violations by participants
-    print("\n" + "=" * 80)
-    print("DETAILNÍ INFORMACE O PORUŠENÍCH PODLE ÚČASTNÍKŮ")
-    print("=" * 80 + "\n")
-
-    # Group violations by entity (dancer/judge)
-    violations_by_entity = {}
-    for violation in result.violations:
-        entity_name = violation.entity_name
-        if entity_name not in violations_by_entity:
-            violations_by_entity[entity_name] = []
-        violations_by_entity[entity_name].append(violation)
-
-    # Sort by total weight (most problematic first)
-    for entity_name, violations in sorted(
-        violations_by_entity.items(),
-        key=lambda x: sum(v.weight for v in x[1]),
-        reverse=True
-    ):
-        total_weight = sum(v.weight for v in violations)
-        print(f"👤 {entity_name}: {len(violations)} porušení (váha: {total_weight:.1f})")
-        sorted_violations = sorted(violations, key=lambda v: -v.weight)
-        for v in sorted_violations:
-            icon = explanation_gen.SEVERITY_COLORS[v.severity]
-            print(f"   {icon} {v.rule_name}: {v.description}")
-        print()
+    #
+    # # Console report
+    # console_report = explanation_gen.generate_console_report(result)
+    # print(console_report)
+    #
+    # # Additional demonstration: violations by participants
+    # print("\n" + "=" * 80)
+    # print("DETAILNÍ INFORMACE O PORUŠENÍCH PODLE ÚČASTNÍKŮ")
+    # print("=" * 80 + "\n")
+    #
+    # # Group violations by entity (dancer/judge)
+    # violations_by_entity = {}
+    # for violation in result.violations:
+    #     entity_name = violation.entity_name
+    #     if entity_name not in violations_by_entity:
+    #         violations_by_entity[entity_name] = []
+    #     violations_by_entity[entity_name].append(violation)
+    #
+    # # Sort by total weight (most problematic first)
+    # for entity_name, violations in sorted(
+    #     violations_by_entity.items(),
+    #     key=lambda x: sum(v.weight for v in x[1]),
+    #     reverse=True
+    # ):
+    #     total_weight = sum(v.weight for v in violations)
+    #     print(f"👤 {entity_name}: {len(violations)} porušení (váha: {total_weight:.1f})")
+    #     sorted_violations = sorted(violations, key=lambda v: -v.weight)
+    #     for v in sorted_violations:
+    #         icon = explanation_gen.SEVERITY_COLORS[v.severity]
+    #         print(f"   {icon} {v.rule_name}: {v.description}")
+    #     print()
 
     # HTML report
     output_html = BASE_DIR.parent / "schedule_analysis_report.html"

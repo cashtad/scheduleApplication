@@ -61,8 +61,8 @@ general:
   # Ranks of the schedule
   schedule_rating:
     excellent: 0      # no problems at all
-    good: 100         # fine
-    acceptable: 300   # there are some problems
-    poor: 600         # there are serious problems
-    critical: 1000    # too many problems
+    good: 1000         # fine
+    acceptable: 2000   # there are some problems
+    poor: 3000         # there are serious problems
+    critical: 5000    # too many problems
 
