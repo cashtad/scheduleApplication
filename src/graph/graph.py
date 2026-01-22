@@ -77,6 +77,7 @@ class ScheduleGraph:
                     competition.juries.append(jury)
                 else:
                     print(f"Competition with id {competition_id} not found")
+                    continue
                 for performance in competition.performances:
                     jury.performances.append(performance)
             self.juries.append(jury)

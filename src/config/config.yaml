@@ -1,16 +1,16 @@
 files:
   competitions:
-    path: C:\Users\Leonid\PycharmProjects\scheduleApplication\src\tables\DANS_250906 competitions.xlsx
+    path: C:\Users\Leonid\PycharmProjects\scheduleApplication\src\tables\Malesice\251220 Plzeň competitions (3).xlsx
     sheet: Competitions
   competitors:
-    path: C:\Users\Leonid\PycharmProjects\scheduleApplication\src\tables\DANS_250906 Kdyně registered.xlsx
+    path: C:\Users\Leonid\PycharmProjects\scheduleApplication\src\tables\Malesice\251220 Plzeň registered (4).xlsx
     sheet: Competitors
   jury:
-    path: C:\Users\Leonid\PycharmProjects\scheduleApplication\src\tables\Porota Kdyně 6.9.2025.xlsx
-    sheet: List1
+    path: C:\Users\Leonid\PycharmProjects\scheduleApplication\src\tables\Malesice\251220 Plzeň judges_2.xlsx
+    sheet: Judges
   schedule:
-    path: C:\Users\Leonid\PycharmProjects\scheduleApplication\src\tables\Časový harmonogram TPV Kdyně.xlsx
-    sheet: List1
+    path: C:\Users\Leonid\PycharmProjects\scheduleApplication\src\tables\Malesice\harmonogram_7_čtvrtek_večer.xlsx
+    sheet: harmonogram
 columns:
   competitions:
     id: number
@@ -26,13 +26,15 @@ columns:
     p1_name_surname: p1_name_surname
     p2_name_surname: p2_name_surname
   jury:
-    id: id
-    fullname: fullname
+    id: label
+    name: jmeno
+    surname: prijmeni
+#    fullname: fullname
     assignment_prefix: "#"
   schedule:
     start_time: čas zahájení
-    end_time: čas ukončení
+#    end_time: čas ukončení
     duration: minut
-    competitor_number: id_competition
+    competition_id: id_competition
     round_type: kolo
 

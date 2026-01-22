@@ -24,7 +24,7 @@ class JuryParser:
             ]
             jury = Jury(
                 id=row[self._cols["id"]],
-                name=row[self._cols["fullname"]],
+                name=row[self._cols["name"]] + " " + row[self._cols["surname"]],
             )
             result.append((jury, assignments))
         return result
