@@ -1,7 +1,4 @@
 from dataclasses import dataclass
-from pathlib import Path
-
-import yaml
 
 from src.expert_system.rules import Rule, Violation, Severity, load_rules_from_config
 
@@ -34,24 +31,14 @@ class ScheduleAnalysisResult:
 class InferenceEngine:
     """Inference engine for the expert system that validates schedule rules"""
 
-    def __init__(self, rules_config_path: str):
+    def __init__(self, rules_config: dict):
         """Initialize inference engine with rules configuration
 
         Args:
-            rules_config_path: Path to the rules configuration YAML file
+            rules_config: Already-loaded rules configuration dict (result of yaml.safe_load)
         """
-        self.rules_config_path = rules_config_path
-        self.rules: list[Rule] = []
-        self.general_config: dict = {}
-        self._load_config()
-
-    def _load_config(self):
-        """Load configuration from YAML file"""
-        with open(self.rules_config_path, 'r', encoding='utf-8') as f:
-            config = yaml.safe_load(f)
-
-        self.general_config = config.get('general', {})
-        self.rules = load_rules_from_config(self.rules_config_path)
+        self.general_config = rules_config.get('general', {})
+        self.rules = load_rules_from_config(rules_config)
 
     def analyze_schedule(self, graph) -> ScheduleAnalysisResult:
         """Analyze schedule for rule violations
