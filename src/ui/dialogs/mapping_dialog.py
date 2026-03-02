@@ -44,9 +44,9 @@ LOGICAL_FIELDS = {
     ],
 }
 
-_COL_HIGHLIGHT = QColor("#BBDEFB")
-_ROW_HIGHLIGHT = QColor("#E8F5E9")
-_DEFAULT_BG    = QColor("white")
+_COL_HIGHLIGHT = QColor("green")
+_ROW_HIGHLIGHT = QColor("green")
+_DEFAULT_BG    = QColor("dark-gray")
 
 
 class MappingDialog(QDialog):
@@ -98,6 +98,7 @@ class MappingDialog(QDialog):
             for r in existing_rows:
                 self._selected_rows.add(r)
             self._refresh_highlights()
+        self._refresh_highlights()
 
         # Mapping form
         group = QGroupBox("Mapování sloupců")

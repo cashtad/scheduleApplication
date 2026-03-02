@@ -124,10 +124,16 @@ class TableLoadPanel(QWidget):
             if not ok:
                 return
             sheet_name = chosen
+        elif len(sheet_names) == 1:
+            sheet_name = sheet_names[0]
+        else:
+            QMessageBox.critical(self, "Chyba načítání", "Soubor neobsahuje žádné listy.")
+            return
 
         # Load DataFrame
         try:
-            raw_df = ExcelTableLoader(path=file_path, sheet=sheet_name).load()
+            loader = ExcelTableLoader(path=file_path, sheet=sheet_name)
+            raw_df = loader.load()
         except Exception as exc:
             QMessageBox.critical(self, "Chyba načítání", f"Nelze načíst tabulku:\n{exc}")
             return
