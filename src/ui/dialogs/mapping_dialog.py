@@ -1,3 +1,8 @@
+import re
+from typing import Optional
+
+_PREFIX_RE = re.compile(r'^(.*?)(\d+)$')
+
 import pandas as pd
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor, QStandardItem, QStandardItemModel
@@ -7,11 +12,26 @@ from PySide6.QtWidgets import (
     QDialogButtonBox,
     QFormLayout,
     QGroupBox,
+    QHBoxLayout,
+    QInputDialog,
     QLabel,
+    QLineEdit,
     QMessageBox,
+    QPushButton,
     QTableView,
     QVBoxLayout,
+    QWidget,
 )
+
+HIGHLIGHT_COLORS = [
+    QColor("#BBDEFB"),  # light blue
+    QColor("#C8E6C9"),  # light green
+    QColor("#FFE0B2"),  # light orange
+    QColor("#F8BBD9"),  # light pink
+    QColor("#E1BEE7"),  # light purple
+    QColor("#B2EBF2"),  # light cyan
+    QColor("#FFF9C4"),  # light yellow
+]
 
 LOGICAL_FIELDS = {
     "competitions": [
@@ -44,16 +64,13 @@ LOGICAL_FIELDS = {
     ],
 }
 
-_COL_HIGHLIGHT = QColor("green")
-_ROW_HIGHLIGHT = QColor("green")
-_DEFAULT_BG    = QColor("dark-gray")
-
 
 class MappingDialog(QDialog):
     """Dialog for mapping DataFrame columns to logical fields."""
 
     def __init__(self, table_key: str, df: pd.DataFrame,
-                 existing_mapping: dict = None, existing_rows: list = None,
+                 existing_mapping: Optional[dict] = None,
+                 existing_rows: Optional[list] = None,
                  parent=None):
         super().__init__(parent)
         self.setWindowTitle("Mapování sloupců")
@@ -62,8 +79,10 @@ class MappingDialog(QDialog):
         self._table_key = table_key
         self._df = df
         self._fields = LOGICAL_FIELDS.get(table_key, [])
-        self._selected_cols: set[int] = set()
-        self._selected_rows: set[int] = set()
+        self._combos: dict[str, QComboBox] = {}
+        self._line_edits: dict[str, QLineEdit] = {}
+        self._prefix_hint_labels: dict[str, QLabel] = {}
+        self._field_col_map: dict[str, str] = {}
         self.result_mapping: dict = {}
         self.result_rows = None
 
@@ -71,8 +90,8 @@ class MappingDialog(QDialog):
 
         # Instruction label
         instruction = QLabel(
-            "Klikněte na záhlaví sloupce pro výběr sloupce, na číslo řádku pro výběr řádku.\n"
-            "Shift+klik = rozsah, Ctrl+klik = vícenásobný výběr."
+            "Vyberte sloupce pro každé pole pomocí rozevíracích seznamů níže.\n"
+            "Vybraný sloupec se automaticky zvýrazní v tabulce."
         )
         layout.addWidget(instruction)
 
@@ -89,35 +108,34 @@ class MappingDialog(QDialog):
 
         self._table = QTableView()
         self._table.setModel(self._model)
-        self._table.horizontalHeader().sectionClicked.connect(self._toggle_column)
-        self._table.verticalHeader().sectionClicked.connect(self._toggle_row)
         layout.addWidget(self._table)
-
-        # Pre-select rows from existing_rows
-        if existing_rows:
-            for r in existing_rows:
-                self._selected_rows.add(r)
-            self._refresh_highlights()
-        self._refresh_highlights()
 
         # Mapping form
         group = QGroupBox("Mapování sloupců")
         form = QFormLayout(group)
-        self._combos: dict[str, QComboBox] = {}
         columns = list(df.columns)
 
         for field_key, label, required in self._fields:
-            combo = QComboBox()
-            if not required:
-                combo.addItem("")
-            combo.addItems(columns)
-            if existing_mapping and field_key in existing_mapping:
-                idx = combo.findText(existing_mapping[field_key])
-                if idx >= 0:
-                    combo.setCurrentIndex(idx)
-            self._combos[field_key] = combo
             display_label = f"{label} *" if required else label
-            form.addRow(display_label, combo)
+            existing_val = existing_mapping.get(field_key, "") if existing_mapping else ""
+
+            if field_key.endswith("_prefix"):
+                widget = self._build_prefix_widget(field_key, existing_val)
+                form.addRow(display_label, widget)
+            else:
+                combo = QComboBox()
+                if not required:
+                    combo.addItem("")
+                combo.addItems(columns)
+                if existing_val:
+                    idx = combo.findText(existing_val)
+                    if idx >= 0:
+                        combo.setCurrentIndex(idx)
+                combo.currentTextChanged.connect(
+                    lambda text, fk=field_key: self._on_combo_changed(fk, text)
+                )
+                self._combos[field_key] = combo
+                form.addRow(display_label, combo)
 
         layout.addWidget(group)
 
@@ -129,38 +147,175 @@ class MappingDialog(QDialog):
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
 
-    # ------------------------------------------------------------------
-    # Column / row selection helpers
-    # ------------------------------------------------------------------
-
-    def _toggle_column(self, col: int) -> None:
-        if col in self._selected_cols:
-            self._selected_cols.discard(col)
-        else:
-            self._selected_cols.add(col)
+        # Populate _field_col_map from existing_mapping and do initial highlights
+        if existing_mapping:
+            for field_key, _, _ in self._fields:
+                if field_key in existing_mapping:
+                    self._field_col_map[field_key] = existing_mapping[field_key]
+        for field_key, _, _ in self._fields:
+            if field_key.endswith("_prefix"):
+                prefix_text = self._field_col_map.get(field_key, "")
+                self._update_prefix_hint(field_key, prefix_text)
         self._refresh_highlights()
 
-    def _toggle_row(self, row: int) -> None:
-        if row in self._selected_rows:
-            self._selected_rows.discard(row)
-        else:
-            self._selected_rows.add(row)
+    # ------------------------------------------------------------------
+    # Prefix widget builder
+    # ------------------------------------------------------------------
+
+    def _build_prefix_widget(self, field_key: str, existing_val: str) -> QWidget:
+        container = QWidget()
+        hbox = QHBoxLayout(container)
+        hbox.setContentsMargins(0, 0, 0, 0)
+
+        line_edit = QLineEdit()
+        line_edit.setText(existing_val)
+        line_edit.textChanged.connect(
+            lambda text, fk=field_key: self._on_prefix_changed(fk, text)
+        )
+        self._line_edits[field_key] = line_edit
+        hbox.addWidget(line_edit)
+
+        btn = QPushButton("Najít automaticky")
+        btn.clicked.connect(lambda checked=False, fk=field_key: self._auto_detect_prefix(fk))
+        hbox.addWidget(btn)
+
+        hint_label = QLabel("→ 0 sloupců")
+        self._prefix_hint_labels[field_key] = hint_label
+        hbox.addWidget(hint_label)
+
+        return container
+
+    # ------------------------------------------------------------------
+    # Auto-detect prefix
+    # ------------------------------------------------------------------
+
+    def _auto_detect_prefix(self, field_key: str) -> None:
+        cols = list(self._df.columns)
+        groups: dict[str, list[int]] = {}
+        for col in cols:
+            m = _PREFIX_RE.match(str(col))
+            if m:
+                prefix, num_str = m.group(1), m.group(2)
+                groups.setdefault(prefix, []).append(int(num_str))
+
+        candidates: list[tuple[str, int]] = []
+        for prefix, numbers in groups.items():
+            sorted_nums = sorted(numbers)
+            n = len(sorted_nums)
+            if n >= 2 and sorted_nums == list(range(1, n + 1)):
+                candidates.append((prefix, n))
+
+        if len(candidates) == 0:
+            QMessageBox.information(
+                self,
+                "Automatická detekce",
+                "Nepodařilo se automaticky detekovat prefix. Zadejte jej ručně.",
+            )
+            return
+
+        if len(candidates) == 1:
+            chosen_prefix = candidates[0][0]
+            self._line_edits[field_key].setText(chosen_prefix)
+            return
+
+        descriptions = []
+        for prefix, count in candidates:
+            if prefix == "":
+                descriptions.append(f"číselné sloupce bez prefixu  ({count} sloupců)")
+            else:
+                descriptions.append(f"{prefix}  ({count} sloupců)")
+
+        item, ok = QInputDialog.getItem(
+            self,
+            "Vyberte prefix",
+            "Nalezeno více kandidátů. Vyberte prefix:",
+            descriptions,
+            0,
+            False,
+        )
+        if ok and item:
+            idx = descriptions.index(item)
+            chosen_prefix = candidates[idx][0]
+            self._line_edits[field_key].setText(chosen_prefix)
+
+    # ------------------------------------------------------------------
+    # Combo / lineedit change handlers
+    # ------------------------------------------------------------------
+
+    def _on_combo_changed(self, field_key: str, col_name: str) -> None:
+        self._field_col_map[field_key] = col_name
         self._refresh_highlights()
+
+    def _on_prefix_changed(self, field_key: str, prefix_text: str) -> None:
+        self._field_col_map[field_key] = prefix_text
+        self._refresh_highlights()
+        self._update_prefix_hint(field_key, prefix_text)
+
+    # ------------------------------------------------------------------
+    # Prefix hint label
+    # ------------------------------------------------------------------
+
+    def _update_prefix_hint(self, field_key: str, prefix_text: str) -> None:
+        label = self._prefix_hint_labels.get(field_key)
+        if label is None:
+            return
+        if prefix_text == "":
+            matching = [c for c in self._df.columns if self._is_pure_int(str(c))]
+        else:
+            matching = [c for c in self._df.columns if str(c).startswith(prefix_text)]
+        label.setText(f"→ {len(matching)} sloupců")
+
+    @staticmethod
+    def _is_pure_int(s: str) -> bool:
+        try:
+            int(s)
+            return True
+        except (ValueError, TypeError):
+            return False
+
+    # ------------------------------------------------------------------
+    # Highlight logic
+    # ------------------------------------------------------------------
 
     def _refresh_highlights(self) -> None:
         rows = self._model.rowCount()
         cols = self._model.columnCount()
+        df_cols = list(self._df.columns)
+
+        # Clear all backgrounds
         for r in range(rows):
             for c in range(cols):
                 item = self._model.item(r, c)
-                if item is None:
-                    continue
-                if c in self._selected_cols:
-                    item.setBackground(_COL_HIGHLIGHT)
-                elif r in self._selected_rows:
-                    item.setBackground(_ROW_HIGHLIGHT)
+                if item is not None:
+                    item.setBackground(QColor(Qt.white))
+
+        # Build col_index -> color mapping
+        col_colors: dict[int, QColor] = {}
+        for field_idx, (field_key, _, _) in enumerate(self._fields):
+            color = HIGHLIGHT_COLORS[field_idx % len(HIGHLIGHT_COLORS)]
+            if field_key not in self._field_col_map:
+                continue
+            val = self._field_col_map[field_key]
+
+            if field_key.endswith("_prefix"):
+                # prefix field
+                if val == "":
+                    indices = [i for i, name in enumerate(df_cols) if self._is_pure_int(str(name))]
                 else:
-                    item.setBackground(_DEFAULT_BG)
+                    indices = [i for i, name in enumerate(df_cols) if str(name).startswith(val)]
+            else:
+                # normal combo field
+                indices = [i for i, name in enumerate(df_cols) if name == val]
+
+            for i in indices:
+                col_colors[i] = color
+
+        # Paint matched columns
+        for c, color in col_colors.items():
+            for r in range(rows):
+                item = self._model.item(r, c)
+                if item is not None:
+                    item.setBackground(color)
 
     # ------------------------------------------------------------------
     # Accept / validate
@@ -169,8 +324,13 @@ class MappingDialog(QDialog):
     def _on_accept(self) -> None:
         missing_labels = []
         for field_key, label, required in self._fields:
-            if required and not self._combos[field_key].currentText():
-                missing_labels.append(label)
+            if required:
+                if field_key in self._combos:
+                    val = self._combos[field_key].currentText()
+                else:
+                    val = self._line_edits[field_key].text()
+                if not val:
+                    missing_labels.append(label)
 
         if missing_labels:
             QMessageBox.warning(
@@ -180,9 +340,10 @@ class MappingDialog(QDialog):
             )
             return
 
-        self.result_mapping = {
-            field_key: self._combos[field_key].currentText()
-            for field_key, _, _ in self._fields
-        }
-        self.result_rows = sorted(self._selected_rows) if self._selected_rows else None
+        self.result_mapping = {}
+        for field_key, _, _ in self._fields:
+            if field_key in self._combos:
+                self.result_mapping[field_key] = self._combos[field_key].currentText()
+            else:
+                self.result_mapping[field_key] = self._line_edits[field_key].text()
         self.accept()
