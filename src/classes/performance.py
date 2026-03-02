@@ -14,5 +14,7 @@ class Performance:
     round_type: str
 
     def __str__(self):
+        if self.competition is None:
+            return f"Performance: Unlinked {self.round_type} {self.start_time}-{self.end_time}"
         text = f"Perfomance: ID:{self.competition.id}-{self.competition.name}-{self.round_type} {self.competition.discipline}  {self.start_time}-{self.end_time}"
         return text

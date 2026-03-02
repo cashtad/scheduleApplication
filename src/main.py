@@ -44,7 +44,8 @@ if __name__ == "__main__":
     session = AppSession(tables=tables)
 
     # Build graph
-    graph = GraphBuilder().build(session)
+    graph_builder = GraphBuilder()
+    graph = graph_builder.build(session)
     session.graph = graph
 
     # Initialize expert system with rules
@@ -61,8 +62,4 @@ if __name__ == "__main__":
     output_html = BASE_DIR.parent / "schedule_analysis_report.html"
     explanation_gen.generate_html_report(result, str(output_html))
     print(f"\n💾 HTML zpráva uložena: {output_html}")
-
-    results = graph.get_performances_by_fullname("Eva Chovancová")
-    for r in results:
-        print(r)
 
