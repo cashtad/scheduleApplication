@@ -4,8 +4,6 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any
 
-import yaml
-
 
 class Severity(Enum):
     """Severity level of rule violation"""
@@ -632,18 +630,15 @@ class SimultaneousJudgingRule(Rule):
         return start1 < end2 and start2 < end1
 
 
-def load_rules_from_config(config_path: str) -> list[Rule]:
-    """Load all rules from configuration file
+def load_rules_from_config(config: dict) -> list[Rule]:
+    """Load all rules from configuration dict
 
     Args:
-        config_path: Path to rules configuration YAML file
+        config: Already-loaded rules configuration dict (result of yaml.safe_load)
 
     Returns:
         List of initialized rule objects
     """
-    with open(config_path, 'r', encoding='utf-8') as f:
-        config = yaml.safe_load(f)
-
     rules = [
         MaxContinuousDancingRule(config['max_continuous_dancing']),
         CostumeChangeTimeRule(config['costume_change_time']),
