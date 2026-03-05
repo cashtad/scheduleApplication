@@ -12,7 +12,7 @@ class PerformanceParser:
 
     def parse(self, df: pd.DataFrame) -> List[Any]:
         result = []
-        for _, row in df.iterrows():
+        for idx, row in df.iterrows():   # idx is the pandas row index (preserved from original df)
             try:
                 competition_id = int(row[self._cols["competition_id"]])
             except ValueError:
@@ -39,6 +39,7 @@ class PerformanceParser:
                     end_time=end_time,
                     duration=duration,
                     round_type=round_type,
-                    competition=None
+                    competition=None,
+                    source_row=idx,        # preserve original DataFrame row index
                 ), competition_id))
         return result

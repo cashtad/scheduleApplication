@@ -12,6 +12,7 @@ class Performance:
     duration: int
     competition: Competition
     round_type: str
+    source_row: int | None = None  # Row index in the original schedule DataFrame
 
     def __str__(self):
         if self.competition is None:
