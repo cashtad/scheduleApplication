@@ -5,6 +5,7 @@ from pathlib import Path
 import yaml
 from PySide6.QtCore import QThread, Signal
 from PySide6.QtWidgets import (
+    QHBoxLayout,
     QMainWindow,
     QMessageBox,
     QProgressDialog,
@@ -79,11 +80,22 @@ class MainWindow(QMainWindow):
             self._panels[key] = panel
             layout.addWidget(panel)
 
-        # Analyze button
+        # Button row: Reload + Analyze
+        btn_row = QHBoxLayout()
+
+        self._reload_btn = QPushButton("🔄  Obnovit data")
+        self._reload_btn.setToolTip(
+            "Znovu načte všechny soubory z disku (použijte po uložení změn v Excelu)."
+        )
+        self._reload_btn.clicked.connect(self._reload_all_tables)
+        btn_row.addWidget(self._reload_btn)
+
         self._analyze_btn = QPushButton("▶  Spustit analýzu")
         self._analyze_btn.setEnabled(False)
         self._analyze_btn.clicked.connect(self._run_analysis)
-        layout.addWidget(self._analyze_btn)
+        btn_row.addWidget(self._analyze_btn)
+
+        layout.addLayout(btn_row)
 
         # Report panel (hidden until first successful analysis)
         self._report_panel = ReportPanel(parent=central)
@@ -131,6 +143,69 @@ class MainWindow(QMainWindow):
         self._update_analyze_button()
 
     # ------------------------------------------------------------------
+    # Reload all tables from disk (called by "Obnovit data" button)
+    # ------------------------------------------------------------------
+
+    def _reload_all_tables(self) -> None:
+        """Re-read all previously loaded files from disk without changing mappings.
+
+        Useful after editing and saving Excel files while the app is open.
+        Tables that were not yet loaded are skipped silently.
+        Tables whose file no longer exists show a warning.
+        """
+        store = TemplateStore()
+        reloaded = 0
+        failed = []
+
+        for key in TABLE_KEYS:
+            ts = self._session.tables.get(key)
+            if ts is None:
+                # Table was never loaded — nothing to reload
+                continue
+
+            if not Path(ts.file_path).exists():
+                failed.append(ts.file_path)
+                continue
+
+            try:
+                raw_df = ExcelTableLoader(path=ts.file_path, sheet=ts.sheet_name).load()
+            except Exception as exc:
+                failed.append(f"{ts.file_path} ({exc})")
+                continue
+
+            # Replace raw_df in-place, keep mapping and path unchanged
+            self._session.tables[key] = TableSession(
+                table_key=key,
+                file_path=ts.file_path,
+                sheet_name=ts.sheet_name,
+                raw_df=raw_df,
+                column_mapping=ts.column_mapping,
+                selected_rows=ts.selected_rows,
+            )
+            reloaded += 1
+
+        self._update_analyze_button()
+
+        if failed:
+            QMessageBox.warning(
+                self,
+                "Chyba při obnově dat",
+                "Nepodařilo se znovu načíst:\n" + "\n".join(failed),
+            )
+        elif reloaded == 0:
+            QMessageBox.information(
+                self,
+                "Obnovit data",
+                "Žádné tabulky ještě nejsou načteny.",
+            )
+        else:
+            QMessageBox.information(
+                self,
+                "Obnovit data",
+                f"Úspěšně obnoveno {reloaded} tabulek z disku.",
+            )
+
+    # ------------------------------------------------------------------
     # Analysis
     # ------------------------------------------------------------------
 
@@ -158,6 +233,7 @@ class MainWindow(QMainWindow):
         self._session.last_result = result
         TemplateStore().save_session_paths(self._session)
         self._report_panel.update_report(report_path)
+        self._report_panel.show()
 
     def _on_analysis_error(self, error_message: str) -> None:
         if self._progress:
