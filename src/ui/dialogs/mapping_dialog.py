@@ -33,6 +33,12 @@ HIGHLIGHT_COLORS = [
     QColor("#FFF9C4"),  # light yellow
 ]
 
+# Used for non-highlighted cells: white background, dark text — readable in both themes
+_DEFAULT_BG   = QColor("#FFFFFF")
+_DEFAULT_FG   = QColor("#000000")
+# Text color for highlighted cells
+_HIGHLIGHT_FG = QColor("#000000")
+
 LOGICAL_FIELDS = {
     "competitions": [
         ("id",               "ID soutěže",           True),
@@ -104,6 +110,9 @@ class MappingDialog(QDialog):
             for c, val in enumerate(row):
                 item = QStandardItem(str(val))
                 item.setFlags(Qt.ItemIsEnabled)
+                # Explicitly set default colors so the table is always readable
+                item.setBackground(_DEFAULT_BG)
+                item.setForeground(_DEFAULT_FG)
                 self._model.setItem(r, c, item)
 
         self._table = QTableView()
@@ -214,8 +223,7 @@ class MappingDialog(QDialog):
             return
 
         if len(candidates) == 1:
-            chosen_prefix = candidates[0][0]
-            self._line_edits[field_key].setText(chosen_prefix)
+            self._line_edits[field_key].setText(candidates[0][0])
             return
 
         descriptions = []
@@ -235,8 +243,7 @@ class MappingDialog(QDialog):
         )
         if ok and item:
             idx = descriptions.index(item)
-            chosen_prefix = candidates[idx][0]
-            self._line_edits[field_key].setText(chosen_prefix)
+            self._line_edits[field_key].setText(candidates[idx][0])
 
     # ------------------------------------------------------------------
     # Combo / lineedit change handlers
@@ -282,12 +289,13 @@ class MappingDialog(QDialog):
         cols = self._model.columnCount()
         df_cols = list(self._df.columns)
 
-        # Clear all backgrounds
+        # Reset all cells to explicit white background + black text
         for r in range(rows):
             for c in range(cols):
                 item = self._model.item(r, c)
                 if item is not None:
-                    item.setBackground(QColor(Qt.white))
+                    item.setBackground(_DEFAULT_BG)
+                    item.setForeground(_DEFAULT_FG)
 
         # Build col_index -> color mapping
         col_colors: dict[int, QColor] = {}
@@ -298,24 +306,23 @@ class MappingDialog(QDialog):
             val = self._field_col_map[field_key]
 
             if field_key.endswith("_prefix"):
-                # prefix field
                 if val == "":
                     indices = [i for i, name in enumerate(df_cols) if self._is_pure_int(str(name))]
                 else:
                     indices = [i for i, name in enumerate(df_cols) if str(name).startswith(val)]
             else:
-                # normal combo field
                 indices = [i for i, name in enumerate(df_cols) if name == val]
 
             for i in indices:
                 col_colors[i] = color
 
-        # Paint matched columns
+        # Paint matched columns with highlight color + dark text
         for c, color in col_colors.items():
             for r in range(rows):
                 item = self._model.item(r, c)
                 if item is not None:
                     item.setBackground(color)
+                    item.setForeground(_HIGHLIGHT_FG)
 
     # ------------------------------------------------------------------
     # Accept / validate
@@ -329,7 +336,7 @@ class MappingDialog(QDialog):
                     val = self._combos[field_key].currentText()
                 else:
                     val = self._line_edits[field_key].text()
-                if not val:
+                if not val and field_key != "assignment_prefix":
                     missing_labels.append(label)
 
         if missing_labels:
