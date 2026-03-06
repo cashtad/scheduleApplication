@@ -26,7 +26,7 @@ class GraphBuilder:
             ts = session.tables[key]
             df = ts.raw_df
             if ts.selected_rows is not None:
-                df = df.iloc[ts.selected_rows]
+                df = df.loc[ts.selected_rows]
             return df
 
         competitions_df = get_df("competitions")

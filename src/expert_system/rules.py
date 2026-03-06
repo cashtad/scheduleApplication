@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any
@@ -22,6 +22,7 @@ class Violation:
     entity_id: str  # ID of dancer/judge involved
     entity_name: str  # Name of dancer/judge
     details: dict[str, Any]  # Additional details about the violation
+    source_rows: list[int] = field(default_factory=list)  # Row indices in schedule DataFrame
 
 
 class Rule(ABC):
@@ -47,6 +48,11 @@ class Rule(ABC):
             List of detected violations
         """
         pass
+
+    @staticmethod
+    def _source_rows(*performances) -> list[int]:
+        """Collect source row indices from performance objects."""
+        return [p.source_row for p in performances if p.source_row is not None]
 
     def _calculate_weight(self, severity: Severity, excess: float = 0) -> float:
         """Calculate violation weight based on severity and excess
@@ -154,7 +160,7 @@ class MaxContinuousDancingRule(Rule):
 
             # Find continuous blocks of performances
             continuous_duration = performances[0].duration
-            block_start = performances[0]
+            block_performances = [performances[0]]
 
             for i in range(1, len(performances)):
                 prev = performances[i - 1]
@@ -170,35 +176,35 @@ class MaxContinuousDancingRule(Rule):
 
                 if gap < self.config['rest_time']:
                     continuous_duration += curr.duration
+                    block_performances.append(curr)
                 else:
                     # Check completed block
                     violation = self._check_duration(
-                        competitor, continuous_duration, block_start, prev
+                        competitor, continuous_duration, block_performances
                     )
                     if violation:
                         violations.append(violation)
 
                     # Start new block
                     continuous_duration = curr.duration
-                    block_start = curr
+                    block_performances = [curr]
 
             # Check last block
             violation = self._check_duration(
-                competitor, continuous_duration, block_start, performances[-1]
+                competitor, continuous_duration, block_performances
             )
             if violation:
                 violations.append(violation)
 
         return violations
 
-    def _check_duration(self, competitor, duration, start_perf, end_perf) -> Violation | None:
+    def _check_duration(self, competitor, duration, block_performances: list) -> Violation | None:
         """Check if continuous duration exceeds thresholds
 
         Args:
             competitor: Competitor object
             duration: Duration of continuous dancing
-            start_perf: First performance in the block
-            end_perf: Last performance in the block
+            block_performances: All performances in the continuous block
 
         Returns:
             Violation object if threshold exceeded, None otherwise
@@ -210,6 +216,8 @@ class MaxContinuousDancingRule(Rule):
             threshold = self.config['thresholds'][severity.value]
             excess = duration - threshold
             weight = self._calculate_weight(severity, excess)
+            start_perf = block_performances[0]
+            end_perf = block_performances[-1]
 
             return Violation(
                 rule_name="MaxContinuousDancing",
@@ -224,7 +232,8 @@ class MaxContinuousDancingRule(Rule):
                     'excess_minutes': excess,
                     'start_time': self._ensure_datetime(start_perf.start_time),
                     'end_time': self._ensure_datetime(end_perf.end_time)
-                }
+                },
+                source_rows=self._source_rows(*block_performances),
             )
 
         return None
@@ -292,7 +301,8 @@ class CostumeChangeTimeRule(Rule):
                                 'to_discipline': next_perf.competition.discipline,
                                 'from_time': curr_end,
                                 'to_time': next_start
-                            }
+                            },
+                            source_rows=self._source_rows(curr, next_perf),
                         ))
 
         return violations
@@ -328,7 +338,7 @@ class MaxContinuousJudgingRule(Rule):
 
             # Track continuous judging blocks
             continuous_duration = performances[0].duration
-            block_start = performances[0]
+            block_performances = [performances[0]]
 
             for i in range(1, len(performances)):
                 prev = performances[i - 1]
@@ -341,33 +351,33 @@ class MaxContinuousJudgingRule(Rule):
 
                 if gap < self.config['rest_time']:  # Consider continuous if gap < 10 minutes
                     continuous_duration += curr.duration
+                    block_performances.append(curr)
                 else:
                     violation = self._check_judging_duration(
-                        jury, continuous_duration, block_start, prev
+                        jury, continuous_duration, block_performances
                     )
                     if violation:
                         violations.append(violation)
 
                     continuous_duration = curr.duration
-                    block_start = curr
+                    block_performances = [curr]
 
             # Check last block
             violation = self._check_judging_duration(
-                jury, continuous_duration, block_start, performances[-1]
+                jury, continuous_duration, block_performances
             )
             if violation:
                 violations.append(violation)
 
         return violations
 
-    def _check_judging_duration(self, jury, duration, start_perf, end_perf) -> Violation | None:
+    def _check_judging_duration(self, jury, duration, block_performances: list) -> Violation | None:
         """Check if continuous judging duration exceeds thresholds
 
         Args:
             jury: Jury object
             duration: Duration of continuous judging
-            start_perf: First performance in the block
-            end_perf: Last performance in the block
+            block_performances: All performances in the continuous block
 
         Returns:
             Violation object if threshold exceeded, None otherwise
@@ -378,6 +388,8 @@ class MaxContinuousJudgingRule(Rule):
             threshold = self.config['thresholds'][severity.value]
             excess = duration - threshold
             weight = self._calculate_weight(severity, excess)
+            start_perf = block_performances[0]
+            end_perf = block_performances[-1]
 
             return Violation(
                 rule_name="MaxContinuousJudging",
@@ -392,7 +404,8 @@ class MaxContinuousJudgingRule(Rule):
                     'excess_minutes': excess,
                     'start_time': self._ensure_datetime(start_perf.start_time),
                     'end_time': self._ensure_datetime(end_perf.end_time)
-                }
+                },
+                source_rows=self._source_rows(*block_performances),
             )
 
         return None
@@ -454,7 +467,8 @@ class MaxGapBetweenPerformancesRule(Rule):
                             'excess_minutes': excess,
                             'from_time': curr_end,
                             'to_time': next_start
-                        }
+                        },
+                        source_rows=self._source_rows(curr, next_perf),
                     ))
 
         return violations
@@ -524,7 +538,8 @@ class SimultaneousDancingRule(Rule):
                                 'overlap_end': overlap_end,
                                 'competition1': perf1.competition.name if perf1.competition else 'N/A',
                                 'competition2': perf2.competition.name if perf2.competition else 'N/A'
-                            }
+                            },
+                            source_rows=self._source_rows(perf1, perf2),
                         ))
 
         return violations
@@ -609,7 +624,8 @@ class SimultaneousJudgingRule(Rule):
                                 'overlap_end': overlap_end,
                                 'competition1': perf1.competition.name if perf1.competition else 'N/A',
                                 'competition2': perf2.competition.name if perf2.competition else 'N/A'
-                            }
+                            },
+                            source_rows=self._source_rows(perf1, perf2),
                         ))
 
         return violations
