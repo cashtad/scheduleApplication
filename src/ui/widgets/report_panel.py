@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
 )
 
 from src.ui.dialogs.report_viewer_dialog import ReportViewerDialog
+from src.ui.dialogs.schedule_view_dialog import ScheduleViewDialog
 
 
 def _format_datetime(path: str) -> str:
@@ -34,6 +35,7 @@ class ReportPanel(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._report_path: str = ""
+        self._session = None
 
         group = QGroupBox("Výsledky analýzy")
         inner = QVBoxLayout(group)
@@ -43,14 +45,21 @@ class ReportPanel(QWidget):
         inner.addWidget(self._file_label)
         inner.addWidget(self._date_label)
 
-        btn_row = QHBoxLayout()
+        btn_row_report = QHBoxLayout()
         self._btn_browser = QPushButton("Otevřít v prohlížeči")
         self._btn_app = QPushButton("Otevřít v aplikaci")
         self._btn_browser.clicked.connect(self._open_in_browser)
         self._btn_app.clicked.connect(self._open_in_app)
-        btn_row.addWidget(self._btn_browser)
-        btn_row.addWidget(self._btn_app)
-        inner.addLayout(btn_row)
+        btn_row_report.addWidget(self._btn_browser)
+        btn_row_report.addWidget(self._btn_app)
+        inner.addLayout(btn_row_report)
+
+        btn_row_table = QHBoxLayout()
+        self._show_violations_btn = QPushButton("📋 Zobrazit chyby v tabulce")
+        self._show_violations_btn.setEnabled(False)
+        self._show_violations_btn.clicked.connect(self._show_violations_table)
+        btn_row_table.addWidget(self._show_violations_btn)
+        inner.addLayout(btn_row_table)
 
         outer = QVBoxLayout(self)
         outer.addWidget(group)
@@ -61,6 +70,7 @@ class ReportPanel(QWidget):
         self._file_label.setText(f"📄 {Path(report_path).name}")
         formatted = _format_datetime(report_path)
         self._date_label.setText(f"Vytvořeno: {formatted}" if formatted else "")
+        self._show_violations_btn.setEnabled(True)
         self.show()
 
     def _open_in_browser(self) -> None:
@@ -69,3 +79,16 @@ class ReportPanel(QWidget):
     def _open_in_app(self) -> None:
         dlg = ReportViewerDialog(self._report_path, parent=self)
         dlg.exec()
+
+    def _show_violations_table(self) -> None:
+        if self._session is None:
+            return
+        ts = self._session.tables.get("schedule")
+        if ts is None or self._session.last_result is None:
+            return
+        dlg = ScheduleViewDialog(ts.raw_df, self._session.last_result, parent=self)
+        dlg.exec()
+
+    def update_session(self, session) -> None:
+        """Receive session reference from main window to access tables and results."""
+        self._session = session

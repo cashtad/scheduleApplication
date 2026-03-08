@@ -97,12 +97,6 @@ class MainWindow(QMainWindow):
 
         layout.addLayout(btn_row)
 
-        # "Show violations in table" button (enabled after analysis)
-        self._show_violations_btn = QPushButton("📋 Zobrazit chyby v tabulce")
-        self._show_violations_btn.setEnabled(False)
-        self._show_violations_btn.clicked.connect(self._show_violations_table)
-        layout.addWidget(self._show_violations_btn)
-
         # Report panel (hidden until first successful analysis)
         self._report_panel = ReportPanel(parent=central)
         self._report_panel.hide()
@@ -239,16 +233,8 @@ class MainWindow(QMainWindow):
         self._session.last_result = result
         TemplateStore().save_session_paths(self._session)
         self._report_panel.update_report(report_path)
+        self._report_panel.update_session(self._session)
         self._report_panel.show()
-        self._show_violations_btn.setEnabled(True)
-
-    def _show_violations_table(self) -> None:
-        from src.ui.dialogs.schedule_view_dialog import ScheduleViewDialog
-        ts = self._session.tables.get("schedule")
-        if ts is None or self._session.last_result is None:
-            return
-        dlg = ScheduleViewDialog(ts.raw_df, self._session.last_result, parent=self)
-        dlg.exec()
 
     def _on_analysis_error(self, error_message: str) -> None:
         if self._progress:

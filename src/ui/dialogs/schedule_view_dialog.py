@@ -44,10 +44,10 @@ class ScheduleViewDialog(QDialog):
 
         # Legend
         legend = QLabel(
-            "  🔴 Červená = KRITICKÉ nárušení   "
-            "🟡 Oranžová = STŘEDNÍ nárušení   "
-            "🟢 Žlutá = NÍZKÉ nárušení   "
-            "  Bílá = bez nárušení"
+            "  🔴 Červená = KRITICKÉ narušení   "
+            "🟡 Oranžová = STŘEDNÍ narušení   "
+            "🟢 Žlutá = NÍZKÉ narušení   "
+            "  Bílá = bez narušení"
         )
         legend.setWordWrap(True)
         layout.addWidget(legend)
@@ -98,7 +98,7 @@ class ScheduleViewDialog(QDialog):
         n_medium = sum(1 for s in row_severity.values() if s == Severity.MEDIUM)
         n_low = sum(1 for s in row_severity.values() if s == Severity.LOW)
         summary = QLabel(
-            f"Celkem řádků s nárušeními: {n_rows}  "
+            f"Celkem řádků s narušeními: {n_rows}  "
             f"(🔴 {n_critical} kritických, 🟡 {n_medium} středních, 🟢 {n_low} nízkých)"
         )
         layout.addWidget(summary)
