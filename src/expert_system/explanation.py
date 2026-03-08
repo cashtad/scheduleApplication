@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from src.expert_system.rules import Violation, Severity
-from src.expert_system.inference_engine import ScheduleAnalysisResult
+from .rules import Violation, Severity
+from .schedule_analysis_result import ScheduleAnalysisResult
 
 
 class ExplanationGenerator:
@@ -325,7 +325,7 @@ class ExplanationGenerator:
             gap = violation.details['gap_minutes']
             html += f"                <p>⏱️ Přestávka: {gap:.0f} minut</p>\n"
 
-        if 'from_time'in violation.details and 'to_time' in violation.details:
+        if 'from_time' in violation.details and 'to_time' in violation.details:
             from_time = violation.details['from_time']
             to_time = violation.details['to_time']
             html += f"                <p>🕐 Časový úsek: {from_time.strftime('%H:%M')} - {to_time.strftime('%H:%M')}</p>\n"
@@ -358,4 +358,3 @@ class ExplanationGenerator:
         </div>
 """
         return html
-

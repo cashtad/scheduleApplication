@@ -1,6 +1,8 @@
 import sys
+
 from PySide6.QtWidgets import QApplication
-from src.ui.main_window import MainWindow
+
+from ui import MainWindow
 
 
 def main():
@@ -12,4 +14,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

@@ -34,39 +34,39 @@ HIGHLIGHT_COLORS = [
 ]
 
 # Used for non-highlighted cells: white background, dark text — readable in both themes
-_DEFAULT_BG   = QColor("#FFFFFF")
-_DEFAULT_FG   = QColor("#000000")
+_DEFAULT_BG = QColor("#FFFFFF")
+_DEFAULT_FG = QColor("#000000")
 # Text color for highlighted cells
 _HIGHLIGHT_FG = QColor("#000000")
 
 LOGICAL_FIELDS = {
     "competitions": [
-        ("id",               "ID soutěže",           True),
-        ("title",            "Název",                True),
-        ("discipline",       "Disciplína",           True),
-        ("age",              "Věková kategorie",     True),
-        ("rank",             "Třída",                True),
-        ("competitor_count", "Počet závodníků",      True),
-        ("round_count",      "Počet kol",            True),
+        ("id", "ID soutěže", True),
+        ("title", "Název", True),
+        ("discipline", "Disciplína", True),
+        ("age", "Věková kategorie", True),
+        ("rank", "Třída", True),
+        ("competitor_count", "Počet závodníků", True),
+        ("round_count", "Počet kol", True),
     ],
     "competitors": [
-        ("count",            "Počet závodníků páru", True),
-        ("p1_name_surname",  "Jméno závodníka 1",    True),
-        ("p2_name_surname",  "Jméno závodníka 2",    False),
-        ("assignment_prefix","Prefix přiřazení",     True),
+        ("count", "Počet závodníků páru", True),
+        ("p1_name_surname", "Jméno závodníka 1", True),
+        ("p2_name_surname", "Jméno závodníka 2", False),
+        ("assignment_prefix", "Prefix přiřazení", True),
     ],
     "jury": [
-        ("id",               "ID porotce",           True),
-        ("name",             "Jméno",                True),
-        ("surname",          "Příjmení",             True),
-        ("assignment_prefix","Prefix přiřazení",     True),
+        ("id", "ID porotce", True),
+        ("name", "Jméno", True),
+        ("surname", "Příjmení", True),
+        ("assignment_prefix", "Prefix přiřazení", True),
     ],
     "schedule": [
-        ("competition_id",   "ID soutěže",           True),
-        ("start_time",       "Čas začátku",          True),
-        ("duration",         "Délka (minuty)",       True),
-        ("round_type",       "Typ kola",             True),
-        ("end_time",         "Čas konce",            False),
+        ("competition_id", "ID soutěže", True),
+        ("start_time", "Čas začátku", True),
+        ("duration", "Délka (minuty)", True),
+        ("round_type", "Typ kola", True),
+        ("end_time", "Čas konce", False),
     ],
 }
 

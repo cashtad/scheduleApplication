@@ -14,14 +14,10 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from src.core.session import TABLE_KEYS, AppSession, TableSession
-from src.data.excel_loader import ExcelTableLoader
-from src.data.graph_builder import GraphBuilder
-from src.data.template_store import TemplateStore
-from src.expert_system.explanation import ExplanationGenerator
-from src.expert_system.inference_engine import InferenceEngine
-from src.ui.widgets.report_panel import ReportPanel
-from src.ui.widgets.table_load_panel import TableLoadPanel
+from core import AppSession, TableSession, TABLE_KEYS
+from data import GraphBuilder, ExcelTableLoader, TemplateStore
+from expert_system import ExplanationGenerator, InferenceEngine
+from widgets import ReportPanel, TableLoadPanel
 
 RULES_CONFIG_PATH = Path(__file__).parent.parent / "config" / "rules_config.yaml"
 
@@ -29,7 +25,7 @@ RULES_CONFIG_PATH = Path(__file__).parent.parent / "config" / "rules_config.yaml
 class AnalysisWorker(QThread):
     """Background thread that runs the schedule analysis."""
 
-    finished = Signal(object, str)   # (ScheduleAnalysisResult, report_path)
+    finished = Signal(object, str)  # (ScheduleAnalysisResult, report_path)
     error = Signal(str)
 
     def __init__(self, session, rules_config, report_path):

@@ -8,28 +8,22 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
-from src.expert_system.rules import Severity
-from src.expert_system.inference_engine import ScheduleAnalysisResult
-
+from expert_system import ScheduleAnalysisResult, Severity
 
 SEVERITY_BG = {
     Severity.CRITICAL: QColor("#FFCDD2"),  # light red
-    Severity.MEDIUM:   QColor("#FFE0B2"),  # light orange
-    Severity.LOW:      QColor("#FFF9C4"),  # light yellow
+    Severity.MEDIUM: QColor("#FFE0B2"),  # light orange
+    Severity.LOW: QColor("#FFF9C4"),  # light yellow
 }
 
 SEVERITY_LABELS = {
     Severity.CRITICAL: "🔴 KRITICKÉ",
-    Severity.MEDIUM:   "🟡 STŘEDNÍ",
-    Severity.LOW:      "🟢 NÍZKÉ",
+    Severity.MEDIUM: "🟡 STŘEDNÍ",
+    Severity.LOW: "🟢 NÍZKÉ",
 }
 
 _DEFAULT_BG = QColor("#FFFFFF")
 _DEFAULT_FG = QColor("#000000")
-
-
-def _severity_rank(s: Severity) -> int:
-    return {Severity.CRITICAL: 3, Severity.MEDIUM: 2, Severity.LOW: 1}.get(s, 0)
 
 
 class ScheduleViewDialog(QDialog):
@@ -102,3 +96,7 @@ class ScheduleViewDialog(QDialog):
             f"(🔴 {n_critical} kritických, 🟡 {n_medium} středních, 🟢 {n_low} nízkých)"
         )
         layout.addWidget(summary)
+
+    @staticmethod
+    def _severity_rank(s: Severity) -> int:
+        return {Severity.CRITICAL: 3, Severity.MEDIUM: 2, Severity.LOW: 1}.get(s, 0)

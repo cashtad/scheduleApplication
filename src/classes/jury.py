@@ -1,10 +1,12 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
-
-@dataclass
+@dataclass(frozen=True)
 class Jury:
-    """Vertex of graph: jury"""
-    id: str
     name: str
-    performances: None | list['Performance'] = field(default_factory=list)
+    surname: str
+    fullname: str
+    competition_ids: set[int]
+
+    def __str__(self):
+        return f"Jury member {self.fullname} for competitions {self.competition_ids}"

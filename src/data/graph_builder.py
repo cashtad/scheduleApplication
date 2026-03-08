@@ -1,16 +1,14 @@
-from src.core.session import AppSession
-from src.graph.graph import ScheduleGraph
-from src.parsers.competitions_table import CompetitionParser
-from src.parsers.competitors_table import CompetitorsParser
-from src.parsers.jury_table import JuryParser
-from src.parsers.schedule_table import PerformanceParser
+from core import AppSession
+from graph import ScheduleGraph
+from parsers import CompetitionParser, CompetitorsParser, JuryParser, PerformanceParser
 
 
 class GraphBuilder:
     """Builds ScheduleGraph from AppSession.
     Does NOT read files — uses already-loaded DataFrames from session."""
 
-    def build(self, session: AppSession) -> ScheduleGraph:
+    @staticmethod
+    def build(session: AppSession) -> ScheduleGraph:
         """
         Takes session.tables["competitions"].raw_df + .column_mapping,
         same for competitors, jury, schedule —
@@ -29,58 +27,30 @@ class GraphBuilder:
                 df = df.loc[ts.selected_rows]
             return df
 
-        competitions_df = get_df("competitions")
-        competitors_df = get_df("competitors")
-        jury_df = get_df("jury")
-        schedule_df = get_df("schedule")
-
         # Parse competitions
-        graph.competitions = CompetitionParser(
+        competitions_df = get_df("competitions")
+        competitions = CompetitionParser(
             session.tables["competitions"].column_mapping
         ).parse(competitions_df)
+        graph.set_competitions(competitions)
 
         # Connecting performances to competitions
+        schedule_df = get_df("schedule")
         performances = PerformanceParser(
             session.tables["schedule"].column_mapping
         ).parse(schedule_df)
-        for performance, competition_id in performances:
-            competition = graph.get_competition_by_id(competition_id)
-            if competition:
-                competition.performances.append(performance)
-                performance.competition = competition
-            else:
-                print(f"Competition with id {competition_id} not found for performance in row {performance}")
-            graph.performances.append(performance)
+        graph.set_performances(performances)
 
         # Connecting judges to competitions
+        jury_df = get_df("jury")
         juries = JuryParser(session.tables["jury"].column_mapping).parse(jury_df)
-        for jury, assignments in juries:
-            for competition_id in assignments:
-                competition = graph.get_competition_by_id(competition_id)
-                if competition:
-                    competition.juries.append(jury)
-                else:
-                    print(f"Competition with id {competition_id} not found for jury assignment of {jury.name}")
-                    continue
-                for performance in competition.performances:
-                    jury.performances.append(performance)
-            graph.juries.append(jury)
+        graph.set_juries(juries)
 
         # Connecting competitors to competitions
-        dancers = CompetitorsParser(
+        competitors_df = get_df("competitors")
+        competitors = CompetitorsParser(
             session.tables["competitors"].column_mapping
         ).parse(competitors_df)
-        for pairs in dancers:
-            dancer = pairs[0]
-            competitions = pairs[1]
-            for competition_id in competitions:
-                competition = graph.get_competition_by_id(competition_id)
-                if competition:
-                    competition.competitors.append(dancer)
-                else:
-                    print(f"Competition with id {competition_id} not found for competitor registration of {dancer.full_name_1}")
-                for performance in competition.performances:
-                    dancer.performances.append(performance)
-            graph.competitors.append(dancer)
+        graph.set_competitors(competitors)
 
         return graph

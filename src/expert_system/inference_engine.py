@@ -1,31 +1,5 @@
-from dataclasses import dataclass
-
-from src.expert_system.rules import Rule, Violation, Severity, load_rules_from_config
-
-
-@dataclass
-class ScheduleAnalysisResult:
-    """Result of schedule analysis containing violations and ratings"""
-    total_weight: float
-    rating: str
-    violations: list[Violation]
-    violations_by_severity: dict[Severity, list[Violation]]
-    violations_by_rule: dict[str, list[Violation]]
-
-    def get_summary(self) -> dict:
-        """Get brief summary of analysis results
-
-        Returns:
-            Dictionary with summary statistics
-        """
-        return {
-            'total_weight': self.total_weight,
-            'rating': self.rating,
-            'total_violations': len(self.violations),
-            'critical_count': len(self.violations_by_severity.get(Severity.CRITICAL, [])),
-            'medium_count': len(self.violations_by_severity.get(Severity.MEDIUM, [])),
-            'low_count': len(self.violations_by_severity.get(Severity.LOW, []))
-        }
+from .rules import Severity, Violation, load_rules_from_config
+from .schedule_analysis_result import ScheduleAnalysisResult
 
 
 class InferenceEngine:
@@ -74,7 +48,8 @@ class InferenceEngine:
             violations_by_rule=violations_by_rule
         )
 
-    def _group_by_severity(self, violations: list[Violation]) -> dict[Severity, list[Violation]]:
+    @staticmethod
+    def _group_by_severity(violations: list[Violation]) -> dict[Severity, list[Violation]]:
         """Group violations by severity level
 
         Args:
@@ -90,7 +65,8 @@ class InferenceEngine:
 
         return result
 
-    def _group_by_rule(self, violations: list[Violation]) -> dict[str, list[Violation]]:
+    @staticmethod
+    def _group_by_rule(violations: list[Violation]) -> dict[str, list[Violation]]:
         """Group violations by rule name
 
         Args:

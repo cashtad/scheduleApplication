@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
 
 try:
     from PySide6.QtWebEngineWidgets import QWebEngineView
+
     HAS_WEBENGINE = True
 except ImportError:
     HAS_WEBENGINE = False

@@ -11,22 +11,21 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from src.core.session import TableSession
-from src.data.excel_loader import ExcelTableLoader
-from src.data.template_store import TemplateStore
-from src.ui.dialogs.mapping_dialog import MappingDialog
+from core import TableSession
+from data import ExcelTableLoader, TemplateStore
+from ..dialogs import MappingDialog
 
 TABLE_NAMES = {
     "competitions": "Tabulka soutěží",
-    "competitors":  "Tabulka závodníků",
-    "jury":         "Tabulka porotců",
-    "schedule":     "Tabulka harmonogramu",
+    "competitors": "Tabulka závodníků",
+    "jury": "Tabulka porotců",
+    "schedule": "Tabulka harmonogramu",
 }
 
 STATUS_CONFIG = {
-    "not_loaded":    ("Nevybráno",               "#9E9E9E"),
-    "needs_mapping": ("Vyžaduje výběr sloupců",  "#FF9800"),
-    "ready":         ("Připraveno",              "#4CAF50"),
+    "not_loaded": ("Nevybráno", "#9E9E9E"),
+    "needs_mapping": ("Vyžaduje výběr sloupců", "#FF9800"),
+    "ready": ("Připraveno", "#4CAF50"),
 }
 
 _DOT_STYLE = (
@@ -174,12 +173,12 @@ class TableLoadPanel(QWidget):
         # else: keep previous status unchanged
 
     def _apply_mapping(
-        self,
-        raw_df: pd.DataFrame,
-        file_path: str,
-        sheet_name,
-        mapping: dict,
-        selected_rows,
+            self,
+            raw_df: pd.DataFrame,
+            file_path: str,
+            sheet_name,
+            mapping: dict,
+            selected_rows,
     ) -> None:
         self._session.tables[self._table_key] = TableSession(
             table_key=self._table_key,

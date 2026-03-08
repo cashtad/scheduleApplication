@@ -1,36 +1,15 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
-
-
-@dataclass
+@dataclass(frozen=True)
 class Competition:
-    """Vertex of graph: competition"""
     id: int
     name: str
     discipline: str
-    age: str
-    rank: str
-    competitor_count: int
-    round_count: int
-    juries: list['Jury'] = field(default_factory=list)
-    competitors: list['Competitor'] = field(default_factory=list)
-    performances: list['Performance'] = field(default_factory=list)
+    age: str  # jun (I- III) etc
+    rank: str  # sil, gold etc
+    competitor_count: int  # 1-2
+    round_count: int  # 1-more
 
     def __str__(self):
-        text = f"Competition: {self.id} {self.name} {self.discipline} {self.age}, juries: "
-
-        for jury in self.juries:
-            text += f"{jury.name}, "
-
-        text += f", competitors: "
-
-        for competitor in self.competitors:
-            text += f"{competitor.full_name_1}, "
-
-        text += f", performances: {len(self.performances)}"
-
-        for performance in self.performances:
-            text += f"\n  - {performance}"
-
-        return text
+        return f"Competition #{self.id} - {self.name}"

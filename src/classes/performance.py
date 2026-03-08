@@ -1,21 +1,15 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from src.classes.competition import Competition
 
-
-@dataclass
+@dataclass(frozen=True)
 class Performance:
-    """Vertex of graph: performance (round of competition"""
     start_time: datetime
     end_time: datetime
-    duration: int
-    competition: Competition
-    round_type: str
-    source_row: int | None = None  # Row index in the original schedule DataFrame
+    duration: int  # duration in minutes
+    round_type: str  # "semifinal", "final", etc.
+    competition_id: int  # ID of the linked competition, None if not linked
+    source_row: int  # Row index in the original schedule DataFrame
 
     def __str__(self):
-        if self.competition is None:
-            return f"Performance: Unlinked {self.round_type} {self.start_time}-{self.end_time}"
-        text = f"Perfomance: ID:{self.competition.id}-{self.competition.name}-{self.round_type} {self.competition.discipline}  {self.start_time}-{self.end_time}"
-        return text
+        return f"Performance linked to competition #{self.competition_id} {self.round_type} {self.start_time}-{self.end_time}"

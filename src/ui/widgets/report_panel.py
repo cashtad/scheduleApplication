@@ -12,21 +12,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from src.ui.dialogs.report_viewer_dialog import ReportViewerDialog
-from src.ui.dialogs.schedule_view_dialog import ScheduleViewDialog
-
-
-def _format_datetime(path: str) -> str:
-    """Extract timestamp from report filename and format it in Czech style."""
-    try:
-        stem = Path(path).stem  # schedule_report_2026-03-02_14-30
-        ts_part = stem.replace("schedule_report_", "")
-        dt = datetime.strptime(ts_part, "%Y-%m-%d_%H-%M")
-        if sys.platform == "win32":
-            return dt.strftime("%#d. %#m. %Y %H:%M")
-        return dt.strftime("%-d. %-m. %Y %H:%M")
-    except Exception:
-        return ""
+from ..dialogs import ReportViewerDialog, ScheduleViewDialog
 
 
 class ReportPanel(QWidget):
@@ -92,3 +78,16 @@ class ReportPanel(QWidget):
     def update_session(self, session) -> None:
         """Receive session reference from main window to access tables and results."""
         self._session = session
+
+    @staticmethod
+    def _format_datetime(path: str) -> str:
+        """Extract timestamp from report filename and format it in Czech style."""
+        try:
+            stem = Path(path).stem  # schedule_report_2026-03-02_14-30
+            ts_part = stem.replace("schedule_report_", "")
+            dt = datetime.strptime(ts_part, "%Y-%m-%d_%H-%M")
+            if sys.platform == "win32":
+                return dt.strftime("%#d. %#m. %Y %H:%M")
+            return dt.strftime("%-d. %-m. %Y %H:%M")
+        except Exception:
+            return ""
