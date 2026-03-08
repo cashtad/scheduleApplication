@@ -51,7 +51,7 @@ class ScheduleViewDialog(QDialog):
         for violation in result.violations:
             for row_idx in violation.source_rows:
                 existing = row_severity.get(row_idx)
-                if existing is None or _severity_rank(violation.severity) > _severity_rank(existing):
+                if existing is None or self._severity_rank(violation.severity) > self._severity_rank(existing):
                     row_severity[row_idx] = violation.severity
 
         # Build row_index → violation descriptions for tooltip

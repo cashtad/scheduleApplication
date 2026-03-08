@@ -22,13 +22,13 @@ class MaxGapBetweenPerformancesRule(ARule):
         competitors = graph.get_competitors()
 
         for competitor in competitors:
-            if len(competitor.performances) < 2:
-                continue
-
             performances = sorted(
-                competitor.performances,
+                graph.get_performances_of_competitor(competitor),
                 key=lambda p: self._ensure_datetime(p.start_time)
             )
+
+            if len(performances) < 2:
+                continue
 
             for i in range(len(performances) - 1):
                 curr = performances[i]
@@ -50,7 +50,7 @@ class MaxGapBetweenPerformancesRule(ARule):
                         severity=severity,
                         weight=weight,
                         description=f"Příliš velká přestávka ({gap_minutes:.0f} min) mezi vystoupeními pro {competitor.full_name_1}",
-                        entity_id=competitor.id,
+                        entity_id=competitor.full_name_1,
                         entity_name=competitor.full_name_1,
                         details={
                             'gap_minutes': gap_minutes,

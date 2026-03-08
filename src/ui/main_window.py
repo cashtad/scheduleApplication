@@ -17,7 +17,7 @@ from PySide6.QtWidgets import (
 from core import AppSession, TableSession, TABLE_KEYS
 from data import GraphBuilder, ExcelTableLoader, TemplateStore
 from expert_system import ExplanationGenerator, InferenceEngine
-from widgets import ReportPanel, TableLoadPanel
+from .widgets import ReportPanel, TableLoadPanel
 
 RULES_CONFIG_PATH = Path(__file__).parent.parent / "config" / "rules_config.yaml"
 

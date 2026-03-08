@@ -65,6 +65,11 @@ class ScheduleGraph:
             return set(p for p in self.performances if p.jury_id == jury.id)
         else:
             return set()
-    def get_performances_by_competition_ids(self, competition_ids: set[int]) -> set[Performance]:
-        return set(p for p in self.performances if p.competition_id in competition_ids)
+    def get_performances_by_competition_ids(self, competition_ids: set[int]) -> list[Performance]:
+        return [p for p in self.performances if p.competition_id in competition_ids]
 
+    def get_performances_of_competitor(self, competitor) -> list[Performance]:
+        return self.get_performances_by_competition_ids(competitor.competition_ids)
+
+    def get_performances_of_jury(self, jury) -> list[Performance]:
+        return self.get_performances_by_competition_ids(jury.competition_ids)

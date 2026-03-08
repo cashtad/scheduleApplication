@@ -1,13 +1,13 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, FrozenSet
 
 
-@dataclass
+@dataclass(frozen=True)
 class Competitor:
     count: int
     full_name_1: str
-    full_name_2: Optional[int]
-    competition_ids: set[int]
+    full_name_2: Optional[str]
+    competition_ids: FrozenSet[int]
 
     def __str__(self):
         if self.count == 1:
@@ -15,5 +15,5 @@ class Competitor:
         else:
             return f"Pair of competitors {self.full_name_1} and {self.full_name_2}, participating in {self.competition_ids} competitions"
 
-    def get_competition_ids(self) -> set[int]:
+    def get_competition_ids(self) -> FrozenSet[int]:
         return self.competition_ids

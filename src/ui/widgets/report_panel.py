@@ -54,7 +54,7 @@ class ReportPanel(QWidget):
         """Update panel with new report info."""
         self._report_path = report_path
         self._file_label.setText(f"📄 {Path(report_path).name}")
-        formatted = _format_datetime(report_path)
+        formatted = self._format_datetime(report_path)
         self._date_label.setText(f"Vytvořeno: {formatted}" if formatted else "")
         self._show_violations_btn.setEnabled(True)
         self.show()

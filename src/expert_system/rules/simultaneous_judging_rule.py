@@ -26,13 +26,13 @@ class SimultaneousJudgingRule(ARule):
         juries = graph.get_juries()
 
         for jury in juries:
-            if len(jury.performances) < 2:
-                continue
-
             performances = sorted(
-                jury.performances,
+                graph.get_performances_of_jury(jury),
                 key=lambda p: self._ensure_datetime(p.start_time)
             )
+
+            if len(performances) < 2:
+                continue
 
             # Check each pair of performances for time overlap
             for i in range(len(performances)):
@@ -53,13 +53,16 @@ class SimultaneousJudgingRule(ARule):
                         overlap_end = min(end1, end2)
                         overlap_minutes = (overlap_end - overlap_start).total_seconds() / 60
 
+                        comp1 = graph.get_competition_by_id(perf1.competition_id)
+                        comp2 = graph.get_competition_by_id(perf2.competition_id)
+
                         violations.append(Violation(
                             rule_name="SimultaneousJudging",
                             severity=Severity.CRITICAL,
                             weight=weight,
-                            description=f"Porotce {jury.name} musí soudit současně {len([p for p in performances if self._is_overlapping(start1, end1, self._ensure_datetime(p.start_time), self._ensure_datetime(p.end_time))])} vystoupení v čase {overlap_start.strftime('%H:%M')}-{overlap_end.strftime('%H:%M')}",
+                            description=f"Porotce {jury.fullname} musí soudit současně {len([p for p in performances if self._is_overlapping(start1, end1, self._ensure_datetime(p.start_time), self._ensure_datetime(p.end_time))])} vystoupení v čase {overlap_start.strftime('%H:%M')}-{overlap_end.strftime('%H:%M')}",
                             entity_id=jury.id,
-                            entity_name=jury.name,
+                            entity_name=jury.fullname,
                             details={
                                 'overlap_minutes': overlap_minutes,
                                 'performance1_start': start1,
@@ -68,8 +71,8 @@ class SimultaneousJudgingRule(ARule):
                                 'performance2_end': end2,
                                 'overlap_start': overlap_start,
                                 'overlap_end': overlap_end,
-                                'competition1': perf1.competition.name if perf1.competition else 'N/A',
-                                'competition2': perf2.competition.name if perf2.competition else 'N/A'
+                                'competition1': comp1.name if comp1 else 'N/A',
+                                'competition2': comp2.name if comp2 else 'N/A'
                             },
                             source_rows=self._source_rows(perf1, perf2),
                         ))

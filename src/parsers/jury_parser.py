@@ -10,9 +10,10 @@ class JuryParser(TableParser):
     def parse(self, df: DataFrame) -> Set[Jury]:
         result = set()
 
+        prefix = self._cols["assignment_prefix"]
         filtered_competition_cols = self.get_filtered_competition_cols(df)
         for idx, row in df.iterrows():
-            if isna(row[self._cols["id"]]):
+            if isna(row[self._cols["id"]]) or row[self._cols["id"]] == "":
                 continue  # skip useless rows
 
             try:
@@ -20,7 +21,7 @@ class JuryParser(TableParser):
                 surname = str(row[self._cols["surname"]]).strip()
                 fullname = name + " " + surname
 
-                assignments = set(
+                assignments = frozenset(
                     int(str(col).removeprefix(prefix))
                     for col in filtered_competition_cols
                     if str(row[col]).strip() == "1")

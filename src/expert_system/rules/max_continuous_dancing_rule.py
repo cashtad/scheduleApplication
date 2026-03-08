@@ -27,10 +27,9 @@ class MaxContinuousDancingRule(ARule):
         for competitor in competitors:
             # Sort performances by start time
             performances = sorted(
-                competitor.performances,
+                graph.get_performances_of_competitor(competitor),
                 key=lambda p: self._ensure_datetime(p.start_time)
-            ) # TODO: fix
-            performances = graph.get
+            )
 
             if len(performances) < 2:
                 continue
@@ -43,10 +42,8 @@ class MaxContinuousDancingRule(ARule):
                 prev = performances[i - 1]
                 curr = performances[i]
 
-                prev_start = self._ensure_datetime(prev.start_time)
                 prev_end = self._ensure_datetime(prev.end_time)
                 curr_start = self._ensure_datetime(curr.start_time)
-                curr_end = self._ensure_datetime(curr.end_time)
 
                 # If gap is less than 12 minutes, consider it continuous
                 gap = (curr_start - prev_end).total_seconds() / 60
@@ -101,7 +98,7 @@ class MaxContinuousDancingRule(ARule):
                 severity=severity,
                 weight=weight,
                 description=f"Tanečník {competitor.full_name_1} tančí {duration:.0f} minut bez přestávky",
-                entity_id=competitor.id,
+                entity_id=competitor.full_name_1,
                 entity_name=competitor.full_name_1,
                 details={
                     'duration_minutes': duration,

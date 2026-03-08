@@ -25,15 +25,14 @@ class MaxContinuousJudgingRule(ARule):
         juries = graph.get_juries()
 
         for jury in juries:
-            if not jury.performances:
-                continue
-
             performances = sorted(
-                jury.performances,
+                graph.get_performances_of_jury(jury),
                 key=lambda p: self._ensure_datetime(p.start_time)
             )
 
-            # Track continuous judging blocks
+            if not performances:
+                continue
+
             continuous_duration = performances[0].duration
             block_performances = [performances[0]]
 
@@ -92,9 +91,9 @@ class MaxContinuousJudgingRule(ARule):
                 rule_name="MaxContinuousJudging",
                 severity=severity,
                 weight=weight,
-                description=f"Porotce {jury.name} porotuje {duration:.0f} minut bez přestávky",
+                description=f"Porotce {jury.fullname} porotuje {duration:.0f} minut bez přestávky",
                 entity_id=jury.id,
-                entity_name=jury.name,
+                entity_name=jury.fullname,
                 details={
                     'duration_minutes': duration,
                     'threshold_minutes': threshold,

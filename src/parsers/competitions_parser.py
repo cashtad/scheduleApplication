@@ -1,7 +1,6 @@
 from typing import Set
 
 from pandas import DataFrame
-
 from classes import Competition
 from .table_parser import TableParser
 

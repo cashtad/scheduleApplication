@@ -24,9 +24,8 @@ class CostumeChangeTimeRule(ARule):
         disciplines = self.config['disciplines']
 
         for competitor in competitors:
-            performances = graph.get_performances_by_competition_ids(competitor.get_competition_ids())
-            sorted(
-                performances,
+            performances = sorted(
+                graph.get_performances_of_competitor(competitor),
                 key=lambda p: self._ensure_datetime(p.start_time)
             )
 
@@ -34,11 +33,14 @@ class CostumeChangeTimeRule(ARule):
                 curr = performances[i]
                 next_perf = performances[i + 1]
 
+                curr_competition = graph.get_competition_by_id(curr.competition_id)
+                next_competition = graph.get_competition_by_id(next_perf.competition_id)
+
                 # Check for discipline change
-                if (curr.competition and next_perf.competition and
-                        curr.competition.discipline in disciplines and
-                        next_perf.competition.discipline in disciplines and
-                        curr.competition.discipline != next_perf.competition.discipline):
+                if (curr_competition and next_competition and
+                        curr_competition.discipline in disciplines and
+                        next_competition.discipline in disciplines and
+                        curr_competition.discipline != next_competition.discipline):
 
                     curr_end = self._ensure_datetime(curr.end_time)
                     next_start = self._ensure_datetime(next_perf.start_time)
@@ -56,14 +58,14 @@ class CostumeChangeTimeRule(ARule):
                             severity=severity,
                             weight=weight,
                             description=f"Nedostatečný čas ({gap_minutes:.0f} min) na převlečení kostýmu pro {competitor.full_name_1}",
-                            entity_id=competitor.id,
+                            entity_id=competitor.full_name_1,
                             entity_name=competitor.full_name_1,
                             details={
                                 'gap_minutes': gap_minutes,
                                 'required_minutes': self.config['min_gap_minutes'],
                                 'shortage_minutes': shortage,
-                                'from_discipline': curr.competition.discipline,
-                                'to_discipline': next_perf.competition.discipline,
+                                'from_discipline': curr_competition.discipline,
+                                'to_discipline': next_competition.discipline,
                                 'from_time': curr_end,
                                 'to_time': next_start
                             },

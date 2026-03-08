@@ -8,6 +8,7 @@ from .table_parser import TableParser
 
 class CompetitorsParser(TableParser):
     def parse(self, df: DataFrame) -> Set[Competitor]:
+        prefix = self._cols["assignment_prefix"]
         filtered_competition_cols = self.get_filtered_competition_cols(df)
 
         result = set()
@@ -15,16 +16,17 @@ class CompetitorsParser(TableParser):
             if isna(row[self._cols["count"]]) or str(row[self._cols["count"]]).strip() not in {"1", "2"}:
                 continue  # skip useless rows
             try:
-                count = int(row[self._cols["count"]])
+                count = int(str(row[self._cols["count"]]).strip())
                 full_name_1 = str(row[self._cols["p1_name_surname"]].strip())
-                full_name_2 = str(row[self._cols["p2_name_surname"]].strip()) if count == "2" else None
+                full_name_2 = str(row[self._cols["p2_name_surname"]]).strip() if count == 2 else None
 
-                assignments = set(
+                assignments = frozenset(
                     int(str(col).removeprefix(prefix))
                     for col in filtered_competition_cols
-                    if str(row[col]).strip() == "1")
-            except:
-                print(f"Problem while parsing competitor in row #{idx} - {row}")
+                    if str(row[col]).strip() == "1"
+                )
+            except Exception as e:
+                print(f"Problem while parsing competitor in row #{idx} - {e}")
                 continue
 
             result.add(Competitor(
