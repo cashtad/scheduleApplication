@@ -18,8 +18,7 @@ from core import AppSession, TableSession, TABLE_KEYS
 from data import GraphBuilder, ExcelTableLoader, TemplateStore
 from expert_system import ExplanationGenerator, InferenceEngine
 from .widgets import ReportPanel, TableLoadPanel
-
-RULES_CONFIG_PATH = Path(__file__).parent.parent / "config" / "rules_config.yaml"
+from paths import get_rules_config_path, get_reports_dir
 
 
 class AnalysisWorker(QThread):
@@ -55,7 +54,16 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Analýza rozvrhu tanečního konkurzu")
 
         # Load rules config
-        with open(RULES_CONFIG_PATH, encoding="utf-8") as f:
+        rules_config_path = get_rules_config_path()
+        if not rules_config_path.exists():
+            QMessageBox.critical(
+                None,
+                "Chyba konfigurace",
+                f"Soubor rules_config.yaml nebyl nalezen:\n{rules_config_path}\n\n"
+                "Zkopírujte rules_config.yaml do složky vedle .exe souboru."
+            )
+            sys.exit(1)
+        with open(rules_config_path, encoding="utf-8") as f:
             self.rules_config = yaml.safe_load(f)
 
         # Central session
@@ -210,8 +218,9 @@ class MainWindow(QMainWindow):
 
     def _run_analysis(self) -> None:
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
-        output_dir = Path(sys.argv[0]).resolve().parent
-        report_path = output_dir / f"schedule_report_{timestamp}.html"
+        reports_dir = get_reports_dir()
+        reports_dir.mkdir(parents=True, exist_ok=True)
+        report_path = reports_dir / f"schedule_report_{timestamp}.html"
 
         self._progress = QProgressDialog("Probíhá analýza rozvrhu...", None, 0, 0, self)
         self._progress.setWindowTitle("Analýza")

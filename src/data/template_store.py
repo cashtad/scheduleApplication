@@ -1,15 +1,15 @@
 import json
 from pathlib import Path
 from typing import Optional
-
-TEMPLATES_DIR = Path(__file__).parent.parent / "config" / "templates"
+from paths import get_templates_dir
 
 
 class TemplateStore:
     """Saves and loads column-mapping templates + last-used file paths."""
 
-    def _template_path(self, table_key: str) -> Path:
-        return TEMPLATES_DIR / f"{table_key}.json"
+    @staticmethod
+    def _template_path(table_key: str) -> Path:
+        return get_templates_dir() / f"{table_key}.json"
 
     def _load_raw(self, table_key: str) -> Optional[dict]:
         path = self._template_path(table_key)
@@ -19,7 +19,7 @@ class TemplateStore:
             return json.load(f)
 
     def _save_raw(self, table_key: str, data: dict) -> None:
-        TEMPLATES_DIR.mkdir(parents=True, exist_ok=True)
+        get_templates_dir().mkdir(parents=True, exist_ok=True)
         with open(self._template_path(table_key), "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
 
@@ -48,9 +48,10 @@ class TemplateStore:
     def load_session_paths(self) -> dict:
         """Load {table_key: {file_path, sheet_name}} dict from disk."""
         result = {}
-        if not TEMPLATES_DIR.exists():
+        templates_dir = get_templates_dir()
+        if not templates_dir.exists():
             return result
-        for path in TEMPLATES_DIR.glob("*.json"):
+        for path in templates_dir.glob("*.json"):
             table_key = path.stem
             raw = self._load_raw(table_key) or {}
             if "file_path" in raw:
