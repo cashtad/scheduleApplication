@@ -23,52 +23,13 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-HIGHLIGHT_COLORS = [
-    QColor("#BBDEFB"),  # light blue
-    QColor("#C8E6C9"),  # light green
-    QColor("#FFE0B2"),  # light orange
-    QColor("#F8BBD9"),  # light pink
-    QColor("#E1BEE7"),  # light purple
-    QColor("#B2EBF2"),  # light cyan
-    QColor("#FFF9C4"),  # light yellow
-]
-
-# Used for non-highlighted cells: white background, dark text — readable in both themes
-_DEFAULT_BG = QColor("#FFFFFF")
-_DEFAULT_FG = QColor("#000000")
-# Text color for highlighted cells
-_HIGHLIGHT_FG = QColor("#000000")
-
-LOGICAL_FIELDS = {
-    "competitions": [
-        ("id", "ID soutěže", True),
-        ("title", "Název", True),
-        ("discipline", "Disciplína", True),
-        ("age", "Věková kategorie", True),
-        ("rank", "Třída", True),
-        ("competitor_count", "Počet závodníků", True),
-        ("round_count", "Počet kol", True),
-    ],
-    "competitors": [
-        ("count", "Počet závodníků páru", True),
-        ("p1_name_surname", "Jméno závodníka 1", True),
-        ("p2_name_surname", "Jméno závodníka 2", False),
-        ("assignment_prefix", "Prefix přiřazení", True),
-    ],
-    "jury": [
-        ("id", "ID porotce", True),
-        ("name", "Jméno", True),
-        ("surname", "Příjmení", True),
-        ("assignment_prefix", "Prefix přiřazení", True),
-    ],
-    "schedule": [
-        ("competition_id", "ID soutěže", True),
-        ("start_time", "Čas začátku", True),
-        ("duration", "Délka (minuty)", True),
-        ("round_type", "Typ kola", True),
-        ("end_time", "Čas konce", False),
-    ],
-}
+from core import TABLE_CONFIGS
+from ..constants import (
+    MAPPING_DEFAULT_BG,
+    MAPPING_DEFAULT_FG,
+    MAPPING_HIGHLIGHT_COLORS,
+    MAPPING_HIGHLIGHT_FG,
+)
 
 
 class MappingDialog(QDialog):
@@ -84,7 +45,10 @@ class MappingDialog(QDialog):
 
         self._table_key = table_key
         self._df = df
-        self._fields = LOGICAL_FIELDS.get(table_key, [])
+        cfg = TABLE_CONFIGS.get(table_key)
+        self._fields: list[tuple[str, str, bool]] = (
+            [(f.key, f.label, f.required) for f in cfg.fields] if cfg else []
+        )
         self._combos: dict[str, QComboBox] = {}
         self._line_edits: dict[str, QLineEdit] = {}
         self._prefix_hint_labels: dict[str, QLabel] = {}
@@ -111,8 +75,8 @@ class MappingDialog(QDialog):
                 item = QStandardItem(str(val))
                 item.setFlags(Qt.ItemIsEnabled)
                 # Explicitly set default colors so the table is always readable
-                item.setBackground(_DEFAULT_BG)
-                item.setForeground(_DEFAULT_FG)
+                item.setBackground(MAPPING_DEFAULT_BG)
+                item.setForeground(MAPPING_DEFAULT_FG)
                 self._model.setItem(r, c, item)
 
         self._table = QTableView()
@@ -294,13 +258,13 @@ class MappingDialog(QDialog):
             for c in range(cols):
                 item = self._model.item(r, c)
                 if item is not None:
-                    item.setBackground(_DEFAULT_BG)
-                    item.setForeground(_DEFAULT_FG)
+                    item.setBackground(MAPPING_DEFAULT_BG)
+                    item.setForeground(MAPPING_DEFAULT_FG)
 
         # Build col_index -> color mapping
         col_colors: dict[int, QColor] = {}
         for field_idx, (field_key, _, _) in enumerate(self._fields):
-            color = HIGHLIGHT_COLORS[field_idx % len(HIGHLIGHT_COLORS)]
+            color = MAPPING_HIGHLIGHT_COLORS[field_idx % len(MAPPING_HIGHLIGHT_COLORS)]
             if field_key not in self._field_col_map:
                 continue
             val = self._field_col_map[field_key]
@@ -322,7 +286,7 @@ class MappingDialog(QDialog):
                 item = self._model.item(r, c)
                 if item is not None:
                     item.setBackground(color)
-                    item.setForeground(_HIGHLIGHT_FG)
+                    item.setForeground(MAPPING_HIGHLIGHT_FG)
 
     # ------------------------------------------------------------------
     # Accept / validate

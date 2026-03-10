@@ -1,5 +1,6 @@
-TABLE_KEYS = ["competitions", "competitors", "jury", "schedule"]
-
+from .table_config import FieldDef, TableConfig, TABLE_CONFIGS
 from .session import AppSession, TableSession
 
-__all__ = ["AppSession", "TableSession", "TABLE_KEYS"]
+TABLE_KEYS = list(TABLE_CONFIGS.keys())
+
+__all__ = ["AppSession", "TableSession", "TABLE_KEYS", "FieldDef", "TableConfig", "TABLE_CONFIGS"]
