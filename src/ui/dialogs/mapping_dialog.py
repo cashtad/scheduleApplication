@@ -1,8 +1,5 @@
 import re
 from typing import Optional
-
-_PREFIX_RE = re.compile(r'^(.*?)(\d+)$')
-
 import pandas as pd
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor, QStandardItem, QStandardItemModel
@@ -34,6 +31,8 @@ from ..constants import (
 
 class MappingDialog(QDialog):
     """Dialog for mapping DataFrame columns to logical fields."""
+
+    _PREFIX_RE = re.compile(r'^(.*?)(\d+)$')
 
     def __init__(self, table_key: str, df: pd.DataFrame,
                  existing_mapping: Optional[dict] = None,
@@ -166,7 +165,7 @@ class MappingDialog(QDialog):
         cols = list(self._df.columns)
         groups: dict[str, list[int]] = {}
         for col in cols:
-            m = _PREFIX_RE.match(str(col))
+            m = self._PREFIX_RE.match(str(col))
             if m:
                 prefix, num_str = m.group(1), m.group(2)
                 groups.setdefault(prefix, []).append(int(num_str))
