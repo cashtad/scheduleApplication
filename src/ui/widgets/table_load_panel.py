@@ -11,26 +11,10 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from core import TableSession
+from core import TABLE_CONFIGS, TableSession
 from data import ExcelTableLoader, TemplateStore
+from ..constants import DOT_STYLE, TABLE_STATUS_CONFIG
 from ..dialogs import MappingDialog
-
-TABLE_NAMES = {
-    "competitions": "Tabulka soutěží",
-    "competitors": "Tabulka závodníků",
-    "jury": "Tabulka porotců",
-    "schedule": "Tabulka harmonogramu",
-}
-
-STATUS_CONFIG = {
-    "not_loaded": ("Nevybráno", "#9E9E9E"),
-    "needs_mapping": ("Vyžaduje výběr sloupců", "#FF9800"),
-    "ready": ("Připraveno", "#4CAF50"),
-}
-
-_DOT_STYLE = (
-    "border-radius: 8px; width: 16px; height: 16px; background-color: {color};"
-)
 
 
 class TableLoadPanel(QWidget):
@@ -52,7 +36,7 @@ class TableLoadPanel(QWidget):
         layout = QVBoxLayout(self)
 
         # Table name label
-        name_label = QLabel(TABLE_NAMES.get(table_key, table_key))
+        name_label = QLabel(TABLE_CONFIGS[table_key].display_name if table_key in TABLE_CONFIGS else table_key)
         name_label.setStyleSheet("font-weight: bold;")
         layout.addWidget(name_label)
 
@@ -79,8 +63,8 @@ class TableLoadPanel(QWidget):
 
     def set_status(self, status: str) -> None:
         self._status = status
-        text, color = STATUS_CONFIG[status]
-        self._dot.setStyleSheet(_DOT_STYLE.format(color=color))
+        text, color = TABLE_STATUS_CONFIG[status]
+        self._dot.setStyleSheet(DOT_STYLE.format(color=color))
         self._status_label.setText(text)
         self._load_btn.setText("Změnit" if status == "ready" else "Načíst")
 
@@ -138,7 +122,7 @@ class TableLoadPanel(QWidget):
             return
 
         # Try auto-apply template
-        auto_mapping = TemplateStore().try_auto_apply(self._table_key, list(raw_df.columns))
+        auto_mapping = TemplateStore().get_auto_mapping(self._table_key, list(raw_df.columns))
         if auto_mapping is not None:
             answer = QMessageBox.question(
                 self,

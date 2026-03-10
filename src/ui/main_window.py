@@ -128,7 +128,7 @@ class MainWindow(QMainWindow):
             except Exception:
                 continue
             panel = self._panels[key]
-            auto_mapping = store.try_auto_apply(key, list(raw_df.columns))
+            auto_mapping = store.get_auto_mapping(key, list(raw_df.columns))
             if auto_mapping is not None:
                 self._session.tables[key] = TableSession(
                     table_key=key,
