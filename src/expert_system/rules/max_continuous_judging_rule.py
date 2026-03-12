@@ -1,107 +1,41 @@
 from typing import Optional
 
-from .rule import ARule
-from .violation import Violation
 from graph import ScheduleGraph
+from .continuous_activity_rule import ContinuousActivityRule
+from .violation import Violation
 
 
-class MaxContinuousJudgingRule(ARule):
-    """Rule: Judge should not judge too long without a break"""
+class MaxContinuousJudgingRule(ContinuousActivityRule):
+    """Rule: Judge should not judge too long without a break."""
 
     def check(self, graph: ScheduleGraph) -> list[Violation]:
-        """Check for judges judging continuously for too long
-
-        Args:
-            graph: Schedule graph
-
-        Returns:
-            List of violations found
-        """
-        violations = []
-
         if not self.enabled:
-            return violations
+            return []
 
-        juries = graph.get_juries()
-
-        for jury in juries:
+        violations = []
+        for jury in graph.get_juries():
             performances = sorted(
                 graph.get_performances_of_jury(jury),
-                key=lambda p: self._ensure_datetime(p.start_time)
+                key=lambda p: self._ensure_datetime(p.start_time),
             )
-
-            if not performances:
-                continue
-
-            continuous_duration = performances[0].duration
-            block_performances = [performances[0]]
-
-            for i in range(1, len(performances)):
-                prev = performances[i - 1]
-                curr = performances[i]
-
-                prev_end = self._ensure_datetime(prev.end_time)
-                curr_start = self._ensure_datetime(curr.start_time)
-
-                gap = (curr_start - prev_end).total_seconds() / 60
-
-                if gap < self.config['rest_time']:  # Consider continuous if gap < 10 minutes
-                    continuous_duration += curr.duration
-                    block_performances.append(curr)
-                else:
-                    violation = self._check_judging_duration(
-                        jury, continuous_duration, block_performances
-                    )
-                    if violation:
-                        violations.append(violation)
-
-                    continuous_duration = curr.duration
-                    block_performances = [curr]
-
-            # Check last block
-            violation = self._check_judging_duration(
-                jury, continuous_duration, block_performances
+            violations.extend(
+                self._collect_violations_for_continuous_blocks(
+                    performances,
+                    check_block_fn=lambda dur, block, j=jury: self._check_duration(j, dur, block),
+                )
             )
-            if violation:
-                violations.append(violation)
 
         return violations
 
-    def _check_judging_duration(self, jury, duration, block_performances: list) -> Optional[Violation]:
-        """Check if continuous judging duration exceeds thresholds
-
-        Args:
-            jury: Jury object
-            duration: Duration of continuous judging
-            block_performances: All performances in the continuous block
-
-        Returns:
-            Violation object if threshold exceeded, None otherwise
-        """
-        severity = self._get_severity(duration)
-
-        if severity:
-            threshold = self.config['thresholds'][severity.value]
-            excess = duration - threshold
-            weight = self._calculate_weight(severity, excess)
-            start_perf = block_performances[0]
-            end_perf = block_performances[-1]
-
-            return Violation(
-                rule_name="MaxContinuousJudging",
-                severity=severity,
-                weight=weight,
-                description=f"Porotce {jury.fullname} porotuje {duration:.0f} minut bez přestávky",
-                entity_id=jury.id,
-                entity_name=jury.fullname,
-                details={
-                    'duration_minutes': duration,
-                    'threshold_minutes': threshold,
-                    'excess_minutes': excess,
-                    'start_time': self._ensure_datetime(start_perf.start_time),
-                    'end_time': self._ensure_datetime(end_perf.end_time)
-                },
-                source_rows=self._source_rows(*block_performances),
-            )
-
-        return None
+    def _check_duration(self, jury, duration: float, block: list) -> Optional[Violation]:
+        description = (
+            f"Porotce {jury.fullname} porotuje {int(duration)} minut bez přestávky"
+        )
+        return self._build_duration_violation(
+            duration=duration,
+            block_performances=block,
+            rule_name="MaxContinuousJudging",
+            entity_id=jury.fullname,
+            entity_name=jury.fullname,
+            description=description,
+        )

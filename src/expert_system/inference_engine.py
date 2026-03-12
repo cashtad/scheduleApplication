@@ -1,9 +1,11 @@
+from collections import defaultdict
+
 from .rules import Severity, Violation, load_rules_from_config
 from .schedule_analysis_result import ScheduleAnalysisResult
 
 
 class InferenceEngine:
-    """Inference engine for the expert system that validates schedule rules"""
+    """Expert-system inference engine that validates schedule rules."""
 
     def __init__(self, rules_config: dict):
         """Initialize inference engine with rules configuration
@@ -11,7 +13,7 @@ class InferenceEngine:
         Args:
             rules_config: Already-loaded rules configuration dict (result of yaml.safe_load)
         """
-        self.general_config = rules_config.get('general', {})
+        self.general_config = rules_config.get("general", {})
         self.rules = load_rules_from_config(rules_config)
 
     def analyze_schedule(self, graph) -> ScheduleAnalysisResult:
@@ -62,46 +64,21 @@ class InferenceEngine:
 
         for violation in violations:
             result[violation.severity].append(violation)
-
         return result
 
     @staticmethod
     def _group_by_rule(violations: list[Violation]) -> dict[str, list[Violation]]:
-        """Group violations by rule name
-
-        Args:
-            violations: List of all violations
-
-        Returns:
-            Dictionary mapping rule name to list of violations
-        """
-        result = {}
-
+        """Group violations by rule name."""
+        result: dict[str, list[Violation]] = defaultdict(list)
         for violation in violations:
-            if violation.rule_name not in result:
-                result[violation.rule_name] = []
             result[violation.rule_name].append(violation)
-
-        return result
+        return dict(result)
 
     def _calculate_rating(self, total_weight: float) -> str:
-        """Calculate schedule rating based on total violation weight
-
-        Args:
-            total_weight: Sum of weights from all violations
-
-        Returns:
-            Rating string in Czech
-        """
-        thresholds = self.general_config.get('schedule_rating', {})
-
-        if total_weight <= thresholds.get('excellent', 0):
-            return 'VYNIKAJÍCÍ'
-        elif total_weight <= thresholds.get('good', 100):
-            return 'DOBRÉ'
-        elif total_weight <= thresholds.get('acceptable', 300):
-            return 'PŘIJATELNÉ'
-        elif total_weight <= thresholds.get('poor', 600):
-            return 'ŠPATNÉ'
-        else:
-            return 'KRITICKÉ'
+        """Map total violation weight to a Czech rating label."""
+        thresholds = self.general_config.get("schedule_rating", {})
+        if total_weight <= thresholds.get("excellent",   0):   return "VYNIKAJÍCÍ"
+        if total_weight <= thresholds.get("good",      100):   return "DOBRÉ"
+        if total_weight <= thresholds.get("acceptable", 300):   return "PŘIJATELNÉ"
+        if total_weight <= thresholds.get("poor",       600):   return "ŠPATNÉ"
+        return "KRITICKÉ"

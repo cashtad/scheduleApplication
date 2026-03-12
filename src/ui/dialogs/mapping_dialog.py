@@ -1,8 +1,6 @@
 import re
 from typing import Optional
 
-_PREFIX_RE = re.compile(r'^(.*?)(\d+)$')
-
 import pandas as pd
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor, QStandardItem, QStandardItemModel
@@ -30,6 +28,8 @@ from ..constants import (
     MAPPING_HIGHLIGHT_COLORS,
     MAPPING_HIGHLIGHT_FG,
 )
+
+_PREFIX_RE = re.compile(r"^(.*?)(\d+)$")
 
 
 class MappingDialog(QDialog):
