@@ -14,6 +14,3 @@ class Competitor:
             return f"Competitor {self.full_name_1}, participating in {self.competition_ids} competitions"
         else:
             return f"Pair of competitors {self.full_name_1} and {self.full_name_2}, participating in {self.competition_ids} competitions"
-
-    def get_competition_ids(self) -> FrozenSet[int]:
-        return self.competition_ids
