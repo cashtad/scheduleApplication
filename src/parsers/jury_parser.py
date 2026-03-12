@@ -1,39 +1,39 @@
-from typing import Set
-
 from pandas import DataFrame, isna
 
 from classes import Jury
+from core import TABLE_CONFIGS
 from .table_parser import TableParser
 
 
 class JuryParser(TableParser):
-    def parse(self, df: DataFrame) -> Set[Jury]:
-        result = set()
+    """Parses a jury DataFrame into a set of Jury objects."""
 
+    _CONFIG = TABLE_CONFIGS["jury"]
+
+    def parse(self, df: DataFrame) -> set[Jury]:
+        result = set()
         prefix = self._cols["assignment_prefix"]
-        filtered_competition_cols = self.get_filtered_competition_cols(df)
+        competition_cols = self.get_filtered_competition_cols(df)
+
         for idx, row in df.iterrows():
             if isna(row[self._cols["id"]]) or row[self._cols["id"]] == "":
-                continue  # skip useless rows
-
+                continue
             try:
-                name = str(row[self._cols["name"]]).strip()
+                name    = str(row[self._cols["name"]]).strip()
                 surname = str(row[self._cols["surname"]]).strip()
-                fullname = name + " " + surname
-
                 assignments = frozenset(
                     int(str(col).removeprefix(prefix))
-                    for col in filtered_competition_cols
-                    if str(row[col]).strip() == "1")
-            except Exception as e:
-                print(f"Problem while parsing competition in row #{idx} - {row}: {e}")
+                    for col in competition_cols
+                    if str(row[col]).strip() == "1"
+                )
+            except Exception as exc:
+                print(f"Skipping jury row #{idx}: {exc}")
                 continue
 
             result.add(Jury(
                 name=name,
                 surname=surname,
-                fullname=fullname,
-                competition_ids=assignments),
-            )
-
+                fullname=f"{name} {surname}",
+                competition_ids=assignments,
+            ))
         return result

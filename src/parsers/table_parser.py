@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
+from typing import Any
 
-from pandas import DataFrame
+from pandas import DataFrame, isna
 
 
 class TableParser(ABC):
@@ -29,3 +30,10 @@ class TableParser(ABC):
     def _is_pure_int(value: str) -> bool:
         """Return True if *value* represents a non-negative integer."""
         return value.isdigit()
+
+    @staticmethod
+    def _is_empty(v: Any) -> bool:
+        try:
+            return isna(v) or str(v).strip() == ""
+        except Exception:
+            return False

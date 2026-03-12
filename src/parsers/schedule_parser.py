@@ -1,52 +1,52 @@
 import datetime
-from typing import Set, Any
-
-from pandas import (DataFrame,
-                    isna,
-                    to_datetime,
-                    to_timedelta)
+from pandas import DataFrame, isna, to_datetime, to_timedelta
 
 from classes import Performance
+from core import TABLE_CONFIGS
 from .table_parser import TableParser
 
 
 class PerformanceParser(TableParser):
-    def parse(self, df: DataFrame) -> Set[Any]:
+    """Parses a schedule DataFrame into a set of Performance objects."""
+
+    _CONFIG = TABLE_CONFIGS["schedule"]
+
+    def parse(self, df: DataFrame) -> set[Performance]:
         result = set()
-        for idx, row in df.iterrows():  # idx is the pandas row index (preserved from original df)
-            # Attempt to parse competition_id, skip row if it's missing or invalid
+        for idx, row in df.iterrows():
             try:
-                if isna(row[self._cols["competition_id"]]):
-                    continue
-                competition_id = int(row[self._cols["competition_id"]])
-            except ValueError:
+                performance = self._parse_row(idx, row)
+            except Exception as exc:
+                print(f"Skipping schedule row #{idx}: {exc}")
                 continue
-            try:
-                start_time = to_datetime(
-                    row[self._cols["start_time"]],
-                    format="%H:%M:%S"
-                ).to_pydatetime()
-
-                duration = int(to_timedelta(row[self._cols["duration"]]).total_seconds() // 60)
-                round_type = row[self._cols["round_type"]]
-
-                try:
-                    end_time = to_datetime(
-                        row[self._cols["end_time"]],
-                        format="%H:%M:%S"
-                    ).to_pydatetime()
-                except KeyError:
-                    end_time = start_time + datetime.timedelta(minutes=duration)
-            except Exception as e:
-                print(f"Problem while parsing competition in row {idx} - {row}: {e}")
-                continue
-
-            result.add(Performance(
-                start_time=start_time,
-                duration=duration,
-                source_row=idx,
-                competition_id=competition_id,
-                round_type=round_type,
-                end_time=end_time))
-
+            if performance is not None:
+                result.add(performance)
         return result
+
+    def _parse_row(self, idx, row) -> Performance | None:
+        """Parse a single row. Returns None if competition_id is missing."""
+        competition_id_raw = row[self._cols["competition_id"]]
+        if self._is_empty(competition_id_raw):
+            return None
+
+        competition_id = int(competition_id_raw)
+        start_time     = to_datetime(row[self._cols["start_time"]], format="%H:%M:%S").to_pydatetime()
+        duration       = int(to_timedelta(row[self._cols["duration"]]).total_seconds() // 60)
+        round_type     = str(row[self._cols["round_type"]])
+        end_time       = self._parse_end_time(row, start_time, duration)
+
+        return Performance(
+            start_time=start_time,
+            end_time=end_time,
+            duration=duration,
+            round_type=round_type,
+            competition_id=competition_id,
+            source_row=idx,
+        )
+
+    def _parse_end_time(self, row, start_time: datetime.datetime, duration: int) -> datetime.datetime:
+        """Return end_time from the column if available, otherwise compute it."""
+        end_time_col = self._cols.get("end_time")
+        if end_time_col and isna(row.get(end_time_col, float("nan"))).empty:
+            return to_datetime(row[end_time_col], format="%H:%M:%S").to_pydatetime()
+        return start_time + datetime.timedelta(minutes=duration)
