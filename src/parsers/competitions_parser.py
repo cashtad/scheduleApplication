@@ -1,6 +1,4 @@
-from typing import Any
-
-from pandas import DataFrame, isna
+from pandas import DataFrame
 
 from classes import Competition
 from core import TABLE_CONFIGS
