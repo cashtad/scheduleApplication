@@ -155,7 +155,6 @@ class ScheduleViewDialog(QDialog):
             "  Bílá = bez narušení   "
             "  🔵 Modrá = vybrané narušení"
         )
-        legend.setWordWrap(True)
         return legend
 
     def _build_table(self) -> QTableView:
