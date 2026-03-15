@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
     QLabel,
     QPushButton,
     QScrollArea,
+    QSizePolicy,
     QSplitter,
     QTableView,
     QVBoxLayout,
@@ -92,7 +93,7 @@ class ScheduleViewDialog(QDialog):
         splitter.addWidget(self._panel_scroll)
         splitter.setStretchFactor(0, 3)
         splitter.setStretchFactor(1, 1)
-        layout.addWidget(splitter)
+        layout.addWidget(splitter, 1)
 
         bottom_layout = QHBoxLayout()
         bottom_layout.addWidget(self._build_summary_label(self._row_severity))
@@ -155,6 +156,7 @@ class ScheduleViewDialog(QDialog):
             "  Bílá = bez narušení   "
             "  🔵 Modrá = vybrané narušení"
         )
+        legend.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
         return legend
 
     def _build_table(self) -> QTableView:
