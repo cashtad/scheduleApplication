@@ -99,10 +99,6 @@ class ScheduleViewDialog(QDialog):
         bottom_layout = QHBoxLayout()
         bottom_layout.addWidget(self._build_summary_label(self._row_severity))
         bottom_layout.addStretch()
-        clear_btn = QPushButton("Zrušit výběr")
-        clear_btn.setToolTip("Zruší zvýraznění vybraného narušení")
-        clear_btn.clicked.connect(self._clear_highlight)
-        bottom_layout.addWidget(clear_btn)
         layout.addLayout(bottom_layout)
 
         # Connect row-click signal
@@ -305,6 +301,11 @@ class ScheduleViewDialog(QDialog):
         for violation in violations:
             card = self._build_violation_card(violation)
             self._violation_panel_layout.addWidget(card)
+
+        clear_btn = QPushButton("Zrušit výběr")
+        clear_btn.setToolTip("Zruší zvýraznění vybraného narušení")
+        clear_btn.clicked.connect(self._clear_highlight)
+        self._violation_panel_layout.addWidget(clear_btn)
 
         self._panel_scroll.show()
 
