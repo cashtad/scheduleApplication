@@ -5,12 +5,15 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor, QFont, QStandardItem, QStandardItemModel
 from PySide6.QtWidgets import (
     QDialog,
+    QFrame,
     QHBoxLayout,
-    QInputDialog,
     QLabel,
     QPushButton,
+    QScrollArea,
+    QSplitter,
     QTableView,
     QVBoxLayout,
+    QWidget,
 )
 
 from expert_system import ScheduleAnalysisResult, Severity
@@ -40,16 +43,16 @@ _SEVERITY_RANK = {Severity.CRITICAL: 3, Severity.MEDIUM: 2, Severity.LOW: 1}
 class ScheduleViewDialog(QDialog):
     """Dialog showing the schedule DataFrame with rows highlighted by violation severity.
 
-    Clicking a row that belongs to one or more violations highlights all rows for
-    that violation in a distinct blue tint.  If a row is part of multiple violations
-    the user is asked to choose which one to highlight.  Clicking a row without any
-    violation (or pressing the *Clear selection* button) removes the highlight.
+    Clicking a row that belongs to one or more violations shows a right-side panel
+    listing all violations for that row.  Each violation has a *Highlight rows* button
+    that applies a blue tint to all rows belonging to that violation.  Clicking a row
+    without violations hides the panel and clears any active highlight.
     """
 
     def __init__(self, df: pd.DataFrame, result: ScheduleAnalysisResult, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Přehled chyb v rozvrhu")
-        self.resize(1100, 650)
+        self.resize(1300, 700)
 
         self._df = df
         self._result = result
@@ -74,7 +77,22 @@ class ScheduleViewDialog(QDialog):
 
         self._model = QStandardItemModel(len(df), len(df.columns))
         self._table = self._build_table()
-        layout.addWidget(self._table)
+
+        # Right-side violation panel (hidden by default)
+        self._violation_panel, self._violation_panel_layout = self._build_violation_panel()
+        self._panel_scroll = QScrollArea()
+        self._panel_scroll.setWidget(self._violation_panel)
+        self._panel_scroll.setWidgetResizable(True)
+        self._panel_scroll.setMinimumWidth(340)
+        self._panel_scroll.setMaximumWidth(500)
+        self._panel_scroll.hide()
+
+        splitter = QSplitter(Qt.Horizontal)
+        splitter.addWidget(self._table)
+        splitter.addWidget(self._panel_scroll)
+        splitter.setStretchFactor(0, 3)
+        splitter.setStretchFactor(1, 1)
+        layout.addWidget(splitter)
 
         bottom_layout = QHBoxLayout()
         bottom_layout.addWidget(self._build_summary_label(self._row_severity))
@@ -164,6 +182,64 @@ class ScheduleViewDialog(QDialog):
             f"(🔴 {n_critical} kritických, 🟡 {n_medium} středních, 🟢 {n_low} nízkých)"
         )
 
+    @staticmethod
+    def _build_violation_panel() -> tuple[QWidget, QVBoxLayout]:
+        """Create the right-side violation panel container (initially empty)."""
+        container = QWidget()
+        layout = QVBoxLayout(container)
+        layout.setAlignment(Qt.AlignTop)
+        layout.setContentsMargins(8, 8, 8, 8)
+        layout.setSpacing(10)
+        return container, layout
+
+    def _build_violation_card(self, violation: Violation) -> QFrame:
+        """Build a single violation card widget with all relevant information."""
+        card = QFrame()
+        card.setFrameShape(QFrame.StyledPanel)
+        card.setFrameShadow(QFrame.Raised)
+        card_layout = QVBoxLayout(card)
+        card_layout.setSpacing(4)
+
+        # Severity + rule name header
+        header_label = QLabel(
+            f"<b>{SEVERITY_LABELS[violation.severity]}</b>"
+            f"  —  <i>{violation.rule_name}</i>"
+        )
+        header_label.setWordWrap(True)
+        card_layout.addWidget(header_label)
+
+        # Entity info
+        entity_label = QLabel(f"Subjekt: <b>{violation.entity_name}</b> ({violation.entity_id})")
+        entity_label.setWordWrap(True)
+        card_layout.addWidget(entity_label)
+
+        # Description
+        desc_label = QLabel(violation.description)
+        desc_label.setWordWrap(True)
+        card_layout.addWidget(desc_label)
+
+        # Details section
+        if violation.details:
+            details_lines = [
+                f"<b>Podrobnosti:</b>"
+            ]
+            for key, value in violation.details.items():
+                details_lines.append(f"  • {key}: {value}")
+            details_label = QLabel("<br>".join(details_lines))
+            details_label.setWordWrap(True)
+            details_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+            card_layout.addWidget(details_label)
+
+        # Highlight button
+        highlight_btn = QPushButton("🔵 Vybrat řádky")
+        highlight_btn.setToolTip(
+            f"Zvýrazní všechny řádky ({len(violation.source_rows)}) patřící k tomuto narušení"
+        )
+        highlight_btn.clicked.connect(lambda: self._apply_highlight(violation))
+        card_layout.addWidget(highlight_btn)
+
+        return card
+
     # ------------------------------------------------------------------
     # Row styling helpers
     # ------------------------------------------------------------------
@@ -206,6 +282,36 @@ class ScheduleViewDialog(QDialog):
             item.setToolTip(tooltip)
 
     # ------------------------------------------------------------------
+    # Right-panel helpers
+    # ------------------------------------------------------------------
+
+    def _populate_violation_panel(self, violations: list[Violation]) -> None:
+        """Clear and repopulate the right panel with cards for each violation."""
+        # Remove all existing widgets from the panel layout
+        while self._violation_panel_layout.count():
+            child = self._violation_panel_layout.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
+
+        title = QLabel(f"<b>Narušení pro tento řádek ({len(violations)})</b>")
+        title.setWordWrap(True)
+        self._violation_panel_layout.addWidget(title)
+
+        for violation in violations:
+            card = self._build_violation_card(violation)
+            self._violation_panel_layout.addWidget(card)
+
+        self._panel_scroll.show()
+
+    def _hide_violation_panel(self) -> None:
+        """Hide the right panel and remove its content."""
+        self._panel_scroll.hide()
+        while self._violation_panel_layout.count():
+            child = self._violation_panel_layout.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
+
+    # ------------------------------------------------------------------
     # Interaction handlers
     # ------------------------------------------------------------------
 
@@ -215,31 +321,11 @@ class ScheduleViewDialog(QDialog):
         violations = self._row_to_violations.get(df_idx, [])
 
         if not violations:
-            # Row has no violations – clear selection
+            # Row has no violations – clear selection and hide panel
             self._clear_highlight()
             return
 
-        if len(violations) == 1:
-            chosen = violations[0]
-        else:
-            # Ask the user which violation to highlight
-            choices = [
-                f"{SEVERITY_LABELS[v.severity]}: {v.description}"
-                for v in violations
-            ]
-            item, ok = QInputDialog.getItem(
-                self,
-                "Vyberte narušení",
-                "Tento řádek patří do více narušení.\nVyberte, které chcete zvýraznit:",
-                choices,
-                current=0,
-                editable=False,
-            )
-            if not ok:
-                return
-            chosen = violations[choices.index(item)]
-
-        self._apply_highlight(chosen)
+        self._populate_violation_panel(violations)
 
     def _apply_highlight(self, violation: Violation) -> None:
         """Highlight all rows belonging to *violation*, restore all other rows."""
@@ -250,7 +336,8 @@ class ScheduleViewDialog(QDialog):
             self._refresh_row(model_row, df_idx, highlighted=df_idx in highlighted_rows)
 
     def _clear_highlight(self) -> None:
-        """Remove the violation highlight and restore severity-based colouring."""
+        """Remove the violation highlight, restore severity-based colouring, and hide the panel."""
+        self._hide_violation_panel()
         if self._highlighted_violation is None:
             return
         prev = self._highlighted_violation
