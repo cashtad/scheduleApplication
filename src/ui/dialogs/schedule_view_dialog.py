@@ -24,7 +24,7 @@ from datetime import datetime
 SEVERITY_BG = {
     Severity.CRITICAL: QColor("#FFCDD2"),  # light red
     Severity.MEDIUM:   QColor("#FFE0B2"),  # light orange
-    Severity.LOW:      QColor("#FFF9C4"),  # light yellow
+    Severity.LOW: QColor("#C8E6C9"),  # light green
 }
 
 # Highlight tint applied on top of severity colour when a violation is selected
@@ -149,7 +149,7 @@ class ScheduleViewDialog(QDialog):
         legend = QLabel(
             "  🔴 Červená = KRITICKÉ narušení   "
             "🟡 Oranžová = STŘEDNÍ narušení   "
-            "🟢 Žlutá = NÍZKÉ narušení   "
+            "🟢 Zelená = NÍZKÉ narušení   "
             "  Bílá = bez narušení   "
             "  🔵 Modrá = vybrané narušení"
         )
