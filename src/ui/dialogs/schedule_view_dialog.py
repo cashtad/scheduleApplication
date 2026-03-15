@@ -19,6 +19,7 @@ from PySide6.QtWidgets import (
 
 from expert_system import ScheduleAnalysisResult, Severity
 from expert_system.rules import Violation
+from datetime import datetime
 
 SEVERITY_BG = {
     Severity.CRITICAL: QColor("#FFCDD2"),  # light red
@@ -225,6 +226,8 @@ class ScheduleViewDialog(QDialog):
                 f"<b>Podrobnosti:</b>"
             ]
             for key, value in violation.details.items():
+                if isinstance(value, datetime):
+                    value = value.strftime("%H:%M")
                 details_lines.append(f"  • {key}: {value}")
             details_label = QLabel("<br>".join(details_lines))
             details_label.setWordWrap(True)
@@ -297,6 +300,7 @@ class ScheduleViewDialog(QDialog):
         title = QLabel(f"<b>Narušení pro tento řádek ({len(violations)})</b>")
         title.setWordWrap(True)
         self._violation_panel_layout.addWidget(title)
+        violations.sort(key=lambda x: x.weight, reverse=True)  # Sort by weight descending
 
         for violation in violations:
             card = self._build_violation_card(violation)

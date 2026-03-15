@@ -73,7 +73,8 @@ class SimultaneousRule(ARule, ABC):
                     weight=weight,
                     description=description,
                     entity_id=entity_id,
-                    entity_name=entity_name,
+                    entity_name=f"{competitor.full_name_1}" + (
+                        f" a {competitor.full_name_2}" if competitor.count == 2 else ""),
                     details={
                         "overlap_minutes":    overlap_minutes,
                         "performance1_start": start1,

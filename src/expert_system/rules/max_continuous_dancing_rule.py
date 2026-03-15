@@ -45,6 +45,6 @@ class MaxContinuousDancingRule(ContinuousActivityRule):
             block_performances=block,
             rule_name="MaxContinuousDancing",
             entity_id=competitor.full_name_1,
-            entity_name=competitor.full_name_1,
+            entity_name=f"{competitor.full_name_1}" + (f" a {competitor.full_name_2}" if competitor.count == 2 else ""),
             description=description,
         )

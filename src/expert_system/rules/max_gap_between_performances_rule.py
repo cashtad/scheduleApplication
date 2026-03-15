@@ -51,7 +51,8 @@ class MaxGapBetweenPerformancesRule(ARule):
                         weight=weight,
                         description=f"Příliš velká přestávka ({gap_minutes:.0f} min) mezi vystoupeními pro {competitor.full_name_1}",
                         entity_id=competitor.full_name_1,
-                        entity_name=competitor.full_name_1,
+                        entity_name=f"{competitor.full_name_1}" + (
+                            f" a {competitor.full_name_2}" if competitor.count == 2 else ""),
                         details={
                             'gap_minutes': gap_minutes,
                             'threshold_minutes': threshold,

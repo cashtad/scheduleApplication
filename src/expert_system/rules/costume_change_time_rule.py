@@ -59,7 +59,8 @@ class CostumeChangeTimeRule(ARule):
                             weight=weight,
                             description=f"Nedostatečný čas ({gap_minutes:.0f} min) na převlečení kostýmu pro {competitor.full_name_1}",
                             entity_id=competitor.full_name_1,
-                            entity_name=competitor.full_name_1,
+                            entity_name=f"{competitor.full_name_1}" + (
+                                f" a {competitor.full_name_2}" if competitor.count == 2 else ""),
                             details={
                                 'gap_minutes': gap_minutes,
                                 'required_minutes': self.config['min_gap_minutes'],
