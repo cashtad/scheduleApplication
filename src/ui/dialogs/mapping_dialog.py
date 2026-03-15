@@ -91,9 +91,11 @@ class MappingDialog(QDialog):
         for field_key, label, required in self._fields:
             display_label = f"{label} *" if required else label
             existing_val = existing_mapping.get(field_key, "") if existing_mapping else ""
+            color = self._field_color(field_key)
 
             if field_key.endswith("_prefix"):
-                widget = self._build_prefix_widget(field_key, existing_val)
+                inner = self._build_prefix_widget(field_key, existing_val)
+                widget = self._wrap_with_swatch(color, inner)
                 form.addRow(display_label, widget)
             else:
                 combo = QComboBox()
@@ -108,7 +110,7 @@ class MappingDialog(QDialog):
                     lambda text, fk=field_key: self._on_combo_changed(fk, text)
                 )
                 self._combos[field_key] = combo
-                form.addRow(display_label, combo)
+                form.addRow(display_label, self._wrap_with_swatch(color, combo))
 
         layout.addWidget(group)
 
@@ -156,6 +158,37 @@ class MappingDialog(QDialog):
         self._prefix_hint_labels[field_key] = hint_label
         hbox.addWidget(hint_label)
 
+        return container
+
+    # ------------------------------------------------------------------
+    # Per-field color helpers
+    # ------------------------------------------------------------------
+
+    def _field_color(self, field_key: str) -> QColor:
+        """Return the stable highlight color for *field_key* based on its position in self._fields."""
+        for idx, (fk, _, _) in enumerate(self._fields):
+            if fk == field_key:
+                return MAPPING_HIGHLIGHT_COLORS[idx % len(MAPPING_HIGHLIGHT_COLORS)]
+        return MAPPING_HIGHLIGHT_COLORS[0]
+
+    @staticmethod
+    def _make_color_swatch(color: QColor) -> QLabel:
+        """Create a 12×12 colored square label used as a visual field indicator."""
+        swatch = QLabel()
+        swatch.setFixedSize(12, 12)
+        swatch.setStyleSheet(
+            f"background-color: {color.name()}; border: 1px solid #888888; border-radius: 2px;"
+        )
+        return swatch
+
+    def _wrap_with_swatch(self, color: QColor, widget: QWidget) -> QWidget:
+        """Return a new widget containing a colored swatch followed by *widget*."""
+        container = QWidget()
+        hbox = QHBoxLayout(container)
+        hbox.setContentsMargins(0, 0, 0, 0)
+        hbox.setSpacing(6)
+        hbox.addWidget(self._make_color_swatch(color))
+        hbox.addWidget(widget, stretch=1)
         return container
 
     # ------------------------------------------------------------------
@@ -263,8 +296,8 @@ class MappingDialog(QDialog):
 
         # Build col_index -> color mapping
         col_colors: dict[int, QColor] = {}
-        for field_idx, (field_key, _, _) in enumerate(self._fields):
-            color = MAPPING_HIGHLIGHT_COLORS[field_idx % len(MAPPING_HIGHLIGHT_COLORS)]
+        for field_key, _, _ in self._fields:
+            color = self._field_color(field_key)
             if field_key not in self._field_col_map:
                 continue
             val = self._field_col_map[field_key]
