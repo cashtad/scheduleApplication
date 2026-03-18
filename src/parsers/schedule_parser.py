@@ -46,7 +46,7 @@ class PerformanceParser(TableParser):
 
     def _parse_end_time(self, row, start_time: datetime.datetime, duration: int) -> datetime.datetime:
         """Return end_time from the column if available, otherwise compute it."""
-        end_time_col = self._cols.get("end_time")
+        end_time_col = self._cols.get("end_time") # TODO: исправить, не работает, скипает строку полностью
         if end_time_col and isna(row.get(end_time_col, float("nan"))).empty:
             return to_datetime(row[end_time_col], format="%H:%M:%S").to_pydatetime()
         return start_time + datetime.timedelta(minutes=duration)
