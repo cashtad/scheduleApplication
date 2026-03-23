@@ -26,8 +26,8 @@ class SimultaneousDancingRule(SimultaneousRule):
             violations.extend(self._check_overlaps_for_entity(
                 graph=graph,
                 performances=performances,
-                entity_id=competitor.full_name_1,
-                entity_name=competitor.full_name_1,
+                entity_id=f"{competitor.full_name_1}" + (f" {competitor.full_name_2}" if competitor.full_name_2 else ""),
+                entity_name=f"{competitor.full_name_1}" + (f" {competitor.full_name_2}" if competitor.full_name_2 else ""),
                 rule_name="SimultaneousDancing",
                 description_template=_DESCRIPTION,
             ))

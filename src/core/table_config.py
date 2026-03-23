@@ -30,6 +30,7 @@ def _parse_int(v: Any) -> int:
     return int(v)
 
 def _parse_time(v: Any) -> datetime.datetime:
+    #TODO доработать чтобы было стабильнее
     return to_datetime(str(v), format="%H:%M:%S").to_pydatetime()
 
 def _parse_duration_minutes(v: Any) -> int:
