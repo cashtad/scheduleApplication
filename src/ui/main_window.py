@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from core import AppSession, TableSession, TABLE_KEYS
+from core import AppSession, TableSession, TABLE_KEYS, AppError
 from data import GraphBuilder, ExcelTableLoader, TemplateStore
 from expert_system import ExplanationGenerator, InferenceEngine
 from .widgets import ReportPanel, TableLoadPanel
@@ -24,7 +24,7 @@ from paths import get_rules_config_path, get_reports_dir
 class AnalysisWorker(QThread):
     """Background thread that runs the schedule analysis."""
 
-    finished = Signal(object, str)  # (ScheduleAnalysisResult, report_path)
+    finished = Signal(object, str, object)  # result, report_path, stats
     error = Signal(str)
 
     def __init__(self, session, rules_config, report_path):
@@ -35,15 +35,18 @@ class AnalysisWorker(QThread):
 
     def run(self):
         try:
-            graph = GraphBuilder().build(self.session)
+            graph, stats = GraphBuilder().build(self.session)
             self.session.graph = graph
+            self.session.parse_stats = stats
             engine = InferenceEngine(self.rules_config)
             result = engine.analyze_schedule(graph)
             self.session.last_result = result
             ExplanationGenerator().generate_html_report(result, str(self.report_path))
-            self.finished.emit(result, str(self.report_path))
-        except Exception as exc:
+            self.finished.emit(result, str(self.report_path), stats)
+        except AppError as exc:
             self.error.emit(str(exc))
+        except Exception as exc:
+            self.error.emit(f"[UNEXPECTED] {exc}")
 
 
 class MainWindow(QMainWindow):
@@ -232,15 +235,21 @@ class MainWindow(QMainWindow):
         self._worker.error.connect(self._on_analysis_error)
         self._worker.start()
 
-    def _on_analysis_finished(self, result, report_path: str) -> None:
+    def _on_analysis_finished(self, result, report_path: str, stats) -> None:
         if self._progress:
             self._progress.hide()
         self._session.last_result = result
+        self._session.parse_stats = stats
         TemplateStore().save_session_paths(self._session)
         self._report_panel.update_report(report_path)
         self._report_panel.update_session(self._session)
         self._report_panel.show()
 
+        QMessageBox.information(
+            self,
+            "Analýza dokončena",
+            f"Analýza byla úspěšně dokončena.\n\n{stats.as_text()}",
+        )
     def _on_analysis_error(self, error_message: str) -> None:
         if self._progress:
             self._progress.hide()

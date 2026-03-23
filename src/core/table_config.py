@@ -14,6 +14,7 @@ class FieldDef:
     attr:          Optional[str]              = None
     parse:         Optional[Callable[[Any], Any]] = None
     skip_if_empty: bool                       = False
+    virtual_key: bool = False
 
     @property
     def attr_name(self) -> str:
@@ -61,7 +62,7 @@ TABLE_CONFIGS: dict[str, TableConfig] = {
             FieldDef("count",             "Počet závodníků páru", required=True,  parse=_parse_int,  skip_if_empty=True),
             FieldDef("p1_name_surname",   "Jméno závodníka 1",    required=True,  attr="full_name_1", parse=_parse_str),
             FieldDef("p2_name_surname",   "Jméno závodníka 2",    required=False, attr="full_name_2", parse=_parse_str),
-            FieldDef("assignment_prefix", "Prefix přiřazení",     required=True),  # handled separately
+            FieldDef("assignment_prefix", "Prefix přiřazení",     required=True, virtual_key=True),  # handled separately
         ),
     ),
     "jury": TableConfig(
@@ -71,7 +72,7 @@ TABLE_CONFIGS: dict[str, TableConfig] = {
             FieldDef("id",                "ID porotce",    required=True,  skip_if_empty=True),
             FieldDef("name",              "Jméno",         required=True,  parse=_parse_str),
             FieldDef("surname",           "Příjmení",      required=True,  parse=_parse_str),
-            FieldDef("assignment_prefix", "Prefix přiřazení", required=True),
+            FieldDef("assignment_prefix", "Prefix přiřazení", required=True, virtual_key=True),
         ),
     ),
     "schedule": TableConfig(
