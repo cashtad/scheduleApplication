@@ -1,13 +1,18 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import FrozenSet
+
+from .base_human import Human
+
 
 @dataclass(frozen=True, slots=True)
 class JuryMember(Human):
     fullname: str
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Jury member {self.fullname} for competitions {self.competition_ids}"
 
-    def __post_init__(self):
-        if self.fullname.strip() == "":
-            raise ValueError("Full name cannot be empty")
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        if not self.fullname.strip():
+            raise ValueError("fullname cannot be empty")
