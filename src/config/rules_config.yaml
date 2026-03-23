@@ -34,7 +34,7 @@ costume_change_time:
 # Rule 3. Maximum duration of jury's work without breaks
 max_continuous_judging:
   enabled: true
-  rest_time: 10
+  rest_time: 30
   thresholds:
     critical: 180  # in minutes
     medium: 120

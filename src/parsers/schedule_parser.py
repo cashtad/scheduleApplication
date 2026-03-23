@@ -33,7 +33,7 @@ class PerformanceParser(TableParser):
         start_time     = to_datetime(row[self._cols["start_time"]], format="%H:%M:%S").to_pydatetime()
         duration       = int(to_timedelta(row[self._cols["duration"]]).total_seconds() // 60)
         round_type     = str(row[self._cols["round_type"]])
-        end_time       = self._parse_end_time(row, start_time, duration)
+        end_time       = start_time + datetime.timedelta(minutes=duration)
 
         return Performance(
             start_time=start_time,
@@ -43,10 +43,3 @@ class PerformanceParser(TableParser):
             competition_id=competition_id,
             source_row=idx,
         )
-
-    def _parse_end_time(self, row, start_time: datetime.datetime, duration: int) -> datetime.datetime:
-        """Return end_time from the column if available, otherwise compute it."""
-        end_time_col = self._cols.get("end_time") # TODO: исправить, не работает, скипает строку полностью
-        if end_time_col and isna(row.get(end_time_col, float("nan"))).empty:
-            return to_datetime(row[end_time_col], format="%H:%M:%S").to_pydatetime()
-        return start_time + datetime.timedelta(minutes=duration)

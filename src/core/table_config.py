@@ -81,7 +81,6 @@ TABLE_CONFIGS: dict[str, TableConfig] = {
             FieldDef("start_time",     "Čas začátku",    required=True,  parse=_parse_time),
             FieldDef("duration",       "Délka (minuty)", required=True,  parse=_parse_duration_minutes),
             FieldDef("round_type",     "Typ kola",       required=True,  parse=_parse_str),
-            FieldDef("end_time",       "Čas konce",      required=False, parse=_parse_time),
         ),
     ),
 }
