@@ -1,6 +1,7 @@
 from abc import ABC
 from typing import Optional
 
+from classes import Performance
 from .rule import ARule
 from .violation import Violation
 
@@ -10,7 +11,7 @@ class ContinuousActivityRule(ARule, ABC):
 
     def _collect_violations_for_continuous_blocks(
         self,
-        performances: list,
+        performances: list[Performance],
         check_block_fn,
     ) -> list[Violation]:
         """Group performances into continuous blocks and check each block.
