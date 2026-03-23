@@ -1,5 +1,5 @@
 import datetime
-from pandas import DataFrame, to_datetime, to_timedelta
+from pandas import DataFrame
 
 from classes import Performance
 from core import TABLE_CONFIGS, EntityParseStats
@@ -32,10 +32,10 @@ class PerformanceParser(TableParser):
         if self._is_empty(competition_id_raw):
             return None
 
-        competition_id = int(str(competition_id_raw).strip())
-        start_time = to_datetime(str(row[self._cols["start_time"]]), errors="raise").to_pydatetime()
-        duration = int(to_timedelta(str(row[self._cols["duration"]]), errors="raise").total_seconds() // 60)
-        round_type = str(row[self._cols["round_type"]]).strip()
+        competition_id = self._CONFIG.fields[0].parse(row[self._cols["competition_id"]])
+        start_time = self._CONFIG.fields[1].parse(row[self._cols["start_time"]])
+        duration = self._CONFIG.fields[2].parse(row[self._cols["duration"]])
+        round_type = self._CONFIG.fields[3].parse(row[self._cols["round_type"]])
         end_time = start_time + datetime.timedelta(minutes=duration)
 
         return Performance(

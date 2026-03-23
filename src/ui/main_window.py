@@ -245,11 +245,22 @@ class MainWindow(QMainWindow):
         self._report_panel.update_session(self._session)
         self._report_panel.show()
 
-        QMessageBox.information(
-            self,
-            "Analýza dokončena",
-            f"Analýza byla úspěšně dokončena.\n\n{stats.as_text()}",
-        )
+        details = []
+        for title, st in [
+            ("Soutěže", stats.competitions),
+            ("Účastníci", stats.competitors),
+            ("Porotci", stats.jury),
+            ("Vystoupení", stats.performances),
+        ]:
+            if st.errors:
+                details.append(f"{title} – ukázka chyb:")
+                details.extend([f"  - {e}" for e in st.errors[:5]])
+
+        msg = f"Analýza byla úspěšně dokončena.\n\n{stats.as_text()}"
+        if details:
+            msg += "\n\nDetaily přeskočených řádků:\n" + "\n".join(details)
+
+        QMessageBox.information(self, "Analýza dokončena", msg)
     def _on_analysis_error(self, error_message: str) -> None:
         if self._progress:
             self._progress.hide()

@@ -3,17 +3,17 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Callable, Optional
 import datetime
-from pandas import to_datetime, to_timedelta, isna
+from pandas import to_datetime, to_timedelta
 
 
 @dataclass(frozen=True)
 class FieldDef:
-    key:           str
-    label:         str
-    required:      bool
-    attr:          Optional[str]              = None
-    parse:         Optional[Callable[[Any], Any]] = None
-    skip_if_empty: bool                       = False
+    key: str
+    label: str
+    required: bool
+    attr: Optional[str] = None
+    parse: Optional[Callable[[Any], Any]] = None
+    skip_if_empty: bool = False
     virtual_key: bool = False
 
     @property
@@ -23,19 +23,31 @@ class FieldDef:
 
 @dataclass(frozen=True)
 class TableConfig:
-    key:          str                    # e.g. "competitions"
-    display_name: str                    # e.g. "Tabulka soutěží"
-    fields:       tuple[FieldDef, ...]   #
+    key: str
+    display_name: str
+    fields: tuple[FieldDef, ...]
+
 
 def _parse_int(v: Any) -> int:
-    return int(v)
+    return int(str(v).strip())
+
 
 def _parse_time(v: Any) -> datetime.datetime:
-    #TODO доработать чтобы было стабильнее
-    return to_datetime(str(v), format="%H:%M:%S").to_pydatetime()
+    s = str(v).strip()
+    for fmt in ("%H:%M:%S", "%H:%M"):
+        try:
+            return datetime.datetime.strptime(s, fmt)
+        except ValueError:
+            pass
+    return to_datetime(s, errors="raise").to_pydatetime()
+
 
 def _parse_duration_minutes(v: Any) -> int:
-    return int(to_timedelta(str(v)).total_seconds() // 60)
+    s = str(v).strip()
+    if s.isdigit():
+        return int(s)
+    return int(to_timedelta(s, errors="raise").total_seconds() // 60)
+
 
 def _parse_str(v: Any) -> str:
     return str(v).strip()
