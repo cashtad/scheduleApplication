@@ -117,7 +117,8 @@ class ScheduleRepositoryValidator:
                 )
         return issues
 
-    def check_competitions_not_used(self, repository: ScheduleRepository) -> list[ScheduleRepositoryValidationIssue]:
+    @staticmethod
+    def check_competitions_not_used(repository: ScheduleRepository) -> list[ScheduleRepositoryValidationIssue]:
         issues: list[ScheduleRepositoryValidationIssue] = []
         competition_ids = set(repository.competitions_by_id.keys())
 
@@ -132,7 +133,6 @@ class ScheduleRepositoryValidator:
                     )
                 )
         return issues
-
 
     @staticmethod
     def validate(repository: ScheduleRepository) -> ScheduleRepositoryValidationReport:

@@ -1,6 +1,6 @@
 from .base_human import Human
-from .competitor import Competitor
 from .competition import Competition
+from .competitor import Competitor
 from .jury_member import JuryMember
 from .performance import Performance
 
