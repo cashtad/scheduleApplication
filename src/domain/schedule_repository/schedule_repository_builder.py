@@ -17,23 +17,6 @@ class BuildScheduleRepositoryResult:
 
 class ScheduleRepositoryBuilder:
     @staticmethod
-    def iterable_to_set(iterable: Iterable) -> set:
-        if isinstance(iterable, set):
-            return iterable
-        return set(iterable)
-
-    @staticmethod
-    def convert_iterables_to_sets(competitions: Iterable[Competition],
-                                  competitors: Iterable[Competitor],
-                                  jury_members: Iterable[JuryMember],
-                                  performances: Iterable[Performance]) -> tuple[set[Competition], set[Competitor], set[JuryMember], set[Performance]]:
-        competitions = self.iterable_to_set(competitions)
-        competitors = self.iterable_to_set(competitors)
-        jury_members = self.iterable_to_set(jury_members)
-        performances = self.iterable_to_set(performances)
-        return competitions, competitors, jury_members, performances
-
-    @staticmethod
     def build(
         competitions: Iterable[Competition],
         competitors: Iterable[Competitor],
@@ -41,8 +24,6 @@ class ScheduleRepositoryBuilder:
         performances: Iterbale[Performance],
     ) -> BuildScheduleRepositoryResult:
         repository = ScheduleRepository()
-
-        competitions, competitors, jury_members, performances = self.convert_iterables_to_sets(competitions, competitors, jury_members, performances)
 
         for competition in competitions:
             repository.add_competition(competition)
