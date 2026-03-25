@@ -20,7 +20,7 @@ class Competition:
         if self.amount_of_rounds <= 0:
             raise ValueError("amount_of_rounds must be greater than zero")
         if self.participants_per_entry not in {1, 2}:
-            raise ValueError("people_in_pair must be 1 or 2")
+            raise ValueError("participants_per_entry  must be 1 or 2")
         if not self.discipline.strip():
             raise ValueError("discipline cannot be empty")
         if not self.name.strip():
