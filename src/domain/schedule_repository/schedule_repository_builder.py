@@ -21,7 +21,7 @@ class ScheduleRepositoryBuilder:
         competitions: Iterable[Competition],
         competitors: Iterable[Competitor],
         jury_members: Iterable[JuryMember],
-        performances: Iterbale[Performance],
+        performances: Iterable[Performance],
     ) -> BuildScheduleRepositoryResult:
         repository = ScheduleRepository()
 
