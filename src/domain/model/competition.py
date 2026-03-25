@@ -8,7 +8,7 @@ class Competition:
     id: int
     name: str
     discipline: str
-    people_in_pair: int  # 1-more
+    participants_per_entry: int  # 1-more
     amount_of_rounds: int  # 1-more
 
     def __str__(self) -> str:
@@ -19,7 +19,7 @@ class Competition:
             raise ValueError("id must be greater than zero")
         if self.amount_of_rounds <= 0:
             raise ValueError("amount_of_rounds must be greater than zero")
-        if self.people_in_pair not in {1, 2}:
+        if self.participants_per_entry not in {1, 2}:
             raise ValueError("people_in_pair must be 1 or 2")
         if not self.discipline.strip():
             raise ValueError("discipline cannot be empty")
