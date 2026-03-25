@@ -150,7 +150,7 @@ class ScheduleRepositoryValidator:
         jury_issues = ScheduleRepositoryValidator.check_jury_members(repository)
         issues.extend(jury_issues)
 
-        competitions_issues = ScheduleRepositoryValidator().check_competitions_not_used(repository)
+        competitions_issues = ScheduleRepositoryValidator.check_competitions_not_used(repository)
         issues.extend(competitions_issues)
 
         # Deduplicate
