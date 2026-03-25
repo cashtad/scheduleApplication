@@ -25,17 +25,10 @@ class ScheduleRepositoryBuilder:
     ) -> BuildScheduleRepositoryResult:
         repository = ScheduleRepository()
 
-        for competition in competitions:
-            repository.add_competition(competition)
-
-        for competitor in competitors:
-            repository.add_competitor(competitor)
-
-        for jury_member in jury_members:
-            repository.add_jury_member(jury_member)
-
-        for performance in performances:
-            repository.add_performance(performance)
+        repository.add_competitions(competitions)
+        repository.add_competitors(competitors)
+        repository.add_jury_members(jury_members)
+        repository.add_performances(performances)
 
         validation_report = ScheduleRepositoryValidator.validate(repository)
         return BuildScheduleRepositoryResult(

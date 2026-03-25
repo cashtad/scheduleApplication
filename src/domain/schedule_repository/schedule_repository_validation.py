@@ -17,6 +17,11 @@ class ScheduleRepositoryValidationIssue:
     severity: ValidationIssueSeverity
     context: dict[str, Any] = field(default_factory=dict)
 
+    def dedup_key(self) -> tuple:
+        # Stable key for deduplication
+        context_items = tuple(sorted(self.context.items(), key=lambda x: x[0]))
+        return (self.code, self.severity.value, self.message, context_items)
+
 
 @dataclass(frozen=True, slots=True)
 class ScheduleRepositoryValidationReport:
@@ -25,4 +30,8 @@ class ScheduleRepositoryValidationReport:
 
     @property
     def is_valid(self) -> bool:
-        return len(self.errors) == 0
+        return not self.errors
+
+    @property
+    def total_issues(self) -> int:
+        return len(self.errors) + len(self.warnings)
