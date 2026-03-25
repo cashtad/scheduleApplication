@@ -13,10 +13,10 @@ class ScheduleRepository:
         self.competitors: set[Competitor] = set()
 
     def add_competition(self, competition: Competition):
-        if competition.id not in self.competitions_by_id.keys():
+        if competition.id not in self.competitions_by_id:
             self.competitions_by_id[competition.id] = competition
-        else:
-            raise Exception(f"Competition with id {competition.id} already exists")
+        # else:
+        #     raise Exception(f"Competition with id {competition.id} already exists")
 
     def add_performance(self, performance: Performance) -> None:
         self.performances_by_competition_id[performance.competition_id].append(performance)
