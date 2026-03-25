@@ -15,8 +15,8 @@ class BuildScheduleRepositoryResult:
 
 
 class ScheduleRepositoryBuilder:
+    @staticmethod
     def build(
-        self,
         competitions: set[Competition],
         competitors: set[Competitor],
         jury_members: set[JuryMember],
