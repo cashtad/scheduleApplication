@@ -27,7 +27,13 @@ class JsonSessionStore(SessionStore):
         if not self._path.exists():
             return None
 
-        raw = json.loads(self._path.read_text(encoding="utf-8"))
+        try:
+            raw = json.loads(self._path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            # Corrupted session file -> ignore and start fresh
+            return None
+        except OSError:
+            return None
 
         tables_raw = raw.get("tables", {})
         tables: dict[str, PersistedTableState] = {}

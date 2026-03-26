@@ -52,14 +52,7 @@ class RestoreSessionUseCase:
         if not table.sheet_name:
             return TableStatus.FILE_SELECTED
 
-        # Sheet existence cannot be validated here without opening Excel.
-        # It will be checked in PrepareDataUseCase. Until then:
         if not table.column_mapping:
             return TableStatus.SHEET_SELECTED
 
-        if not table.column_signature:
-            return TableStatus.MAPPED
-
-        # Signature compatibility is checked when file is actually read.
-        # On restore we assume potentially ready.
-        return TableStatus.READY
+        return TableStatus.MAPPED
