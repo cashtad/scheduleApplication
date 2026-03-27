@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from ..dto.readiness import (
+from ..dto import (
     AnalyzeReadinessResult,
     ReadinessDecision,
-    ReadinessReason, ReadinessReasonSeverity,
+    ReadinessReason, ReadinessReasonSeverity, PrepareDataResult
 )
-from ..dto.prepare_data_result import PrepareDataResult
-from ...domain.schedule_repository import ScheduleRepositoryValidationReport
+from ...domain import ScheduleRepositoryValidationReport
 from .analyze_readiness_policy import AnalyzeReadinessPolicy
 
 
