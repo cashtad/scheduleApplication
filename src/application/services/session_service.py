@@ -2,9 +2,8 @@ from __future__ import annotations
 
 from typing import Iterable
 
-from ..use_cases.save_session_use_case import SaveSessionUseCase
-from ...session.app_session import AppSession
-from ...session.table_status import TableStatus
+from ..use_cases.save_session_use_case import SaveSessionUseCase # TODO: fix
+from ...session import AppSession, TableStatus
 
 
 class SessionService:

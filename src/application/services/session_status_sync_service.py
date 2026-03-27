@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-from ...ingestion.contracts.full_ingestion_result import FullIngestionResult
-from ...ingestion.contracts.ingestion_severity import IngestionSeverity
-from ...session.app_session import AppSession, REQUIRED_TABLE_KEYS
-from ...session.table_status import TableStatus
+from ...ingestion import FullIngestionResult, IngestionSeverity
+from ...session import AppSession, REQUIRED_TABLE_KEYS, TableStatus
 
 
 class SessionStatusSyncService:
