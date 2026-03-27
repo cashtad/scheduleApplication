@@ -5,30 +5,22 @@ from datetime import datetime
 from ..dto.analyze_workflow_result import AnalyzeWorkflowResult
 from ..dto.data_quality_report import DataQualityReport
 from ..dto.prepare_data_result import PrepareDataResult
-from ..dto.readiness import (
-    AnalyzeReadinessResult,
-    ReadinessDecision,
-    ReadinessReason,
-)
+from ..dto.readiness import AnalyzeReadinessResult, ReadinessDecision, ReadinessReason
 from ..dto.workflow_status import WorkflowStatus
-from ..use_cases.prepare_data_use_case import PrepareDataUseCase
+from ..policies.analyze_readiness_policy import AnalyzeReadinessPolicy
 from ..use_cases.build_repository_use_case import BuildRepositoryUseCase
+from ..use_cases.prepare_data_use_case import PrepareDataUseCase
 from ..use_cases.run_schedule_analysis_use_case import RunScheduleAnalysisUseCase
 from ...domain.schedule_repository import ScheduleRepositoryValidationReport
 
 
 class AnalyzeWorkflowService:
-    """
-    Single backend entrypoint for UI.
-    UI should call only this service for analysis workflow.
-    """
-
     def __init__(
         self,
         prepare_data_use_case: PrepareDataUseCase,
         build_repository_use_case: BuildRepositoryUseCase,
         run_schedule_analysis_use_case: RunScheduleAnalysisUseCase,
-        readiness_policy,
+        readiness_policy: AnalyzeReadinessPolicy,
         row_error_threshold: float = 0.5,
     ) -> None:
         self._prepare_data_use_case = prepare_data_use_case
@@ -40,6 +32,8 @@ class AnalyzeWorkflowService:
     def run_analysis(self, session) -> AnalyzeWorkflowResult:
         try:
             prepared = self._prepare_data_use_case.execute(session)
+
+            # Build repository always: gives additional consistency diagnostics
             built = self._build_repository_use_case.execute(prepared)
 
             readiness = self._readiness_policy.evaluate(

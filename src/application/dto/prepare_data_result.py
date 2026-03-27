@@ -1,44 +1,45 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
 
-
-@dataclass(frozen=True, slots=True)
-class TableParseStats:
-    table_key: str
-    total_rows: int = 0
-    parsed_rows: int = 0
-    row_errors: int = 0
-    row_warnings: int = 0
+from ...domain import Competition, Competitor, JuryMember, Performance
+from ...ingestion.contracts.ingestion_issue import IngestionIssue
+from ...ingestion.contracts.ingestion_severity import IngestionSeverity
+from ...ingestion.contracts.table_parse_stats import TableParseStats
 
 
 @dataclass(frozen=True, slots=True)
 class PrepareDataResult:
     # Parsed domain entities
-    competitions: list[Any] = field(default_factory=list)
-    competitors: list[Any] = field(default_factory=list)
-    jury_members: list[Any] = field(default_factory=list)
-    performances: list[Any] = field(default_factory=list)
+    competitions: list[Competition] = field(default_factory=list)
+    competitors: list[Competitor] = field(default_factory=list)
+    jury_members: list[JuryMember] = field(default_factory=list)
+    performances: list[Performance] = field(default_factory=list)
 
-    # Parsing quality
-    schema_errors: list[str] = field(default_factory=list)
-    schema_warnings: list[str] = field(default_factory=list)
-    row_errors: list[str] = field(default_factory=list)
-    row_warnings: list[str] = field(default_factory=list)
+    # Quality / diagnostics
+    schema_issues: list[IngestionIssue] = field(default_factory=list)
+    row_issues: list[IngestionIssue] = field(default_factory=list)
     table_stats: list[TableParseStats] = field(default_factory=list)
 
     @property
-    def total_rows(self) -> int:
-        return sum(s.total_rows for s in self.table_stats)
+    def all_issues(self) -> list[IngestionIssue]:
+        return self.schema_issues + self.row_issues
 
     @property
-    def total_row_errors_count(self) -> int:
-        return sum(s.row_errors for s in self.table_stats)
+    def schema_errors(self) -> list[IngestionIssue]:
+        return [i for i in self.schema_issues if i.severity == IngestionSeverity.ERROR]
 
     @property
-    def row_error_rate(self) -> float:
-        return 0.0 if self.total_rows == 0 else self.total_row_errors_count / self.total_rows
+    def schema_warnings(self) -> list[IngestionIssue]:
+        return [i for i in self.schema_issues if i.severity == IngestionSeverity.WARNING]
+
+    @property
+    def row_errors(self) -> list[IngestionIssue]:
+        return [i for i in self.row_issues if i.severity == IngestionSeverity.ERROR]
+
+    @property
+    def row_warnings(self) -> list[IngestionIssue]:
+        return [i for i in self.row_issues if i.severity == IngestionSeverity.WARNING]
 
     @property
     def schema_errors_count(self) -> int:
@@ -47,3 +48,15 @@ class PrepareDataResult:
     @property
     def total_warnings_count(self) -> int:
         return len(self.schema_warnings) + len(self.row_warnings)
+
+    @property
+    def total_rows(self) -> int:
+        return sum(s.total_rows for s in self.table_stats)
+
+    @property
+    def total_row_errors_count(self) -> int:
+        return sum(s.error_count for s in self.table_stats)
+
+    @property
+    def row_error_rate(self) -> float:
+        return 0.0 if self.total_rows == 0 else self.total_row_errors_count / self.total_rows
