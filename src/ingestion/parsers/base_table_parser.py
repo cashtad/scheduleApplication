@@ -6,9 +6,7 @@ from typing import Any, Generic, TypeVar
 
 from pandas import DataFrame, isna
 
-from ..contracts.ingestion_issue import IngestionIssue
-from ..contracts.ingestion_severity import IngestionSeverity
-from ..contracts.table_parse_result import TableParseResult
+from ..contracts import IngestionIssue, IngestionSeverity, TableParseResult
 from ..errors import MappingValidationError
 
 T = TypeVar("T")

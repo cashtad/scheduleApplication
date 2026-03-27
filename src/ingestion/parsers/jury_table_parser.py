@@ -6,10 +6,9 @@ from typing import Any
 from pandas import DataFrame
 
 from ...domain import JuryMember
-from ..contracts.ingestion_issue import IngestionIssue
-from ..contracts.table_parse_result import TableParseResult
+from ..contracts import IngestionIssue, TableParseResult
 from .base_table_parser import BaseTableParser
-from ..services.assignment_columns_selector import (
+from ..services import (
     AssignmentColumnsMode,
     AssignmentColumnsSelection,
     AssignmentColumnsSelector,
