@@ -13,9 +13,8 @@ class RunScheduleAnalysisResult:
 
 
 class RunScheduleAnalysisUseCase:
-    def __init__(self, analyzer, html_report_writer) -> None:
-        self._analyzer = analyzer
-        self._html_report_writer = html_report_writer
+    def __init__(self) -> None:
+        raise NotImplementedError
 
     def execute(self, build_repository_result: BuildRepositoryResult) -> RunScheduleAnalysisResult:
         # TODO (next step):
