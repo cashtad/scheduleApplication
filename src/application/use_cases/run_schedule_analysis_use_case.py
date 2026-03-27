@@ -19,6 +19,5 @@ class RunScheduleAnalysisUseCase:
     def execute(self, build_repository_result: BuildRepositoryResult) -> RunScheduleAnalysisResult:
         # TODO (next step):
         # 1) analysis_result = self._analyzer.analyze(build_repository_result.repository)
-        # 2) html_path = self._html_report_writer.write(analysis_result)
-        # 3) return RunScheduleAnalysisResult(...)
+        # return RunScheduleAnalysisResult(...)
         raise NotImplementedError
