@@ -1,0 +1,7 @@
+TODO list:
+ 1) добавить scheduleAnalysisUseCase
+ 2) "SessionStatusSyncService не сохраняет сессию": Статусы обновляются в памяти, но не автосохраняются после ingestion.
+ Если хочешь “после релода всё восстановилось ровно как было”, нужно либо:
+  - вызывать SaveSessionUseCase после sync
+  - либо делать orchestration-уровнем сохранение.
+ 3) AnalyzeWorkflowService всегда строит repository. Это ок, но если ingestion сильно сломан, можно early-block до build (опционально). Сейчас не критично.
