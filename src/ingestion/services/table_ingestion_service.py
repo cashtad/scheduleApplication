@@ -4,18 +4,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
 
-from ...domain.model import Competition, Competitor, JuryMember, Performance
-from ..contracts.full_ingestion_result import FullIngestionResult
-from ..contracts.ingestion_issue import IngestionIssue
-from ..contracts.ingestion_severity import IngestionSeverity
-from ..contracts.table_input import TableInput
-from ..contracts.table_parse_result import TableParseResult
-from ..parsers.competition_table_parser import CompetitionTableParser
-from ..parsers.competitor_table_parser import CompetitorTableParser, CompetitorParserConfig
-from ..parsers.jury_table_parser import JuryParserConfig, JuryTableParser
-from ..parsers.schedule_table_parser import ScheduleTableParser
-from ..services.assignment_columns_selector import AssignmentColumnsMode
-from ...infrastructure.excel.excel_reader import ExcelReader
+from ..contracts import FullIngestionResult, IngestionIssue, IngestionSeverity, TableInput, TableParseResult
+from ..parsers import CompetitionTableParser, CompetitorTableParser, CompetitorParserConfig, JuryParserConfig, JuryTableParser, ScheduleTableParser
+from .assignment_columns_selector import AssignmentColumnsMode
+from ...domain import Competition, Competitor, JuryMember, Performance
+from ...infrastructure import ExcelReader
 
 
 @dataclass(frozen=True, slots=True)
@@ -39,10 +32,10 @@ class TableIngestionService:
         schedule_result, schedule_schema = self._ingest_schedule(by_key.get("schedule"))
 
         schema_issues = (
-            competitions_schema
-            + competitors_schema
-            + jury_schema
-            + schedule_schema
+                competitions_schema
+                + competitors_schema
+                + jury_schema
+                + schedule_schema
         )
         schema_issues = self._deduplicate_issues(schema_issues)
 
@@ -59,7 +52,7 @@ class TableIngestionService:
     # --------------------------
 
     def _ingest_competitions(
-        self, table_input: TableInput | None
+            self, table_input: TableInput | None
     ) -> tuple[TableParseResult[Competition], list[IngestionIssue]]:
         if table_input is None:
             return self._empty_parse_result("competitions"), [self._missing_table_issue("competitions")]
@@ -68,7 +61,7 @@ class TableIngestionService:
         return self._read_validate_parse(table_input, parser)
 
     def _ingest_competitors(
-        self, table_input: TableInput | None
+            self, table_input: TableInput | None
     ) -> tuple[TableParseResult[Competitor], list[IngestionIssue]]:
         if table_input is None:
             return self._empty_parse_result("competitors"), [self._missing_table_issue("competitors")]
@@ -83,7 +76,7 @@ class TableIngestionService:
         return self._read_validate_parse(table_input, parser)
 
     def _ingest_jury(
-        self, table_input: TableInput | None
+            self, table_input: TableInput | None
     ) -> tuple[TableParseResult[JuryMember], list[IngestionIssue]]:
         if table_input is None:
             return self._empty_parse_result("jury"), [self._missing_table_issue("jury")]
@@ -98,7 +91,7 @@ class TableIngestionService:
         return self._read_validate_parse(table_input, parser)
 
     def _ingest_schedule(
-        self, table_input: TableInput | None
+            self, table_input: TableInput | None
     ) -> tuple[TableParseResult[Performance], list[IngestionIssue]]:
         if table_input is None:
             return self._empty_parse_result("schedule"), [self._missing_table_issue("schedule")]
