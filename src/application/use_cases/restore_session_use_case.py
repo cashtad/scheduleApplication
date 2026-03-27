@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from ...infrastructure import SessionStore
-from session import AppSession, REQUIRED_TABLE_KEYS, TableRuntimeState, TableStatus
+from ...session import AppSession, REQUIRED_TABLE_KEYS, TableRuntimeState, TableStatus
 
 
 class RestoreSessionUseCase:
