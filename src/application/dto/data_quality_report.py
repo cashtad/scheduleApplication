@@ -3,9 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 
-from ...domain.schedule_repository import ScheduleRepositoryValidationReport
 from .prepare_data_result import PrepareDataResult
 from .readiness import AnalyzeReadinessResult
+from ...domain import ScheduleRepositoryValidationReport
 
 
 @dataclass(frozen=True, slots=True)

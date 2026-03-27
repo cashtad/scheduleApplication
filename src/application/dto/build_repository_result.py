@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from ...domain.schedule_repository import ScheduleRepository, ScheduleRepositoryValidationReport
+from ...domain import ScheduleRepository, ScheduleRepositoryValidationReport
 
 
 @dataclass(frozen=True, slots=True)

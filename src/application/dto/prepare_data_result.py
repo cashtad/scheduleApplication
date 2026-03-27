@@ -3,9 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from ...domain import Competition, Competitor, JuryMember, Performance
-from ...ingestion.contracts.ingestion_issue import IngestionIssue
-from ...ingestion.contracts.ingestion_severity import IngestionSeverity
-from ...ingestion.contracts.table_parse_stats import TableParseStats
+from ...ingestion import IngestionIssue, TableParseStats, IngestionSeverity
 
 
 @dataclass(frozen=True, slots=True)

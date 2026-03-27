@@ -9,6 +9,7 @@ class ReadinessDecision(Enum):
     ALLOW = "allow"
     BLOCK = "block"
 
+
 class ReadinessReasonSeverity(Enum):
     ERROR = "error"
     WARNING = "warning"
