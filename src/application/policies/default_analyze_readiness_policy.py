@@ -3,7 +3,7 @@ from __future__ import annotations
 from ..dto.readiness import (
     AnalyzeReadinessResult,
     ReadinessDecision,
-    ReadinessReason,
+    ReadinessReason, ReadinessReasonSeverity,
 )
 from ..dto.prepare_data_result import PrepareDataResult
 from ...domain.schedule_repository import ScheduleRepositoryValidationReport
@@ -30,7 +30,7 @@ class DefaultAnalyzeReadinessPolicy(AnalyzeReadinessPolicy):
             reasons.append(
                 ReadinessReason(
                     code="SCHEMA_ERRORS_PRESENT",
-                    severity="error",
+                    severity=ReadinessReasonSeverity.ERROR,
                     message_en="Schema validation errors are present.",
                     message_cz="Byly nalezeny chyby struktury tabulek.",
                     context={"schema_errors_count": prepare_data_result.schema_errors_count},
@@ -42,7 +42,7 @@ class DefaultAnalyzeReadinessPolicy(AnalyzeReadinessPolicy):
             reasons.append(
                 ReadinessReason(
                     code="ROW_ERROR_RATE_EXCEEDED",
-                    severity="error",
+                    severity=ReadinessReasonSeverity.ERROR,
                     message_en="Row error rate exceeded allowed threshold.",
                     message_cz="Podíl chyb v řádcích překročil povolený limit.",
                     context={
@@ -57,7 +57,7 @@ class DefaultAnalyzeReadinessPolicy(AnalyzeReadinessPolicy):
             reasons.append(
                 ReadinessReason(
                     code="REPOSITORY_ERRORS_PRESENT",
-                    severity="error",
+                    severity=ReadinessReasonSeverity.ERROR,
                     message_en="Repository validation errors are present.",
                     message_cz="Byly nalezeny chyby konzistence dat po sestavení repozitáře.",
                     context={"repository_errors_count": len(repository_validation_report.errors)},
@@ -70,13 +70,13 @@ class DefaultAnalyzeReadinessPolicy(AnalyzeReadinessPolicy):
             reasons.append(
                 ReadinessReason(
                     code="WARNINGS_PRESENT",
-                    severity="warning",
+                    severity=ReadinessReasonSeverity.WARNING,
                     message_en="Warnings are present.",
                     message_cz="Byla nalezena upozornění v datech.",
                     context={"warnings_count": warnings_count},
                 )
             )
 
-        has_blocking_error = any(r.severity == "error" for r in reasons)
+        has_blocking_error = any(r.severity == ReadinessReasonSeverity.ERROR for r in reasons)
         decision = ReadinessDecision.BLOCK if has_blocking_error else ReadinessDecision.ALLOW
         return AnalyzeReadinessResult(decision=decision, reasons=reasons)

@@ -8,7 +8,7 @@ from ..dto.prepare_data_result import PrepareDataResult
 from ..dto.readiness import (
     AnalyzeReadinessResult,
     ReadinessDecision,
-    ReadinessReason,
+    ReadinessReason, ReadinessReasonSeverity,
 )
 from ..dto.workflow_status import WorkflowStatus
 from ..policies.analyze_readiness_policy import AnalyzeReadinessPolicy
@@ -80,7 +80,7 @@ class AnalyzeWorkflowService:
             reasons=[
                 ReadinessReason(
                     code="WORKFLOW_EXCEPTION",
-                    severity="error",
+                    severity=ReadinessReasonSeverity.ERROR,
                     message_en=error_message,
                     message_cz="Došlo k neočekávané chybě během zpracování.",
                 )

@@ -9,11 +9,15 @@ class ReadinessDecision(Enum):
     ALLOW = "allow"
     BLOCK = "block"
 
+class ReadinessReasonSeverity(Enum):
+    ERROR = "error"
+    WARNING = "warning"
+
 
 @dataclass(frozen=True, slots=True)
 class ReadinessReason:
     code: str
-    severity: str  # "error" | "warning"
+    severity: ReadinessReasonSeverity  # "error" | "warning"
     message_en: str
     message_cz: str
     context: dict[str, Any] = field(default_factory=dict)
