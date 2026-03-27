@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from ..dto.build_repository_result import BuildRepositoryResult
+from ..dto import BuildRepositoryResult
 
 
 @dataclass(frozen=True, slots=True)
@@ -13,10 +13,6 @@ class RunScheduleAnalysisResult:
 
 
 class RunScheduleAnalysisUseCase:
-    """
-    Runs schedule analysis on validated repository and optionally writes HTML report.
-    """
-
     def __init__(self, analyzer, html_report_writer) -> None:
         self._analyzer = analyzer
         self._html_report_writer = html_report_writer

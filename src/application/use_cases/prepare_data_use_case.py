@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from ..dto.prepare_data_result import PrepareDataResult
-from ..services.session_status_sync_service import SessionStatusSyncService
-from ...ingestion.contracts.table_input import TableInput
-from ...ingestion.services.table_ingestion_service import TableIngestionService
-from ...session.app_session import AppSession, REQUIRED_TABLE_KEYS
+from ..dto import PrepareDataResult
+from ..services import SessionStatusSyncService
+from ...ingestion import TableInput, TableIngestionService
+from ...session import AppSession, REQUIRED_TABLE_KEYS
 
 
 class PrepareDataUseCase:

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from ...infrastructure.storage.session_store import PersistedSession, PersistedTableState, SessionStore
-from ...session.app_session import AppSession
+from ...infrastructure import PersistedSession, PersistedTableState, SessionStore
+from ...session import AppSession
 
 
 class SaveSessionUseCase:

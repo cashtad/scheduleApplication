@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from ..dto.build_repository_result import BuildRepositoryResult
-from ..dto.prepare_data_result import PrepareDataResult
-from ...domain.schedule_repository import ScheduleRepositoryBuilder
+from ..dto import BuildRepositoryResult, PrepareDataResult
+from ...domain import ScheduleRepositoryBuilder
 
 
 class BuildRepositoryUseCase:

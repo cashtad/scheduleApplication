@@ -2,10 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from ...infrastructure.storage.session_store import SessionStore
-from ...session.app_session import AppSession, REQUIRED_TABLE_KEYS
-from ...session.table_runtime_state import TableRuntimeState
-from ...session.table_status import TableStatus
+from ...infrastructure import SessionStore
+from session import AppSession, REQUIRED_TABLE_KEYS, TableRuntimeState, TableStatus
 
 
 class RestoreSessionUseCase:
