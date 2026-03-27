@@ -10,13 +10,11 @@ from ...ingestion.contracts.table_parse_stats import TableParseStats
 
 @dataclass(frozen=True, slots=True)
 class PrepareDataResult:
-    # Parsed domain entities
     competitions: list[Competition] = field(default_factory=list)
     competitors: list[Competitor] = field(default_factory=list)
     jury_members: list[JuryMember] = field(default_factory=list)
     performances: list[Performance] = field(default_factory=list)
 
-    # Quality / diagnostics
     schema_issues: list[IngestionIssue] = field(default_factory=list)
     row_issues: list[IngestionIssue] = field(default_factory=list)
     table_stats: list[TableParseStats] = field(default_factory=list)

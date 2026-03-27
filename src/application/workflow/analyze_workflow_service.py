@@ -5,7 +5,11 @@ from datetime import datetime
 from ..dto.analyze_workflow_result import AnalyzeWorkflowResult
 from ..dto.data_quality_report import DataQualityReport
 from ..dto.prepare_data_result import PrepareDataResult
-from ..dto.readiness import AnalyzeReadinessResult, ReadinessDecision, ReadinessReason
+from ..dto.readiness import (
+    AnalyzeReadinessResult,
+    ReadinessDecision,
+    ReadinessReason,
+)
 from ..dto.workflow_status import WorkflowStatus
 from ..policies.analyze_readiness_policy import AnalyzeReadinessPolicy
 from ..use_cases.build_repository_use_case import BuildRepositoryUseCase
@@ -32,8 +36,6 @@ class AnalyzeWorkflowService:
     def run_analysis(self, session) -> AnalyzeWorkflowResult:
         try:
             prepared = self._prepare_data_use_case.execute(session)
-
-            # Build repository always: gives additional consistency diagnostics
             built = self._build_repository_use_case.execute(prepared)
 
             readiness = self._readiness_policy.evaluate(
