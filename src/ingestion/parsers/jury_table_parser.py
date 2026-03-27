@@ -108,11 +108,11 @@ class JuryTableParser(BaseTableParser[JuryMember]):
         for column_name in assignment_selection.columns:
             if not self._is_assigned(row[column_name]):
                 continue
-            competition_ids.add(self._competition_id_from_column(column_name, assignment_selection))
+            competition_ids.add(JuryTableParser._competition_id_from_column(column_name, assignment_selection))
         return frozenset(competition_ids)
 
+    @staticmethod
     def _competition_id_from_column(
-        self,
         column_name: str,
         assignment_selection: AssignmentColumnsSelection,
     ) -> int:

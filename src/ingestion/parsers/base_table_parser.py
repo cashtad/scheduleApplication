@@ -147,7 +147,8 @@ class BaseTableParser(ABC, Generic[T]):
             context=context,
         )
 
-    def deduplicate_issues(self, issues: list[IngestionIssue]) -> list[IngestionIssue]:
+    @staticmethod
+    def deduplicate_issues(issues: list[IngestionIssue]) -> list[IngestionIssue]:
         unique: dict[tuple, IngestionIssue] = {}
         for issue in issues:
             unique[issue.dedup_key()] = issue
@@ -160,7 +161,7 @@ class BaseTableParser(ABC, Generic[T]):
         total_rows: int,
         parsed_rows: int,
     ) -> TableParseResult[T]:
-        deduped = self.deduplicate_issues(issues)
+        deduped = BaseTableParser.deduplicate_issues(issues)
         skipped_rows = max(total_rows - parsed_rows, 0)
         return TableParseResult(
             table_key=self.table_key,
