@@ -1,6 +1,13 @@
-from .base_table_parser import BaseTableParser, ParseContext
+from .base_table_parser import BaseTableParser
+from .competitor_table_parser import CompetitorTableParser
+from .competition_table_parser import CompetitionTableParser
+from .jury_table_parser import JuryTableParser
+from .schedule_table_parser import ScheduleTableParser
 
 __all__ = [
     "BaseTableParser",
-    "ParseContext",
+    "CompetitorTableParser",
+    "CompetitionTableParser",
+    "JuryTableParser",
+    "ScheduleTableParser",
 ]
