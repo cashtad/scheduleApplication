@@ -1,7 +1,7 @@
-from .inference_engine import InferenceEngine
-from .schedule_analysis_result import ScheduleAnalysisResult
 from .violation import Violation
 from .severity import Severity
+from .inference_engine import InferenceEngine
+from .schedule_analysis_result import ScheduleAnalysisResult
 from .explanation import ExplanationGenerator
 
 __all__ = [
