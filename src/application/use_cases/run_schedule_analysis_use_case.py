@@ -1,23 +1,35 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
 
 from ..dto import BuildRepositoryResult
+from ...domain.analysis import InferenceEngine, ScheduleAnalysisResult #TODO: fix
 
 
 @dataclass(frozen=True, slots=True)
 class RunScheduleAnalysisResult:
-    analysis_result: Any
+    analysis_result: ScheduleAnalysisResult
     html_report_path: str | None = None
 
 
 class RunScheduleAnalysisUseCase:
-    def __init__(self) -> None:
-        raise NotImplementedError
+    def __init__(
+        self,
+        inference_engine: InferenceEngine,
+        html_report_writer: object | None = None,
+    ) -> None:
+        self._inference_engine = inference_engine
+        self._html_report_writer = html_report_writer
 
     def execute(self, build_repository_result: BuildRepositoryResult) -> RunScheduleAnalysisResult:
-        # TODO (next step):
-        # 1) analysis_result = self._analyzer.analyze(build_repository_result.repository)
-        # return RunScheduleAnalysisResult(...)
-        raise NotImplementedError
+        analysis_result = self._inference_engine.analyze(build_repository_result.repository)
+
+        html_report_path: str | None = None
+        if self._html_report_writer is not None:
+            # expected interface: write(analysis_result) -> str
+            html_report_path = self._html_report_writer.write(analysis_result)
+
+        return RunScheduleAnalysisResult(
+            analysis_result=analysis_result,
+            html_report_path=html_report_path,
+        )
