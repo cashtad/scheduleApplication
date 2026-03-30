@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from ...domain import Competition, Competitor, JuryMember, Performance
-from ...ingestion import IngestionIssue, TableParseStats, IngestionSeverity
+from src.domain import Competition, Competitor, JuryMember, Performance
+from src.ingestion import IngestionIssue, TableParseStats, IngestionSeverity
 
 
 @dataclass(frozen=True, slots=True)

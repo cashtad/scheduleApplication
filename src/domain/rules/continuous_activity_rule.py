@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC
 from typing import Callable
 
-from ...domain import Performance
+from src.domain import Performance
 from .rule import ARule
 from ..analysis import Violation
 

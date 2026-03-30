@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from ...domain.analysis import ScheduleAnalysisResult, Violation
+from src.domain.analysis import ScheduleAnalysisResult, Violation
 
 
 @dataclass(frozen=True, slots=True)

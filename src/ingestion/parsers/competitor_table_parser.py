@@ -5,7 +5,7 @@ from typing import Any
 
 from pandas import DataFrame
 
-from ...domain import Competitor
+from src.domain import Competitor
 from ..contracts import IngestionIssue, TableParseResult
 from .base_table_parser import BaseTableParser
 from ..services import (

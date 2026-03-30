@@ -5,7 +5,7 @@ from ..dto import (
     ReadinessDecision,
     ReadinessReason, ReadinessReasonSeverity, PrepareDataResult
 )
-from ...domain import ScheduleRepositoryValidationReport
+from src.domain import ScheduleRepositoryValidationReport
 from .analyze_readiness_policy import AnalyzeReadinessPolicy
 
 

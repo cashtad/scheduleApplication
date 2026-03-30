@@ -3,9 +3,9 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from datetime import datetime
 
-from ...domain import ScheduleRepository
 from ..analysis import Severity, Violation
-from ...infrastructure.config import RuleConfig
+from src.domain import ScheduleRepository
+from src.infrastructure.config import RuleConfig
 
 
 class ARule(ABC):

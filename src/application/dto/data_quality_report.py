@@ -5,7 +5,7 @@ from datetime import datetime
 
 from .prepare_data_result import PrepareDataResult
 from .readiness import AnalyzeReadinessResult
-from ...domain import ScheduleRepositoryValidationReport
+from src.domain import ScheduleRepositoryValidationReport
 
 
 @dataclass(frozen=True, slots=True)

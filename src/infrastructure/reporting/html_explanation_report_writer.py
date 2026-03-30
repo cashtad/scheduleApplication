@@ -3,8 +3,8 @@ from __future__ import annotations
 from datetime import datetime
 from pathlib import Path
 
-from ...application.ports.html_report_writer import HtmlReportWriter
-from ...domain.analysis import ExplanationGenerator, ScheduleAnalysisResult
+from src.application.ports.html_report_writer import HtmlReportWriter
+from src.domain.analysis import ExplanationGenerator, ScheduleAnalysisResult
 
 
 class HtmlExplanationReportWriter(HtmlReportWriter):

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ...domain import ScheduleRepository
+from src.domain import ScheduleRepository
 from .rule import ARule
 from ..analysis import Violation
 

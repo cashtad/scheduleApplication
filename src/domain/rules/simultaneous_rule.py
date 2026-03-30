@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC
 from datetime import datetime
 
-from ...domain import Performance, ScheduleRepository
+from src.domain import Performance, ScheduleRepository
 from .rule import ARule
 from ..analysis import Severity, Violation
 

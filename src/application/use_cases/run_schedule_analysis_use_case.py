@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 from ..dto import BuildRepositoryResult
 from ..ports.html_report_writer import HtmlReportWriter
-from ...domain.analysis import InferenceEngine, ScheduleAnalysisResult
+from src.domain.analysis import InferenceEngine, ScheduleAnalysisResult
 
 
 @dataclass(frozen=True, slots=True)

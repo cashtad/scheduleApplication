@@ -7,8 +7,8 @@ from typing import Iterable
 from ..contracts import FullIngestionResult, IngestionIssue, IngestionSeverity, TableInput, TableParseResult
 from ..parsers import CompetitionTableParser, CompetitorTableParser, CompetitorParserConfig, JuryParserConfig, JuryTableParser, ScheduleTableParser
 from .assignment_columns_selector import AssignmentColumnsMode
-from ...domain import Competition, Competitor, JuryMember, Performance
-from ...infrastructure import ExcelReader
+from src.domain import Competition, Competitor, JuryMember, Performance
+from src.infrastructure import ExcelReader
 
 
 @dataclass(frozen=True, slots=True)

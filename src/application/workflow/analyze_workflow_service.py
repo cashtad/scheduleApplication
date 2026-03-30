@@ -6,7 +6,7 @@ from ..dto import (AnalyzeWorkflowResult, DataQualityReport, PrepareDataResult, 
                    ReadinessDecision, ReadinessReason, ReadinessReasonSeverity, WorkflowStatus)
 from ..policies import AnalyzeReadinessPolicy
 from ..use_cases import BuildRepositoryUseCase, PrepareDataUseCase, RunScheduleAnalysisUseCase
-from ...domain import ScheduleRepositoryValidationReport
+from src.domain import ScheduleRepositoryValidationReport
 
 
 class AnalyzeWorkflowService:

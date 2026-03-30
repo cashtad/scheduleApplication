@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Iterable
 
 from ..use_cases import SaveSessionUseCase
-from ...session import AppSession, TableStatus
+from src.session import AppSession, TableStatus
 
 
 class SessionService:

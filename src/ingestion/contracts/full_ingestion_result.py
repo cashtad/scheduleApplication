@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from ...domain import Competition, Competitor, JuryMember, Performance
+from src.domain import Competition, Competitor, JuryMember, Performance
 from .ingestion_issue import IngestionIssue
 from .table_parse_result import TableParseResult
 from .table_parse_stats import TableParseStats
