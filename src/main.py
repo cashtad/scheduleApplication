@@ -9,7 +9,7 @@ from src.session import AppSession
 
 def run_once() -> None:
     container = build_app_container(
-        rules_config_path=Path("config/rules.yaml"),
+        rules_config_path=Path("rules_config.yaml"),
         reports_dir=".reports",
         with_html_report_writer=True,
     )

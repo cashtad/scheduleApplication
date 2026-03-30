@@ -1,0 +1,39 @@
+max_continuous_dancing:
+  enabled: true
+  rest_time: 10
+  thresholds:
+    critical: 60
+    medium: 45
+    low: 30
+
+costume_change_time:
+  enabled: true
+  min_gap_minutes: 15
+  disciplines:
+    - "lat"
+    - "stt"
+  thresholds:
+    critical: 5
+    medium: 10
+    low: 15
+
+max_continuous_judging:
+  enabled: true
+  rest_time: 10
+  thresholds:
+    critical: 120
+    medium: 90
+    low: 60
+
+max_gap_between_performances:
+  enabled: true
+  thresholds:
+    critical: 120
+    medium: 90
+    low: 60
+
+simultaneous_dancing:
+  enabled: true
+
+simultaneous_judging:
+  enabled: true
