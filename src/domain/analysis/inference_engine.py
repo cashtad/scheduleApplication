@@ -2,40 +2,40 @@ from __future__ import annotations
 
 from collections import defaultdict
 
+from ...domain import ScheduleRepository
+from ...infrastructure.config import RulesConfig
+from ..rules import load_rules_from_config
 from .schedule_analysis_result import ScheduleAnalysisResult
 from .severity import Severity
 from .violation import Violation
-from ..rules import load_rules_from_config
-from ...domain import ScheduleRepository
 
 
 class InferenceEngine:
-    def __init__(self, rules_config: dict) -> None:
-        self.general_config = rules_config.get("general", {})
+    def __init__(self, rules_config: RulesConfig) -> None:
         self.rules = load_rules_from_config(rules_config)
 
     def analyze(self, repository: ScheduleRepository) -> ScheduleAnalysisResult:
-        all_violations: list[Violation] = []
+        violations: list[Violation] = []
 
         for rule in self.rules:
-            all_violations.extend(rule.check(repository))
+            violations.extend(rule.check(repository))
 
-        all_violations = self._deduplicate_violations(all_violations)
-        violations_by_severity = self._group_by_severity(all_violations)
-        violations_by_rule = self._group_by_rule(all_violations)
+        deduped = self._deduplicate_violations(violations)
+        by_severity = self._group_by_severity(deduped)
+        by_rule = self._group_by_rule(deduped)
 
         return ScheduleAnalysisResult(
-            violations=all_violations,
-            violations_by_severity=violations_by_severity,
-            violations_by_rule=violations_by_rule,
+            violations=deduped,
+            violations_by_severity=by_severity,
+            violations_by_rule=by_rule,
         )
 
     @staticmethod
     def _group_by_severity(violations: list[Violation]) -> dict[Severity, list[Violation]]:
-        result = {severity: [] for severity in Severity}
+        grouped: dict[Severity, list[Violation]] = {severity: [] for severity in Severity}
         for violation in violations:
-            result[violation.severity].append(violation)
-        return result
+            grouped[violation.severity].append(violation)
+        return grouped
 
     @staticmethod
     def _group_by_rule(violations: list[Violation]) -> dict[str, list[Violation]]:
