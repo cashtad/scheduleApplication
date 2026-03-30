@@ -24,9 +24,9 @@ class ContinuousActivityRule(ARule, ABC):
         for prev, curr in zip(performances, performances[1:]):
             prev_end = self._ensure_datetime(prev.end_time)
             curr_start = self._ensure_datetime(curr.start_time)
-            gap = (curr_start - prev_end).total_seconds() / 60
+            gap_minutes = (curr_start - prev_end).total_seconds() / 60
 
-            if gap < self.config["rest_time"]:
+            if gap_minutes < self.config["rest_time"]:
                 block_duration += curr.duration
                 block_performances.append(curr)
             else:
@@ -58,7 +58,6 @@ class ContinuousActivityRule(ARule, ABC):
         duration_i = int(duration)
         threshold = int(self.config["thresholds"][severity.value])
         excess = duration_i - threshold
-        weight = self._calculate_weight(severity, excess)
 
         start_perf = block_performances[0]
         end_perf = block_performances[-1]
@@ -66,7 +65,6 @@ class ContinuousActivityRule(ARule, ABC):
         return Violation(
             rule_name=rule_name,
             severity=severity,
-            weight=weight,
             description=description,
             entity_id=entity_id,
             entity_name=entity_name,

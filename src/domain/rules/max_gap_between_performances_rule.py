@@ -28,7 +28,6 @@ class MaxGapBetweenPerformancesRule(ARule):
 
                 threshold = self.config["thresholds"][severity.value]
                 excess = gap_minutes - threshold
-                weight = self._calculate_weight(severity, excess)
 
                 entity_name = (
                     f"{competitor.dancer_1_name}"
@@ -39,7 +38,6 @@ class MaxGapBetweenPerformancesRule(ARule):
                     Violation(
                         rule_name="MaxGapBetweenPerformances",
                         severity=severity,
-                        weight=weight,
                         description=f"Příliš velká přestávka ({gap_minutes:.0f} min) mezi vystoupeními pro {competitor.dancer_1_name}",
                         entity_id=competitor.dancer_1_name,
                         entity_name=entity_name,

@@ -10,7 +10,6 @@ from .severity import Severity
 class Violation:
     rule_name: str
     severity: Severity
-    weight: float
     description: str
     entity_id: str
     entity_name: str

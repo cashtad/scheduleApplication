@@ -5,8 +5,7 @@ from datetime import datetime
 
 from ...domain import Performance, ScheduleRepository
 from .rule import ARule
-from ..analysis import Severity
-from ..analysis import Violation
+from ..analysis import Severity, Violation
 
 
 class SimultaneousRule(ARule, ABC):
@@ -36,25 +35,12 @@ class SimultaneousRule(ARule, ABC):
                 overlap_start = max(start1, start2)
                 overlap_end = min(end1, end2)
                 overlap_minutes = (overlap_end - overlap_start).total_seconds() / 60
-                weight = float(self.config["weights"]["base_critical"])
 
                 comp1 = repository.find_competition_by_id(perf1.competition_id)
                 comp2 = repository.find_competition_by_id(perf2.competition_id)
 
-                overlapping_count = sum(
-                    1
-                    for p in performances
-                    if self._is_overlapping(
-                        start1,
-                        end1,
-                        self._ensure_datetime(p.start_time),
-                        self._ensure_datetime(p.end_time),
-                    )
-                )
-
                 description = description_template.format(
                     entity_name=entity_name,
-                    count=overlapping_count,
                     overlap_start=overlap_start.strftime("%H:%M"),
                     overlap_end=overlap_end.strftime("%H:%M"),
                 )
@@ -63,7 +49,6 @@ class SimultaneousRule(ARule, ABC):
                     Violation(
                         rule_name=rule_name,
                         severity=Severity.CRITICAL,
-                        weight=weight,
                         description=description,
                         entity_id=entity_id,
                         entity_name=entity_name,

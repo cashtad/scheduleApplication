@@ -4,8 +4,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 
 from ...domain import ScheduleRepository
-from ..analysis import Severity
-from ..analysis import Violation
+from ..analysis import Severity, Violation
 
 
 class ARule(ABC):
@@ -20,12 +19,6 @@ class ARule(ABC):
     @staticmethod
     def _source_rows(*performances) -> list[int]:
         return [p.source_row for p in performances if p.source_row is not None]
-
-    def _calculate_weight(self, severity: Severity, excess: float = 0) -> float:
-        weights = self.config["weights"]
-        base_weight = float(weights[f"base_{severity.value}"])
-        coefficient = float(weights.get("coefficient_per_minute", 0))
-        return base_weight + (float(excess) * coefficient)
 
     def _get_severity(self, value: float, reverse: bool = False) -> Severity | None:
         value_i = int(value)

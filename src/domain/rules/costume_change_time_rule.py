@@ -40,7 +40,6 @@ class CostumeChangeTimeRule(ARule):
 
                     threshold = self.config["thresholds"][severity.value]
                     shortage = threshold - gap_minutes
-                    weight = self._calculate_weight(severity, shortage)
 
                     entity_name = (
                         f"{competitor.dancer_1_name}"
@@ -51,7 +50,6 @@ class CostumeChangeTimeRule(ARule):
                         Violation(
                             rule_name="CostumeChangeTime",
                             severity=severity,
-                            weight=weight,
                             description=f"Nedostatečný čas ({gap_minutes:.0f} min) na převlečení kostýmu pro {competitor.dancer_1_name}",
                             entity_id=competitor.dancer_1_name,
                             entity_name=entity_name,
