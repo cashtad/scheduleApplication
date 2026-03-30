@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Protocol
 
 from .policies import DefaultAnalyzeReadinessPolicy
 from .services import SessionStatusSyncService
@@ -14,15 +13,12 @@ from .use_cases import (
     SaveSessionUseCase,
 )
 from .workflow.analyze_workflow_service import AnalyzeWorkflowService
-from ..domain import ScheduleRepositoryBuilder, InferenceEngine
+from ..domain import ScheduleRepositoryBuilder
+from ..domain.analysis import InferenceEngine
 from ..ingestion import TableIngestionService
 from ..infrastructure import JsonSessionStore, PandasExcelReader
 from ..infrastructure.config import YamlRulesConfigLoader
-
-
-class HtmlReportWriter(Protocol):
-    def write(self, analysis_result: Any) -> str:
-        ...
+from ..infrastructure.reporting.html_explanation_report_writer import HtmlExplanationReportWriter
 
 
 @dataclass(frozen=True, slots=True)
@@ -36,7 +32,8 @@ def build_app_container(
     rules_config_path: str | Path,
     *,
     row_error_threshold: float = 0.5,
-    html_report_writer: HtmlReportWriter | None = None,
+    reports_dir: str = ".reports",
+    with_html_report_writer: bool = True,
     session_store: JsonSessionStore | None = None,
     excel_reader: PandasExcelReader | None = None,
 ) -> AppContainer:
@@ -63,9 +60,11 @@ def build_app_container(
         session_status_sync_service=status_sync_service,
     )
     build_repository_use_case = BuildRepositoryUseCase(repository_builder=repository_builder)
+
+    html_writer = HtmlExplanationReportWriter(output_dir=reports_dir) if with_html_report_writer else None
     run_schedule_analysis_use_case = RunScheduleAnalysisUseCase(
         inference_engine=inference_engine,
-        html_report_writer=html_report_writer,
+        html_report_writer=html_writer,
     )
 
     readiness_policy = DefaultAnalyzeReadinessPolicy(row_error_threshold=row_error_threshold)

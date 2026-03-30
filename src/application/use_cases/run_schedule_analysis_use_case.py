@@ -3,7 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from ..dto import BuildRepositoryResult
-from ...domain.analysis import InferenceEngine, ScheduleAnalysisResult #TODO: fix
+from ..ports.html_report_writer import HtmlReportWriter
+from ...domain.analysis import InferenceEngine, ScheduleAnalysisResult
 
 
 @dataclass(frozen=True, slots=True)
@@ -16,7 +17,7 @@ class RunScheduleAnalysisUseCase:
     def __init__(
         self,
         inference_engine: InferenceEngine,
-        html_report_writer: object | None = None,
+        html_report_writer: HtmlReportWriter | None = None,
     ) -> None:
         self._inference_engine = inference_engine
         self._html_report_writer = html_report_writer
@@ -26,7 +27,6 @@ class RunScheduleAnalysisUseCase:
 
         html_report_path: str | None = None
         if self._html_report_writer is not None:
-            # expected interface: write(analysis_result) -> str
             html_report_path = self._html_report_writer.write(analysis_result)
 
         return RunScheduleAnalysisResult(
