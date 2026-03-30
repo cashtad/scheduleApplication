@@ -5,12 +5,13 @@ from datetime import datetime
 
 from ...domain import ScheduleRepository
 from ..analysis import Severity, Violation
+from ...infrastructure.config import RuleConfig
 
 
 class ARule(ABC):
-    def __init__(self, config: dict) -> None:
+    def __init__(self, config: RuleConfig) -> None:
         self.config = config
-        self.enabled = bool(config.get("enabled", True))
+        self.enabled = config.enabled
 
     @abstractmethod
     def check(self, repository: ScheduleRepository) -> list[Violation]:
@@ -21,23 +22,26 @@ class ARule(ABC):
         return [p.source_row for p in performances if p.source_row is not None]
 
     def _get_severity(self, value: float, reverse: bool = False) -> Severity | None:
+        if self.config.thresholds is None:
+            return None
+
         value_i = int(value)
-        thresholds = self.config["thresholds"]
+        thresholds = self.config.thresholds
 
         if reverse:
-            if value_i <= thresholds["critical"]:
+            if value_i <= thresholds.critical:
                 return Severity.CRITICAL
-            if value_i <= thresholds["medium"]:
+            if value_i <= thresholds.medium:
                 return Severity.MEDIUM
-            if value_i <= thresholds["low"]:
+            if value_i <= thresholds.low:
                 return Severity.LOW
             return None
 
-        if value_i >= thresholds["critical"]:
+        if value_i >= thresholds.critical:
             return Severity.CRITICAL
-        if value_i >= thresholds["medium"]:
+        if value_i >= thresholds.medium:
             return Severity.MEDIUM
-        if value_i >= thresholds["low"]:
+        if value_i >= thresholds.low:
             return Severity.LOW
         return None
 
