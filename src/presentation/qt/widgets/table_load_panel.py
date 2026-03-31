@@ -14,21 +14,22 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from infrastructure import PandasExcelReader
-from session import TableStatus
-from ..controllers import UiController
-from ..dialogs.mapping_dialog import MappingDialog
+from src.application.contracts import TABLE_MAPPING_SCHEMAS
+from src.infrastructure import PandasExcelReader
+from src.presentation.qt.controllers import UiController
+from src.presentation.qt.dialogs.mapping_dialog import MappingDialog
+from src.session import TableStatus
 
 _DOT_STYLE = "border-radius: 8px; width: 16px; height: 16px; background-color: {color};"
 
-_TABLE_LABELS: dict[str, str] = {
+_TABLE_LABELS = {
     "competitions": "Soutěže",
     "competitors": "Účastníci",
     "jury": "Porotci",
     "schedule": "Rozvrh",
 }
 
-_STATUS_UI: dict[TableStatus, tuple[str, str]] = {
+_STATUS_UI = {
     TableStatus.EMPTY: ("Nevybráno", "#9E9E9E"),
     TableStatus.FILE_SELECTED: ("Soubor vybrán", "#29B6F6"),
     TableStatus.SHEET_SELECTED: ("List vybrán", "#FFA726"),
@@ -80,19 +81,13 @@ class TableLoadPanel(QWidget):
     def refresh(self) -> None:
         status = self._controller.get_table_status(self._table_key)
         text, color = _STATUS_UI.get(status, (status.value, "#9E9E9E"))
-
         self._dot.setStyleSheet(_DOT_STYLE.format(color=color))
         self._status_label.setText(text)
         self._action_btn.setText("Změnit" if status in {TableStatus.MAPPED, TableStatus.READY} else "Načíst")
         self.status_changed.emit()
 
     def _on_action_clicked(self) -> None:
-        file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "Vyberte soubor tabulky",
-            "",
-            "Tabulky (*.xlsx *.xls)",
-        )
+        file_path, _ = QFileDialog.getOpenFileName(self, "Vyberte soubor tabulky", "", "Tabulky (*.xlsx *.xls)")
         if not file_path:
             return
 
@@ -113,14 +108,7 @@ class TableLoadPanel(QWidget):
         if len(sheet_names) == 1:
             sheet_name = sheet_names[0]
         else:
-            selected, ok = QInputDialog.getItem(
-                self,
-                "Výběr listu",
-                "Vyberte list tabulky:",
-                sheet_names,
-                0,
-                False,
-            )
+            selected, ok = QInputDialog.getItem(self, "Výběr listu", "Vyberte list tabulky:", sheet_names, 0, False)
             if not ok:
                 self.refresh()
                 return
@@ -136,20 +124,26 @@ class TableLoadPanel(QWidget):
             return
 
         existing_mapping = self._controller.session.get_table(self._table_key).column_mapping
-        dialog = MappingDialog(
+        dlg = MappingDialog(
             table_key=self._table_key,
             df=df,
             existing_mapping=existing_mapping,
             parent=self,
         )
+        if dlg.exec() != MappingDialog.Accepted:
+            self.refresh()
+            return
 
-        if dialog.exec() != MappingDialog.Accepted:
+        mapping = dict(dlg.result_mapping)
+        ok, error_text = self._validate_mapping_preflight(mapping, [str(c) for c in df.columns])
+        if not ok:
+            QMessageBox.warning(self, "Neplatné mapování", error_text)
             self.refresh()
             return
 
         self._controller.set_mapping(
             table_key=self._table_key,
-            column_mapping=dialog.result_mapping,
+            column_mapping=mapping,
             current_columns=[str(c) for c in df.columns],
         )
         self._controller.mark_ready(self._table_key)
@@ -158,3 +152,39 @@ class TableLoadPanel(QWidget):
             self._on_schedule_preview_changed(df)
 
         self.refresh()
+
+    def _validate_mapping_preflight(self, mapping: dict[str, str], current_columns: list[str]) -> tuple[bool, str]:
+        schema = TABLE_MAPPING_SCHEMAS[self._table_key]
+        existing_columns = set(current_columns)
+
+        for field in schema.fields:
+            val = (mapping.get(field.key) or "").strip()
+            if field.required and not val:
+                return False, f"Povinné pole '{field.label}' není vyplněno."
+
+        for field in schema.fields:
+            if field.virtual:
+                continue
+            val = (mapping.get(field.key) or "").strip()
+            if val and val not in existing_columns:
+                return False, f"Vybraný sloupec '{val}' pro pole '{field.label}' neexistuje v tabulce."
+
+        if self._table_key in {"competitors", "jury"}:
+            prefix = (mapping.get("assignment_prefix") or "").strip()
+            if prefix:
+                matched = [c for c in current_columns if c.startswith(prefix)]
+                if not matched:
+                    return False, f"Prefix '{prefix}' neodpovídá žádnému sloupci."
+            else:
+                numeric = [c for c in current_columns if c.strip().isdigit()]
+                if not numeric:
+                    return False, "Pro prázdný prefix nebyly nalezeny číselné sloupce přiřazení."
+
+        if self._table_key == "jury":
+            fullname = (mapping.get("fullname") or "").strip()
+            name = (mapping.get("name") or "").strip()
+            surname = (mapping.get("surname") or "").strip()
+            if not fullname and not (name and surname):
+                return False, "Pro porotu je potřeba buď 'Celé jméno', nebo kombinace 'Jméno' + 'Příjmení'."
+
+        return True, ""

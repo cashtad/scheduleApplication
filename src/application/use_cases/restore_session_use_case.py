@@ -40,6 +40,7 @@ class RestoreSessionUseCase:
 
     @staticmethod
     def _infer_status(table: TableRuntimeState) -> TableStatus:
+        #TODO: after reloading app tables are mapped and it requires to reselect file and sheet to mark them as ready
         if not table.file_path:
             return TableStatus.EMPTY
 
