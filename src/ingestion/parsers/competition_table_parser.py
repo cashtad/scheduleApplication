@@ -18,7 +18,6 @@ class CompetitionTableParser(BaseTableParser[Competition]):
             "id",
             "name",
             "discipline",
-            "participants_per_entry",
             "amount_of_rounds",
         ]
 
@@ -55,13 +54,11 @@ class CompetitionTableParser(BaseTableParser[Competition]):
         id_value = self.as_int(row[self.mapping["id"]])
         name = self.as_str(row[self.mapping["name"]])
         discipline = self.as_str(row[self.mapping["discipline"]])
-        participants_per_entry = self.as_int(row[self.mapping["participants_per_entry"]])
         amount_of_rounds = self.as_int(row[self.mapping["amount_of_rounds"]])
 
         return Competition(
             id=id_value,
             name=name,
             discipline=discipline,
-            participants_per_entry=participants_per_entry,
             amount_of_rounds=amount_of_rounds,
         )

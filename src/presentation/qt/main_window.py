@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pandas as pd
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QMainWindow,
@@ -12,16 +13,8 @@ from PySide6.QtWidgets import (
 )
 
 from application.dto import WorkflowStatus
-from session import TableStatus
 from .controllers import UiController
-
-
-_TABLE_TITLES: dict[str, str] = {
-    "competitions": "Soutěže",
-    "competitors": "Účastníci",
-    "jury": "Porotci",
-    "schedule": "Rozvrh",
-}
+from .widgets.table_load_panel import TableLoadPanel
 
 
 class MainWindow(QMainWindow):
@@ -34,28 +27,23 @@ class MainWindow(QMainWindow):
             reports_dir=".reports",
             with_html_report_writer=True,
         )
-
-        self._table_buttons: dict[str, QPushButton] = {}
-        self._status_labels: dict[str, QPushButton] = {}
+        self._schedule_preview_df: pd.DataFrame | None = None
 
         root = QWidget(self)
         self.setCentralWidget(root)
         layout = QVBoxLayout(root)
 
+        self._panels: dict[str, TableLoadPanel] = {}
         for table_key in self._controller.required_table_keys():
-            row = QHBoxLayout()
-
-            open_btn = QPushButton(f"Načíst: {_TABLE_TITLES.get(table_key, table_key)}")
-            open_btn.clicked.connect(lambda _=False, k=table_key: self._on_open_table(k))
-            self._table_buttons[table_key] = open_btn
-
-            status_btn = QPushButton()
-            status_btn.setEnabled(False)
-            self._status_labels[table_key] = status_btn
-
-            row.addWidget(open_btn)
-            row.addWidget(status_btn)
-            layout.addLayout(row)
+            panel = TableLoadPanel(
+                table_key=table_key,
+                controller=self._controller,
+                on_schedule_preview_changed=self._on_schedule_preview_changed,
+                parent=self,
+            )
+            panel.status_changed.connect(self._refresh_analyze_button_state)
+            self._panels[table_key] = panel
+            layout.addWidget(panel)
 
         actions = QHBoxLayout()
         self._analyze_button = QPushButton("▶ Spustit analýzu")
@@ -63,40 +51,32 @@ class MainWindow(QMainWindow):
         actions.addWidget(self._analyze_button)
         layout.addLayout(actions)
 
-        self._refresh_view_state()
+        self._refresh_analyze_button_state()
 
-    def _on_open_table(self, table_key: str) -> None:
-        QMessageBox.information(
-            self,
-            "Další krok",
-            f"Следующим шагом подключим полноценный TableLoadPanel для '{table_key}'",
-        )
+    def _on_schedule_preview_changed(self, df: pd.DataFrame) -> None:
+        self._schedule_preview_df = df
+
+    def _refresh_analyze_button_state(self) -> None:
+        self._analyze_button.setEnabled(self._controller.can_run_analysis())
 
     def _on_run_analysis(self) -> None:
         result = self._controller.run_analysis()
 
         if result.status == WorkflowStatus.FAILED:
-            QMessageBox.critical(self, "Chyba analýzy", result.error_message or "Neznámá chyba")
-            self._refresh_view_state()
+            QMessageBox.critical(self, "Chyba analýzy", result.error_message or "Neznámá chyba.")
             return
 
         if result.status == WorkflowStatus.BLOCKED:
             reasons = result.quality_report.readiness_result.reasons
-            text = "\n".join(f"- [{r.severity.value}] {r.code}: {r.message_en}" for r in reasons)
-            QMessageBox.warning(self, "Analýza zablokována", text or "Analýza zablokována politikou kvality.")
-            self._refresh_view_state()
+            message = "\n".join(
+                f"- [{reason.severity.value}] {reason.code}: {reason.message_en}"
+                for reason in reasons
+            )
+            QMessageBox.warning(self, "Analýza zablokována", message or "Analýza je zablokována.")
             return
 
-        html_path = result.html_report_path or "не был сгенерирован"
-        QMessageBox.information(self, "Готово", f"Анализ завершён.\nHTML отчет: {html_path}")
-        self._refresh_view_state()
-
-    def _refresh_view_state(self) -> None:
-        statuses = self._controller.get_table_statuses()
-        for table_key, status in statuses.items():
-            self._status_labels[table_key].setText(self._status_text(status))
-        self._analyze_button.setEnabled(self._controller.can_run_analysis())
-
-    @staticmethod
-    def _status_text(status: TableStatus) -> str:
-        return f"Status: {status.value}"
+        QMessageBox.information(
+            self,
+            "Analýza dokončena",
+            f"HTML report: {result.html_report_path or 'nevygenerován'}",
+        )
