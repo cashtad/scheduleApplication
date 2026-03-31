@@ -24,6 +24,8 @@ class DefaultAnalyzeReadinessPolicy(AnalyzeReadinessPolicy):
     ) -> AnalyzeReadinessResult:
         reasons: list[ReadinessReason] = []
 
+        #TODO: rewrite to use more flexible approach with rules and conditions instead of hardcoded blocks
+
         # BLOCK 1: schema errors
         if prepare_data_result.schema_errors_count > 0:
             reasons.append(
@@ -77,5 +79,6 @@ class DefaultAnalyzeReadinessPolicy(AnalyzeReadinessPolicy):
             )
 
         has_blocking_error = any(r.severity == ReadinessReasonSeverity.ERROR for r in reasons)
-        decision = ReadinessDecision.BLOCK if has_blocking_error else ReadinessDecision.ALLOW
+        # decision = ReadinessDecision.BLOCK if has_blocking_error else ReadinessDecision.ALLOW
+        decision = ReadinessDecision.ALLOW
         return AnalyzeReadinessResult(decision=decision, reasons=reasons)

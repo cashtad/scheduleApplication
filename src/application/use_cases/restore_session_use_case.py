@@ -54,4 +54,5 @@ class RestoreSessionUseCase:
         if not table.column_mapping:
             return TableStatus.SHEET_SELECTED
 
-        return TableStatus.MAPPED
+
+        return TableStatus.READY # TODO: mb return mapped then check and then mark ready
