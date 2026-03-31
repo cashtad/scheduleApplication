@@ -9,6 +9,8 @@ from ..analysis import Violation
 
 
 class ContinuousActivityRule(ARule, ABC):
+    #TODO: fix thresholds and excess
+
     def _collect_violations_for_continuous_blocks(
         self,
         performances: list[Performance],
@@ -26,7 +28,7 @@ class ContinuousActivityRule(ARule, ABC):
             curr_start = self._ensure_datetime(curr.start_time)
             gap_minutes = (curr_start - prev_end).total_seconds() / 60
 
-            if gap_minutes < self.config["rest_time"]:
+            if int(gap_minutes) < self.config.rest_time:
                 block_duration += curr.duration
                 block_performances.append(curr)
             else:
