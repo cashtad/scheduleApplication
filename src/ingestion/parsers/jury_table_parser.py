@@ -6,9 +6,9 @@ from typing import Any
 from pandas import DataFrame
 
 from src.domain import JuryMember
-from ..contracts import IngestionIssue, TableParseResult
-from .base_table_parser import BaseTableParser
-from ..services import (
+from src.ingestion.contracts import IngestionIssue, TableParseResult
+from src.ingestion.parsers.base_table_parser import BaseTableParser
+from src.ingestion.services import (
     AssignmentColumnsMode,
     AssignmentColumnsSelection,
     AssignmentColumnsSelector,
@@ -27,7 +27,7 @@ class JuryTableParser(BaseTableParser[JuryMember]):
         self._config = config or JuryParserConfig()
 
     def required_mapping_keys(self) -> list[str]:
-        base = ["fullname"]
+        base = []
         if self._config.assignment_mode == AssignmentColumnsMode.PREFIX:
             base.append("assignment_prefix")
         return base
@@ -36,6 +36,7 @@ class JuryTableParser(BaseTableParser[JuryMember]):
         return {"assignment_prefix"}
 
     def parse(self, df: DataFrame) -> TableParseResult[JuryMember]:
+        self._validate_jury_mapping_shape()
         self.validate_mapping_columns(df)
 
         issues: list[IngestionIssue] = []
@@ -57,12 +58,7 @@ class JuryTableParser(BaseTableParser[JuryMember]):
                     },
                 )
             )
-            return self.build_result(
-                items=items,
-                issues=issues,
-                total_rows=total_rows,
-                parsed_rows=parsed_rows,
-            )
+            return self.build_result(items=items, issues=issues, total_rows=total_rows, parsed_rows=parsed_rows)
 
         for row_index, row in df.iterrows():
             try:
@@ -85,14 +81,43 @@ class JuryTableParser(BaseTableParser[JuryMember]):
             parsed_rows=parsed_rows,
         )
 
+    def _validate_jury_mapping_shape(self) -> None:
+        has_fullname = bool((self.mapping.get("fullname") or "").strip())
+        has_name = bool((self.mapping.get("name") or "").strip())
+        has_surname = bool((self.mapping.get("surname") or "").strip())
+
+        if has_fullname:
+            return
+        if has_name and has_surname:
+            return
+
+        raise ValueError("Jury mapping must contain either 'fullname' or both 'name' and 'surname'")
+
     def _parse_row(self, row: Any, assignment_selection: AssignmentColumnsSelection) -> JuryMember:
-        fullname = self.as_str(row[self.mapping["fullname"]])
+        fullname = self._extract_fullname(row)
         competition_ids = self._extract_assignments(row=row, assignment_selection=assignment_selection)
 
         return JuryMember(
             fullname=fullname,
             competition_ids=competition_ids,
         )
+
+    def _extract_fullname(self, row: Any) -> str:
+        fullname_col = (self.mapping.get("fullname") or "").strip()
+        if fullname_col:
+            fullname = self.as_str(row[fullname_col])
+            if not fullname:
+                raise ValueError("fullname is empty")
+            return fullname
+
+        name_col = (self.mapping.get("name") or "").strip()
+        surname_col = (self.mapping.get("surname") or "").strip()
+        name = self.as_str(row[name_col])
+        surname = self.as_str(row[surname_col])
+        full = f"{name} {surname}".strip()
+        if not full:
+            raise ValueError("name/surname are empty")
+        return full
 
     def _select_assignment_columns(self, df: DataFrame) -> AssignmentColumnsSelection:
         prefix = self.mapping.get("assignment_prefix")
@@ -136,6 +161,5 @@ class JuryTableParser(BaseTableParser[JuryMember]):
 
     @staticmethod
     def _error_severity():
-        from ..contracts.ingestion_severity import IngestionSeverity
-
+        from src.ingestion.contracts.ingestion_severity import IngestionSeverity
         return IngestionSeverity.ERROR
