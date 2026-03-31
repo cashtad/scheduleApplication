@@ -18,7 +18,7 @@ class Competitor(Human):
         return f"Pair of competitors {self.dancer_1_name} and {self.dancer_2_name}, participating in {self.competition_ids} competitions"
 
     def __post_init__(self) -> None:
-        super().__post_init__()
+        super(Competitor, self).__post_init__()
         if self.participants_per_entry not in {1, 2}:
             raise ValueError("amount_of_people must be either 1 or 2")
         if not self.dancer_1_name.strip():

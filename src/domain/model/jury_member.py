@@ -13,6 +13,6 @@ class JuryMember(Human):
         return f"Jury member {self.fullname} for competitions {self.competition_ids}"
 
     def __post_init__(self) -> None:
-        super().__post_init__()
+        super(JuryMember, self).__post_init__()
         if not self.fullname.strip():
             raise ValueError("fullname cannot be empty")
