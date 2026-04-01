@@ -69,14 +69,25 @@ class MainWindow(QMainWindow):
         if result.status == WorkflowStatus.BLOCKED:
             reasons = result.quality_report.readiness_result.reasons
             message = "\n".join(
-                f"- [{reason.severity.value}] {reason.code}: {reason.message_en}"
+                f"- [{reason.severity.value}] {reason.code}: {reason.message_cz}"
                 for reason in reasons
             )
             QMessageBox.warning(self, "Analýza zablokována", message or "Analýza je zablokována.")
             return
 
+        errors = result.quality_report.repository_validation_report.errors
+        errors_text = ""
+        for error in errors:
+            errors_text += f"- [{error.severity.value}] {error.code}: {error.message}\n"
+
+        warnings = result.quality_report.repository_validation_report.warnings
+        warnings_text = ""
+        for warning in warnings:
+            warnings_text += f"- [{warning.severity.value}] {warning.code}: {warning.message}\n"
+
         QMessageBox.information(
             self,
             "Analýza dokončena",
-            f"HTML report: {result.html_report_path or 'nevygenerován'}",
+            f"HTML report: {result.html_report_path or 'nevygenerován'}\n"
+            f"{errors_text}\n{warnings_text}",
         )
