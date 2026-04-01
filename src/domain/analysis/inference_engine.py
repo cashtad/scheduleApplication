@@ -3,11 +3,12 @@ from __future__ import annotations
 from collections import defaultdict
 
 from src.domain import ScheduleRepository
-from src.infrastructure.config import RulesConfig
-from ..rules import load_rules_from_config
-from .schedule_analysis_result import ScheduleAnalysisResult
 from .severity import Severity
 from .violation import Violation
+from ..rules import load_rules_from_config
+from .schedule_analysis_result import ScheduleAnalysisResult
+from src.infrastructure.config import RulesConfig
+
 
 
 class InferenceEngine:

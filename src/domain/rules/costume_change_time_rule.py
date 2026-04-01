@@ -11,7 +11,7 @@ class CostumeChangeTimeRule(ARule):
             return []
 
         violations: list[Violation] = []
-        disciplines = set(self.config["disciplines"])
+        disciplines = self.config.disciplines
 
         for competitor in repository.competitors:
             performances = repository.list_assignments_of_human(competitor)
@@ -38,7 +38,7 @@ class CostumeChangeTimeRule(ARule):
                     if severity is None:
                         continue
 
-                    threshold = self.config["thresholds"][severity.value]
+                    threshold = self.config.thresholds.get(severity)
                     shortage = threshold - gap_minutes
 
                     entity_name = (
@@ -55,7 +55,7 @@ class CostumeChangeTimeRule(ARule):
                             entity_name=entity_name,
                             details={
                                 "gap_minutes": gap_minutes,
-                                "required_minutes": self.config["min_gap_minutes"],
+                                "required_minutes": self.config.min_gap_minutes,
                                 "shortage_minutes": shortage,
                                 "from_discipline": curr_comp.discipline,
                                 "to_discipline": next_comp.discipline,

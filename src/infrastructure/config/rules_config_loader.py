@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any, Mapping
+from src.domain.analysis import Severity
 
 import yaml
 
 from .errors import RulesConfigError
-from .rules_config import RuleConfig, RulesConfig, ThresholdsConfig
+from .rules_config import RuleConfig, RulesConfig
 
 
 class YamlRulesConfigLoader:
@@ -79,11 +80,7 @@ class YamlRulesConfigLoader:
             for key in ("critical", "medium", "low"):
                 if key not in tr:
                     raise RulesConfigError(f"Threshold '{key}' is missing")
-            thresholds = ThresholdsConfig(
-                critical=int(tr["critical"]),
-                medium=int(tr["medium"]),
-                low=int(tr["low"]),
-            )
+            thresholds = {Severity.CRITICAL: int(tr["critical"]), Severity.MEDIUM: int(tr["medium"]), Severity.LOW: int(tr["low"])}
 
         rest_time = int(section["rest_time"]) if need_rest else None
         if need_rest and "rest_time" not in section:

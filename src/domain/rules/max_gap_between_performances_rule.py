@@ -26,7 +26,7 @@ class MaxGapBetweenPerformancesRule(ARule):
                 if severity is None:
                     continue
 
-                threshold = self.config["thresholds"][severity.value]
+                threshold = self.config.thresholds[severity]
                 excess = gap_minutes - threshold
 
                 entity_name = (

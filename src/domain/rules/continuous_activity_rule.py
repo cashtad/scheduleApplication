@@ -58,7 +58,7 @@ class ContinuousActivityRule(ARule, ABC):
             return None
 
         duration_i = int(duration)
-        threshold = int(self.config["thresholds"][severity.value])
+        threshold = self.config.thresholds[severity]
         excess = duration_i - threshold
 
         start_perf = block_performances[0]

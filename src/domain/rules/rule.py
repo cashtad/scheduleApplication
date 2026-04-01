@@ -29,19 +29,19 @@ class ARule(ABC):
         thresholds = self.config.thresholds
 
         if reverse:
-            if value_i <= thresholds.critical:
+            if value_i <= thresholds.get(Severity.CRITICAL):
                 return Severity.CRITICAL
-            if value_i <= thresholds.medium:
+            if value_i <= thresholds.get(Severity.MEDIUM):
                 return Severity.MEDIUM
-            if value_i <= thresholds.low:
+            if value_i <= thresholds.get(Severity.LOW):
                 return Severity.LOW
             return None
 
-        if value_i >= thresholds.critical:
+        if value_i >= thresholds.get(Severity.CRITICAL):
             return Severity.CRITICAL
-        if value_i >= thresholds.medium:
+        if value_i >= thresholds.get(Severity.MEDIUM):
             return Severity.MEDIUM
-        if value_i >= thresholds.low:
+        if value_i >= thresholds.get(Severity.LOW):
             return Severity.LOW
         return None
 

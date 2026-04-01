@@ -12,7 +12,7 @@ from .simultaneous_judging_rule import SimultaneousJudgingRule
 from .simultaneous_rule import SimultaneousRule
 
 
-def load_rules_from_config(config: RulesConfig) -> list[ARule]:
+def load_rules_from_config(config: RulesConfig) -> list[ARule]: # TODO: looks bad, extract to different class like loader
     return [
         MaxContinuousDancingRule(config.max_continuous_dancing),
         CostumeChangeTimeRule(config.costume_change_time),
