@@ -5,7 +5,7 @@ from .simultaneous_rule import SimultaneousRule
 from ..analysis import Violation
 
 _DESCRIPTION = (
-    "Tanečník {entity_name} má současně {count} vystoupení "
+    "Tanečník {entity_name} má současně několik vystoupení "
     "v čase {overlap_start}-{overlap_end}"
 )
 
@@ -18,13 +18,14 @@ class SimultaneousDancingRule(SimultaneousRule):
         violations: list[Violation] = []
 
         for competitor in repository.competitors:
-            performances = self._get_sorted_performances(repository.list_assignments_of_human(competitor))
+            performances = self._get_sorted_performances(
+                repository.list_assignments_of_human(competitor)
+            )
             if len(performances) < 2:
                 continue
 
-            entity_name = (
-                f"{competitor.dancer_1_name}"
-                + (f" {competitor.dancer_2_name}" if competitor.dancer_2_name else "")
+            entity_name = f"{competitor.dancer_1_name}" + (
+                f" {competitor.dancer_2_name}" if competitor.dancer_2_name else ""
             )
 
             violations.extend(

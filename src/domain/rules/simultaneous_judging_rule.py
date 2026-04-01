@@ -5,7 +5,7 @@ from .simultaneous_rule import SimultaneousRule
 from ..analysis import Violation
 
 _DESCRIPTION = (
-    "Porotce {entity_name} musí soudit současně {count} vystoupení "
+    "Porotce {entity_name} musí soudit současně několik vystoupení "
     "v čase {overlap_start}-{overlap_end}"
 )
 
@@ -18,7 +18,9 @@ class SimultaneousJudgingRule(SimultaneousRule):
         violations: list[Violation] = []
 
         for jury_member in repository.jury_members:
-            performances = self._get_sorted_performances(repository.list_assignments_of_human(jury_member))
+            performances = self._get_sorted_performances(
+                repository.list_assignments_of_human(jury_member)
+            )
             if len(performances) < 2:
                 continue
 
