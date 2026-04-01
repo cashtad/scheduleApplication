@@ -42,7 +42,7 @@ TABLE_MAPPING_SCHEMAS: dict[str, TableMappingSchema] = {
             MappingField("count", "Počet závodníků páru", True),
             MappingField("p1_name_surname", "Jméno závodníka 1", True),
             MappingField("p2_name_surname", "Jméno závodníka 2", False),
-            MappingField("assignment_prefix", "Prefix pro ID soutěží (např. '#')", True, virtual=True),
+            MappingField("assignment_prefix", "Prefix pro ID soutěží (např. '#')", False, virtual=True),
         ),
     ),
     "jury": TableMappingSchema(
@@ -51,7 +51,7 @@ TABLE_MAPPING_SCHEMAS: dict[str, TableMappingSchema] = {
             MappingField("fullname", "Celé jméno", False),
             MappingField("name", "Jméno", False),
             MappingField("surname", "Příjmení", False),
-            MappingField("assignment_prefix", "Prefix pro ID soutěží (např. '#')", True, virtual=True),
+            MappingField("assignment_prefix", "Prefix pro ID soutěží (např. '#')", False, virtual=True),
         ),
     ),
     "schedule": TableMappingSchema(

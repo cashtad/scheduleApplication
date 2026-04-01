@@ -21,8 +21,13 @@ class JuryParserConfig:
     assigned_markers: frozenset[str] = frozenset({"1"})
 
 
+# TODO: make it to be more similar to competitor parser
 class JuryTableParser(BaseTableParser[JuryMember]):
-    def __init__(self, mapping: dict[str, str], config: JuryParserConfig | None = None) -> None:
+    def __init__(
+        self,
+        mapping: dict[str, str],
+        config: JuryParserConfig | None = None,
+    ) -> None:
         super().__init__(table_key="jury", mapping=mapping)
         self._config = config or JuryParserConfig()
 
@@ -33,6 +38,7 @@ class JuryTableParser(BaseTableParser[JuryMember]):
         return base
 
     def virtual_mapping_keys(self) -> set[str]:
+        # assignment_prefix is not a dataframe column reference, but parser configuration value
         return {"assignment_prefix"}
 
     def parse(self, df: DataFrame) -> TableParseResult[JuryMember]:
@@ -58,7 +64,12 @@ class JuryTableParser(BaseTableParser[JuryMember]):
                     },
                 )
             )
-            return self.build_result(items=items, issues=issues, total_rows=total_rows, parsed_rows=parsed_rows)
+            return self.build_result(
+                items=items,
+                issues=issues,
+                total_rows=total_rows,
+                parsed_rows=parsed_rows,
+            )
 
         for row_index, row in df.iterrows():
             try:
@@ -91,11 +102,18 @@ class JuryTableParser(BaseTableParser[JuryMember]):
         if has_name and has_surname:
             return
 
-        raise ValueError("Jury mapping must contain either 'fullname' or both 'name' and 'surname'")
+        raise ValueError(
+            "Jury mapping must contain either 'fullname' or both 'name' and 'surname'"
+        )
 
-    def _parse_row(self, row: Any, assignment_selection: AssignmentColumnsSelection) -> JuryMember:
+    def _parse_row(
+        self, row: Any, assignment_selection: AssignmentColumnsSelection
+    ) -> JuryMember:
         fullname = self._extract_fullname(row)
-        competition_ids = self._extract_assignments(row=row, assignment_selection=assignment_selection)
+
+        competition_ids = self._extract_assignments(
+            row=row, assignment_selection=assignment_selection
+        )
 
         return JuryMember(
             fullname=fullname,
@@ -120,19 +138,36 @@ class JuryTableParser(BaseTableParser[JuryMember]):
         return full
 
     def _select_assignment_columns(self, df: DataFrame) -> AssignmentColumnsSelection:
-        prefix = self.mapping.get("assignment_prefix")
+        prefix = self.mapping.get("assignment_prefix", "")
+        if prefix.strip() == "":
+            mode = AssignmentColumnsMode.NUMERIC_HEADERS
+        else:
+            mode = AssignmentColumnsMode.PREFIX
         return AssignmentColumnsSelector.select(
-            available_columns=[str(c) for c in df.columns],
-            mode=self._config.assignment_mode,
+            available_columns=df.columns,
+            mode=mode,
             prefix=prefix,
         )
 
-    def _extract_assignments(self, row: Any, assignment_selection: AssignmentColumnsSelection) -> frozenset[int]:
+    def _extract_assignments(
+        self,
+        row: Any,
+        assignment_selection: AssignmentColumnsSelection,
+    ) -> frozenset[int]:
+
         competition_ids: set[int] = set()
+
         for column_name in assignment_selection.columns:
-            if not self._is_assigned(row[column_name]):
+            cell_value = row[column_name]
+            if not self._is_assigned(cell_value):
                 continue
-            competition_ids.add(JuryTableParser._competition_id_from_column(column_name, assignment_selection))
+
+            competition_id = JuryTableParser._competition_id_from_column(
+                column_name=column_name,
+                assignment_selection=assignment_selection,
+            )
+            competition_ids.add(competition_id)
+
         return frozenset(competition_ids)
 
     @staticmethod
@@ -146,7 +181,8 @@ class JuryTableParser(BaseTableParser[JuryMember]):
                 raise ValueError(f"Assignment column '{column_name}' is not numeric")
             return int(txt)
 
-        assert assignment_selection.prefix is not None
+        # PREFIX mode
+        assert assignment_selection.prefix is not None  # guaranteed by selector
         remainder = column_name.removeprefix(assignment_selection.prefix).strip()
         if not remainder.isdigit():
             raise ValueError(
@@ -162,4 +198,5 @@ class JuryTableParser(BaseTableParser[JuryMember]):
     @staticmethod
     def _error_severity():
         from src.ingestion.contracts.ingestion_severity import IngestionSeverity
+
         return IngestionSeverity.ERROR

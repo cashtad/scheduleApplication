@@ -6,8 +6,8 @@ from typing import Any
 from pandas import DataFrame
 
 from src.domain import Competitor
-from ..contracts import IngestionIssue, TableParseResult
 from .base_table_parser import BaseTableParser
+from ..contracts import IngestionIssue, TableParseResult
 from ..services import (
     AssignmentColumnsMode,
     AssignmentColumnsSelection,
@@ -74,24 +74,19 @@ class CompetitorTableParser(BaseTableParser[Competitor]):
         for row_index, row in df.iterrows():
             try:
                 competitor = self._parse_row(
-                    row_index=int(row_index),
                     row=row,
                     assignment_selection=assignment_selection,
                 )
-                if competitor is None:
-                    # Row intentionally skipped with already collected warning/error
-                    continue
-
                 items.append(competitor)
                 parsed_rows += 1
 
             except Exception as exc:
                 issues.append(
                     self.make_row_error(
-                        row_index=int(row_index),
+                        row_index=row_index,
                         code="COMPETITOR_ROW_PARSE_FAILED",
                         message=f"Failed to parse competitor row: {exc}",
-                        context={"row_index": int(row_index)},
+                        context={"row_index": row_index},
                     )
                 )
 
@@ -108,10 +103,9 @@ class CompetitorTableParser(BaseTableParser[Competitor]):
 
     def _parse_row(
         self,
-        row_index: int,
         row: Any,
         assignment_selection: AssignmentColumnsSelection,
-    ) -> Competitor | None:
+    ) -> Competitor:
         count_raw = row[self.mapping["count"]]
         p1_raw = row[self.mapping["p1_name_surname"]]
         p2_raw = row[self.mapping["p2_name_surname"]]
@@ -153,10 +147,14 @@ class CompetitorTableParser(BaseTableParser[Competitor]):
         return value
 
     def _select_assignment_columns(self, df: DataFrame) -> AssignmentColumnsSelection:
-        prefix = self.mapping.get("assignment_prefix")
+        prefix = self.mapping.get("assignment_prefix", "")
+        if prefix.strip() == "":
+            mode = AssignmentColumnsMode.NUMERIC_HEADERS
+        else:
+            mode = AssignmentColumnsMode.PREFIX
         return AssignmentColumnsSelector.select(
-            available_columns=[str(c) for c in df.columns],
-            mode=self._config.assignment_mode,
+            available_columns=df.columns,
+            mode=mode,
             prefix=prefix,
         )
 
@@ -165,6 +163,7 @@ class CompetitorTableParser(BaseTableParser[Competitor]):
         row: Any,
         assignment_selection: AssignmentColumnsSelection,
     ) -> frozenset[int]:
+
         competition_ids: set[int] = set()
 
         for column_name in assignment_selection.columns:
@@ -186,7 +185,7 @@ class CompetitorTableParser(BaseTableParser[Competitor]):
         assignment_selection: AssignmentColumnsSelection,
     ) -> int:
         if assignment_selection.mode == AssignmentColumnsMode.NUMERIC_HEADERS:
-            text = column_name.strip()
+            text = str(column_name).strip()
             if not text.isdigit():
                 raise ValueError(f"Assignment column '{column_name}' is not numeric")
             return int(text)
@@ -207,6 +206,6 @@ class CompetitorTableParser(BaseTableParser[Competitor]):
 
     @staticmethod
     def _error_severity():
-        from ..contracts.ingestion_severity import IngestionSeverity
+        from src.ingestion.contracts.ingestion_severity import IngestionSeverity
 
         return IngestionSeverity.ERROR

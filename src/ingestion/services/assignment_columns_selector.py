@@ -24,13 +24,14 @@ class AssignmentColumnsSelector:
         mode: AssignmentColumnsMode,
         prefix: str | None = None,
     ) -> AssignmentColumnsSelection:
-        cols = [str(c) for c in available_columns]
 
         if mode == AssignmentColumnsMode.PREFIX:
             normalized_prefix = (prefix or "").strip()
             if not normalized_prefix:
                 raise ValueError("Prefix mode requires non-empty prefix")
-            selected = [c for c in cols if c.startswith(normalized_prefix)]
+            selected = [
+                c for c in available_columns if str(c).startswith(normalized_prefix)
+            ]
             if not selected:
                 raise ValueError(f"No columns found with prefix '{normalized_prefix}'")
             return AssignmentColumnsSelection(
@@ -40,7 +41,7 @@ class AssignmentColumnsSelector:
             )
 
         if mode == AssignmentColumnsMode.NUMERIC_HEADERS:
-            selected = [c for c in cols if c.strip().isdigit()]
+            selected = [c for c in available_columns if str(c).strip().isdigit()]
             if not selected:
                 raise ValueError("No numeric-header assignment columns found")
             return AssignmentColumnsSelection(
