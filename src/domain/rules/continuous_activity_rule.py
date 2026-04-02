@@ -9,8 +9,6 @@ from ..analysis import Violation
 
 
 class ContinuousActivityRule(ARule, ABC):
-    #TODO: fix thresholds and excess
-
     def _collect_violations_for_continuous_blocks(
         self,
         performances: list[Performance],
