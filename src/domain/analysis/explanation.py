@@ -17,7 +17,7 @@ class ExplanationGenerator:
 
     SEVERITY_NAMES_CS = {
         Severity.CRITICAL: "KRITICKÉ",
-        Severity.MEDIUM: "STŘEDN��",
+        Severity.MEDIUM: "STŘEDNÍ",
         Severity.LOW: "NÍZKÉ",
     }
 
@@ -72,7 +72,9 @@ class ExplanationGenerator:
         lines.append("=" * 80)
         return "\n".join(lines)
 
-    def generate_html_report(self, result: ScheduleAnalysisResult, output_path: str) -> str:
+    def generate_html_report(
+        self, result: ScheduleAnalysisResult, output_path: str
+    ) -> str:
         html = self._build_html(result)
         path = Path(output_path)
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -241,10 +243,14 @@ class ExplanationGenerator:
             html += f"        <p>💃 Disciplíny: {details['from_discipline']} → {details['to_discipline']}</p>\n"
 
         if "duration_minutes" in details:
-            html += f"        <p>⏱️ Délka: {details['duration_minutes']:.0f} minut</p>\n"
+            html += (
+                f"        <p>⏱️ Délka: {details['duration_minutes']:.0f} minut</p>\n"
+            )
 
         if "overlap_minutes" in details:
-            html += f"        <p>⚠️ Překrytí: {details['overlap_minutes']:.0f} minut</p>\n"
+            html += (
+                f"        <p>⚠️ Překrytí: {details['overlap_minutes']:.0f} minut</p>\n"
+            )
 
         if "overlap_start" in details and "overlap_end" in details:
             html += f"        <p>🕐 Čas překrytí: {details['overlap_start'].strftime('%H:%M')} - {details['overlap_end'].strftime('%H:%M')}</p>\n"
