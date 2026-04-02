@@ -15,7 +15,6 @@ from PySide6.QtWidgets import (
 )
 
 from src.application.contracts import TABLE_MAPPING_SCHEMAS
-from src.infrastructure import PandasExcelReader
 from src.presentation.qt.controllers import UiController
 from src.presentation.qt.dialogs.mapping_dialog import MappingDialog
 from src.session import TableStatus
@@ -54,7 +53,6 @@ class TableLoadPanel(QWidget):
         super().__init__(parent)
         self._table_key = table_key
         self._controller = controller
-        self._excel_reader = PandasExcelReader()
         self._on_schedule_preview_changed = on_schedule_preview_changed
 
         root = QVBoxLayout(self)
@@ -83,32 +81,42 @@ class TableLoadPanel(QWidget):
         text, color = _STATUS_UI.get(status, (status.value, "#9E9E9E"))
         self._dot.setStyleSheet(_DOT_STYLE.format(color=color))
         self._status_label.setText(text)
-        self._action_btn.setText("Změnit" if status in {TableStatus.MAPPED, TableStatus.READY} else "Načíst")
+        self._action_btn.setText(
+            "Změnit" if status in {TableStatus.MAPPED, TableStatus.READY} else "Načíst"
+        )
         self.status_changed.emit()
 
     def _on_action_clicked(self) -> None:
-        file_path, _ = QFileDialog.getOpenFileName(self, "Vyberte soubor tabulky", "", "Tabulky (*.xlsx *.xls)")
+        file_path, _ = QFileDialog.getOpenFileName(
+            self, "Vyberte soubor tabulky", "", "Tabulky (*.xlsx *.xls)"
+        )
         if not file_path:
             return
 
         self._controller.set_file(self._table_key, file_path)
 
         try:
-            sheet_names = self._excel_reader.get_sheet_names(file_path)
+            sheet_names = self._controller.excel_reader.get_sheet_names(file_path)
         except Exception as exc:
-            QMessageBox.critical(self, "Chyba načítání", f"Nelze otevřít soubor:\n{exc}")
+            QMessageBox.critical(
+                self, "Chyba načítání", f"Nelze otevřít soubor:\n{exc}"
+            )
             self.refresh()
             return
 
         if not sheet_names:
-            QMessageBox.critical(self, "Chyba načítání", "Soubor neobsahuje žádné listy.")
+            QMessageBox.critical(
+                self, "Chyba načítání", "Soubor neobsahuje žádné listy."
+            )
             self.refresh()
             return
 
         if len(sheet_names) == 1:
             sheet_name = sheet_names[0]
         else:
-            selected, ok = QInputDialog.getItem(self, "Výběr listu", "Vyberte list tabulky:", sheet_names, 0, False)
+            selected, ok = QInputDialog.getItem(
+                self, "Výběr listu", "Vyberte list tabulky:", sheet_names, 0, False
+            )
             if not ok:
                 self.refresh()
                 return
@@ -117,13 +125,15 @@ class TableLoadPanel(QWidget):
         self._controller.set_sheet(self._table_key, sheet_name)
 
         try:
-            df = self._excel_reader.read(file_path, sheet_name)
+            df = self._controller.excel_reader.read(file_path, sheet_name)
         except Exception as exc:
             QMessageBox.critical(self, "Chyba načítání", f"Nelze načíst list:\n{exc}")
             self.refresh()
             return
 
-        existing_mapping = self._controller.session.get_table(self._table_key).column_mapping
+        existing_mapping = self._controller.session.get_table(
+            self._table_key
+        ).column_mapping
         dlg = MappingDialog(
             table_key=self._table_key,
             df=df,
@@ -135,7 +145,9 @@ class TableLoadPanel(QWidget):
             return
 
         mapping = dict(dlg.result_mapping)
-        ok, error_text = self._validate_mapping_preflight(mapping, [str(c) for c in df.columns])
+        ok, error_text = self._validate_mapping_preflight(
+            mapping, [str(c) for c in df.columns]
+        )
         if not ok:
             QMessageBox.warning(self, "Neplatné mapování", error_text)
             self.refresh()
@@ -148,12 +160,17 @@ class TableLoadPanel(QWidget):
         )
         self._controller.mark_ready(self._table_key)
 
-        if self._table_key == "schedule" and self._on_schedule_preview_changed is not None:
+        if (
+            self._table_key == "schedule"
+            and self._on_schedule_preview_changed is not None
+        ):
             self._on_schedule_preview_changed(df)
 
         self.refresh()
 
-    def _validate_mapping_preflight(self, mapping: dict[str, str], current_columns: list[str]) -> tuple[bool, str]:
+    def _validate_mapping_preflight(
+        self, mapping: dict[str, str], current_columns: list[str]
+    ) -> tuple[bool, str]:
         schema = TABLE_MAPPING_SCHEMAS[self._table_key]
         existing_columns = set(current_columns)
 
@@ -167,7 +184,10 @@ class TableLoadPanel(QWidget):
                 continue
             val = (mapping.get(field.key) or "").strip()
             if val and val not in existing_columns:
-                return False, f"Vybraný sloupec '{val}' pro pole '{field.label}' neexistuje v tabulce."
+                return (
+                    False,
+                    f"Vybraný sloupec '{val}' pro pole '{field.label}' neexistuje v tabulce.",
+                )
 
         if self._table_key in {"competitors", "jury"}:
             prefix = (mapping.get("assignment_prefix") or "").strip()
@@ -178,13 +198,19 @@ class TableLoadPanel(QWidget):
             else:
                 numeric = [c for c in current_columns if c.strip().isdigit()]
                 if not numeric:
-                    return False, "Pro prázdný prefix nebyly nalezeny číselné sloupce přiřazení."
+                    return (
+                        False,
+                        "Pro prázdný prefix nebyly nalezeny číselné sloupce přiřazení.",
+                    )
 
         if self._table_key == "jury":
             fullname = (mapping.get("fullname") or "").strip()
             name = (mapping.get("name") or "").strip()
             surname = (mapping.get("surname") or "").strip()
             if not fullname and not (name and surname):
-                return False, "Pro porotu je potřeba buď 'Celé jméno', nebo kombinace 'Jméno' + 'Příjmení'."
+                return (
+                    False,
+                    "Pro porotu je potřeba buď 'Celé jméno', nebo kombinace 'Jméno' + 'Příjmení'.",
+                )
 
         return True, ""

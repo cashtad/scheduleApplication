@@ -2,11 +2,15 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Iterable
-
 from application.bootstrap import AppContainer, build_app_container
-from application.dto import AnalyzeWorkflowResult, AnalysisViewModel, build_analysis_view_model
+from application.dto import (
+    AnalyzeWorkflowResult,
+    AnalysisViewModel,
+    build_analysis_view_model,
+)
 from application.services.session_service import SessionService
 from session import AppSession, REQUIRED_TABLE_KEYS, TableStatus
+from src.infrastructure import PandasExcelReader
 
 
 class UiController:
@@ -28,6 +32,7 @@ class UiController:
         self._session: AppSession = self._container.restore_session_use_case.execute()
         self._last_workflow_result: AnalyzeWorkflowResult | None = None
         self._last_analysis_view: AnalysisViewModel | None = None
+        self.excel_reader = PandasExcelReader()
 
     @property
     def session(self) -> AppSession:
