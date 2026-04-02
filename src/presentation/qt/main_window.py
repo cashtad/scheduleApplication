@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-import webbrowser
 from pathlib import Path
 
 import pandas as pd
+from PySide6.QtCore import QUrl
+from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QMainWindow,
@@ -18,7 +19,6 @@ from src.presentation.qt.controllers import UiController
 from src.presentation.qt.dialogs.data_quality_report_dialog import (
     DataQualityReportDialog,
 )
-
 from src.presentation.qt.dialogs.report_viewer_dialog import ReportViewerDialog
 from src.presentation.qt.widgets.analysis_status_panel import AnalysisStatusPanel
 from src.presentation.qt.widgets.table_load_panel import TableLoadPanel
@@ -119,19 +119,38 @@ class MainWindow(QMainWindow):
         dlg = DataQualityReportDialog(report=report, parent=self)
         dlg.exec()
 
-    def _on_open_report_browser(self) -> None:
+    def _resolve_report_path(self) -> Path | None:
         report_path = self._controller.get_last_html_report_path()
         if not report_path:
-            QMessageBox.information(self, "Report", "HTML report není k dispozici.")
+            return None
+        path = Path(report_path).expanduser().resolve()
+        if not path.exists():
+            return None
+        return path
+
+    def _on_open_report_browser(self) -> None:
+        path = self._resolve_report_path()
+        if path is None:
+            QMessageBox.warning(
+                self, "Report", "HTML report není k dispozici nebo soubor neexistuje."
+            )
             return
-        webbrowser.open(f"file://{report_path}")
+
+        ok = QDesktopServices.openUrl(QUrl.fromLocalFile(str(path)))
+        if not ok:
+            QMessageBox.warning(
+                self, "Report", "Nepodařilo se otevřít report v prohlížeči."
+            )
 
     def _on_open_report_in_app(self) -> None:
-        report_path = self._controller.get_last_html_report_path()
-        if not report_path:
-            QMessageBox.information(self, "Report", "HTML report není k dispozici.")
+        path = self._resolve_report_path()
+        if path is None:
+            QMessageBox.warning(
+                self, "Report", "HTML report není k dispozici nebo soubor neexistuje."
+            )
             return
-        dlg = ReportViewerDialog(report_path, parent=self)
+
+        dlg = ReportViewerDialog(str(path), parent=self)
         dlg.exec()
 
     def _on_open_schedule_violations(self) -> None:
