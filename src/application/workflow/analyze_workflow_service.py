@@ -2,10 +2,22 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from ..dto import (AnalyzeWorkflowResult, DataQualityReport, PrepareDataResult, AnalyzeReadinessResult,
-                   ReadinessDecision, ReadinessReason, ReadinessReasonSeverity, WorkflowStatus)
+from ..dto import (
+    AnalyzeWorkflowResult,
+    DataQualityReport,
+    PrepareDataResult,
+    AnalyzeReadinessResult,
+    ReadinessDecision,
+    ReadinessReason,
+    ReadinessReasonSeverity,
+    WorkflowStatus,
+)
 from ..policies import AnalyzeReadinessPolicy
-from ..use_cases import BuildRepositoryUseCase, PrepareDataUseCase, RunScheduleAnalysisUseCase
+from ..use_cases import (
+    BuildRepositoryUseCase,
+    PrepareDataUseCase,
+    RunScheduleAnalysisUseCase,
+)
 from src.domain import ScheduleRepositoryValidationReport
 
 
@@ -56,7 +68,9 @@ class AnalyzeWorkflowService:
                 html_report_path=analysis.html_report_path,
             )
 
-        except Exception as exc:
+        except (
+            Exception
+        ) as exc:  # TODO может стоит обрабатывать разные ошибки по разному
             return AnalyzeWorkflowResult(
                 status=WorkflowStatus.FAILED,
                 quality_report=self._build_fallback_quality_report(str(exc)),
@@ -65,7 +79,9 @@ class AnalyzeWorkflowService:
 
     def _build_fallback_quality_report(self, error_message: str) -> DataQualityReport:
         fallback_prepared = PrepareDataResult()
-        fallback_repo_report = ScheduleRepositoryValidationReport(errors=[], warnings=[])
+        fallback_repo_report = ScheduleRepositoryValidationReport(
+            errors=[], warnings=[]
+        )
         fallback_readiness = AnalyzeReadinessResult(
             decision=ReadinessDecision.BLOCK,
             reasons=[
