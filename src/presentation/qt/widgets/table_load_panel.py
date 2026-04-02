@@ -96,7 +96,7 @@ class TableLoadPanel(QWidget):
         self._controller.set_file(self._table_key, file_path)
 
         try:
-            sheet_names = self._controller.excel_reader.get_sheet_names(file_path)
+            sheet_names = self._controller.get_sheet_names(file_path)
         except Exception as exc:
             QMessageBox.critical(
                 self, "Chyba načítání", f"Nelze otevřít soubor:\n{exc}"
@@ -125,7 +125,7 @@ class TableLoadPanel(QWidget):
         self._controller.set_sheet(self._table_key, sheet_name)
 
         try:
-            df = self._controller.excel_reader.read(file_path, sheet_name)
+            df = self._controller.read(file_path, sheet_name)
         except Exception as exc:
             QMessageBox.critical(self, "Chyba načítání", f"Nelze načíst list:\n{exc}")
             self.refresh()

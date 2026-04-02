@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Iterable
+
+from pandas import DataFrame
+
 from application.bootstrap import AppContainer, build_app_container
 from application.dto import (
     AnalyzeWorkflowResult,
@@ -45,6 +48,12 @@ class UiController:
     @property
     def last_analysis_view(self) -> AnalysisViewModel | None:
         return self._last_analysis_view
+
+    def read(self, file_path: str, sheet_name: str | None) -> DataFrame:
+        return self.excel_reader.read(file_path, sheet_name)
+
+    def get_sheet_names(self, file_path: str) -> list[str]:
+        return self.excel_reader.get_sheet_names(file_path)
 
     def required_table_keys(self) -> tuple[str, ...]:
         return REQUIRED_TABLE_KEYS
