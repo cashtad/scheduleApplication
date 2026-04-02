@@ -18,10 +18,7 @@ from PySide6.QtWidgets import (
 )
 
 from src.application.dto import DataQualityReport
-from src.domain.schedule_repository.schedule_repository_validation import (
-    ValidationIssueSeverity,
-)
-from src.ingestion import IngestionIssue, IngestionSeverity
+from src.ingestion import IngestionIssue
 
 
 class DataQualityReportDialog(QDialog):
