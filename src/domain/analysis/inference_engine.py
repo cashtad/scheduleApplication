@@ -5,10 +5,8 @@ from collections import defaultdict
 from src.domain import ScheduleRepository
 from .severity import Severity
 from .violation import Violation
-from ..rules import load_rules_from_config
+from ..rules import load_rules_from_config, RulesConfig
 from .schedule_analysis_result import ScheduleAnalysisResult
-from src.infrastructure.config import RulesConfig
-
 
 
 class InferenceEngine:
@@ -32,8 +30,12 @@ class InferenceEngine:
         )
 
     @staticmethod
-    def _group_by_severity(violations: list[Violation]) -> dict[Severity, list[Violation]]:
-        grouped: dict[Severity, list[Violation]] = {severity: [] for severity in Severity}
+    def _group_by_severity(
+        violations: list[Violation],
+    ) -> dict[Severity, list[Violation]]:
+        grouped: dict[Severity, list[Violation]] = {
+            severity: [] for severity in Severity
+        }
         for violation in violations:
             grouped[violation.severity].append(violation)
         return grouped

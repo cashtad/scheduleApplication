@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from ..analysis import Severity
 
 
 @dataclass(frozen=True, slots=True)
 class RuleConfig:
     enabled: bool
-    thresholds: dict[Any, int] | None = None # TODO: switch to severity
+    thresholds: dict[Severity, int] | None = None
     rest_time: int | None = None
     disciplines: tuple[str, ...] | None = None
     min_gap_minutes: int | None = None

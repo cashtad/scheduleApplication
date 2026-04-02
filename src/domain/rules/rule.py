@@ -5,7 +5,7 @@ from datetime import datetime
 
 from ..analysis import Severity, Violation
 from src.domain import ScheduleRepository
-from src.infrastructure.config import RuleConfig
+from .rules_config import RuleConfig
 
 
 class ARule(ABC):

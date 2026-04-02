@@ -7,7 +7,7 @@ from src.domain.analysis import Severity
 import yaml
 
 from .errors import RulesConfigError
-from .rules_config import RuleConfig, RulesConfig
+from domain.rules.rules_config import RuleConfig, RulesConfig
 
 
 class YamlRulesConfigLoader:
@@ -42,30 +42,37 @@ class YamlRulesConfigLoader:
             raise RulesConfigError(f"Missing rule sections: {', '.join(missing)}")
 
         return RulesConfig(
-            max_continuous_dancing=YamlRulesConfigLoader._parse_rule(raw["max_continuous_dancing"],
-                                                                     need_thresholds=True, need_rest=True),
+            max_continuous_dancing=YamlRulesConfigLoader._parse_rule(
+                raw["max_continuous_dancing"], need_thresholds=True, need_rest=True
+            ),
             costume_change_time=YamlRulesConfigLoader._parse_rule(
                 raw["costume_change_time"],
                 need_thresholds=True,
                 need_disciplines=True,
                 need_min_gap=True,
             ),
-            max_continuous_judging=YamlRulesConfigLoader._parse_rule(raw["max_continuous_judging"],
-                                                                     need_thresholds=True, need_rest=True),
-            max_gap_between_performances=YamlRulesConfigLoader._parse_rule(raw["max_gap_between_performances"],
-                                                                           need_thresholds=True),
-            simultaneous_dancing=YamlRulesConfigLoader._parse_rule(raw["simultaneous_dancing"], need_thresholds=False),
-            simultaneous_judging=YamlRulesConfigLoader._parse_rule(raw["simultaneous_judging"], need_thresholds=False),
+            max_continuous_judging=YamlRulesConfigLoader._parse_rule(
+                raw["max_continuous_judging"], need_thresholds=True, need_rest=True
+            ),
+            max_gap_between_performances=YamlRulesConfigLoader._parse_rule(
+                raw["max_gap_between_performances"], need_thresholds=True
+            ),
+            simultaneous_dancing=YamlRulesConfigLoader._parse_rule(
+                raw["simultaneous_dancing"], need_thresholds=False
+            ),
+            simultaneous_judging=YamlRulesConfigLoader._parse_rule(
+                raw["simultaneous_judging"], need_thresholds=False
+            ),
         )
 
     @staticmethod
     def _parse_rule(
-            section: Any,
-            *,
-            need_thresholds: bool,
-            need_rest: bool = False,
-            need_disciplines: bool = False,
-            need_min_gap: bool = False,
+        section: Any,
+        *,
+        need_thresholds: bool,
+        need_rest: bool = False,
+        need_disciplines: bool = False,
+        need_min_gap: bool = False,
     ) -> RuleConfig:
         if not isinstance(section, Mapping):
             raise RulesConfigError("Rule section must be a mapping")
@@ -80,7 +87,11 @@ class YamlRulesConfigLoader:
             for key in ("critical", "medium", "low"):
                 if key not in tr:
                     raise RulesConfigError(f"Threshold '{key}' is missing")
-            thresholds = {Severity.CRITICAL: int(tr["critical"]), Severity.MEDIUM: int(tr["medium"]), Severity.LOW: int(tr["low"])}
+            thresholds = {
+                Severity.CRITICAL: int(tr["critical"]),
+                Severity.MEDIUM: int(tr["medium"]),
+                Severity.LOW: int(tr["low"]),
+            }
 
         rest_time = int(section["rest_time"]) if need_rest else None
         if need_rest and "rest_time" not in section:
@@ -89,7 +100,9 @@ class YamlRulesConfigLoader:
         if need_disciplines:
             vals = section.get("disciplines")
             if not isinstance(vals, list) or not vals:
-                raise RulesConfigError("Rule section requires non-empty 'disciplines' list")
+                raise RulesConfigError(
+                    "Rule section requires non-empty 'disciplines' list"
+                )
             disciplines = tuple(str(v) for v in vals)
         else:
             disciplines = None

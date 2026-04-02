@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.infrastructure.config import RulesConfig
+from .rules_config import RulesConfig
 from .rule import ARule
 from .continuous_activity_rule import ContinuousActivityRule
 from .costume_change_time_rule import CostumeChangeTimeRule
@@ -12,7 +12,9 @@ from .simultaneous_judging_rule import SimultaneousJudgingRule
 from .simultaneous_rule import SimultaneousRule
 
 
-def load_rules_from_config(config: RulesConfig) -> list[ARule]: # TODO: looks bad, extract to different class like loader
+def load_rules_from_config(
+    config: RulesConfig,
+) -> list[ARule]:  # TODO: looks bad, extract to different class like loader
     return [
         MaxContinuousDancingRule(config.max_continuous_dancing),
         CostumeChangeTimeRule(config.costume_change_time),
@@ -28,4 +30,5 @@ __all__ = [
     "ContinuousActivityRule",
     "SimultaneousRule",
     "load_rules_from_config",
+    "RulesConfig",
 ]
