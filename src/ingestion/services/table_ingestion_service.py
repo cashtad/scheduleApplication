@@ -4,8 +4,21 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
 
-from ..contracts import FullIngestionResult, IngestionIssue, IngestionSeverity, TableInput, TableParseResult
-from ..parsers import CompetitionTableParser, CompetitorTableParser, CompetitorParserConfig, JuryParserConfig, JuryTableParser, ScheduleTableParser
+from ..contracts import (
+    FullIngestionResult,
+    IngestionIssue,
+    IngestionSeverity,
+    TableInput,
+    TableParseResult,
+)
+from ..parsers import (
+    CompetitionTableParser,
+    CompetitorTableParser,
+    CompetitorParserConfig,
+    JuryParserConfig,
+    JuryTableParser,
+    ScheduleTableParser,
+)
 from .assignment_columns_selector import AssignmentColumnsMode
 from src.domain import Competition, Competitor, JuryMember, Performance
 from src.infrastructure import ExcelReader
@@ -19,23 +32,26 @@ class IngestionServiceConfig:
 
 
 class TableIngestionService:
-    def __init__(self, excel_reader: ExcelReader, config: IngestionServiceConfig | None = None) -> None:
+    def __init__(
+        self, excel_reader: ExcelReader, config: IngestionServiceConfig | None = None
+    ) -> None:
         self._excel_reader = excel_reader
         self._config = config or IngestionServiceConfig()
 
     def ingest(self, inputs: Iterable[TableInput]) -> FullIngestionResult:
         by_key = {x.table_key: x for x in inputs}
 
-        competitions_result, competitions_schema = self._ingest_competitions(by_key.get("competitions"))
-        competitors_result, competitors_schema = self._ingest_competitors(by_key.get("competitors"))
+        competitions_result, competitions_schema = self._ingest_competitions(
+            by_key.get("competitions")
+        )
+        competitors_result, competitors_schema = self._ingest_competitors(
+            by_key.get("competitors")
+        )
         jury_result, jury_schema = self._ingest_jury(by_key.get("jury"))
         schedule_result, schedule_schema = self._ingest_schedule(by_key.get("schedule"))
 
         schema_issues = (
-                competitions_schema
-                + competitors_schema
-                + jury_schema
-                + schedule_schema
+            competitions_schema + competitors_schema + jury_schema + schedule_schema
         )
         schema_issues = self._deduplicate_issues(schema_issues)
 
@@ -52,19 +68,23 @@ class TableIngestionService:
     # --------------------------
 
     def _ingest_competitions(
-            self, table_input: TableInput | None
+        self, table_input: TableInput | None
     ) -> tuple[TableParseResult[Competition], list[IngestionIssue]]:
         if table_input is None:
-            return self._empty_parse_result("competitions"), [self._missing_table_issue("competitions")]
+            return self._empty_parse_result("competitions"), [
+                self._missing_table_issue("competitions")
+            ]
 
         parser = CompetitionTableParser(mapping=table_input.mapping)
         return self._read_validate_parse(table_input, parser)
 
     def _ingest_competitors(
-            self, table_input: TableInput | None
+        self, table_input: TableInput | None
     ) -> tuple[TableParseResult[Competitor], list[IngestionIssue]]:
         if table_input is None:
-            return self._empty_parse_result("competitors"), [self._missing_table_issue("competitors")]
+            return self._empty_parse_result("competitors"), [
+                self._missing_table_issue("competitors")
+            ]
 
         parser = CompetitorTableParser(
             mapping=table_input.mapping,
@@ -76,7 +96,7 @@ class TableIngestionService:
         return self._read_validate_parse(table_input, parser)
 
     def _ingest_jury(
-            self, table_input: TableInput | None
+        self, table_input: TableInput | None
     ) -> tuple[TableParseResult[JuryMember], list[IngestionIssue]]:
         if table_input is None:
             return self._empty_parse_result("jury"), [self._missing_table_issue("jury")]
@@ -91,10 +111,12 @@ class TableIngestionService:
         return self._read_validate_parse(table_input, parser)
 
     def _ingest_schedule(
-            self, table_input: TableInput | None
+        self, table_input: TableInput | None
     ) -> tuple[TableParseResult[Performance], list[IngestionIssue]]:
         if table_input is None:
-            return self._empty_parse_result("schedule"), [self._missing_table_issue("schedule")]
+            return self._empty_parse_result("schedule"), [
+                self._missing_table_issue("schedule")
+            ]
 
         parser = ScheduleTableParser(mapping=table_input.mapping)
         return self._read_validate_parse(table_input, parser)
@@ -103,7 +125,9 @@ class TableIngestionService:
     # Shared pipeline
     # --------------------------
 
-    def _read_validate_parse(self, table_input: TableInput, parser) -> tuple[TableParseResult, list[IngestionIssue]]:
+    def _read_validate_parse(
+        self, table_input: TableInput, parser
+    ) -> tuple[TableParseResult, list[IngestionIssue]]:
         table_key = table_input.table_key
         schema_issues: list[IngestionIssue] = []
 
@@ -124,11 +148,16 @@ class TableIngestionService:
                     code="EXCEL_READ_FAILED",
                     message=f"Failed to read excel table: {exc}",
                     severity=IngestionSeverity.ERROR,
-                    context={"file_path": table_input.file_path, "sheet_name": table_input.sheet_name},
+                    context={
+                        "file_path": table_input.file_path,
+                        "sheet_name": table_input.sheet_name,
+                    },
                 )
             ]
 
-        signature_issue = TableIngestionService._validate_signature(table_input, [str(c) for c in df.columns])
+        signature_issue = TableIngestionService._validate_signature(
+            table_input, [str(c) for c in df.columns]
+        )
         if signature_issue is not None:
             schema_issues.append(signature_issue)
 
@@ -202,7 +231,9 @@ class TableIngestionService:
         return None
 
     @staticmethod
-    def _validate_signature(table_input: TableInput, current_columns: list[str]) -> IngestionIssue | None:
+    def _validate_signature(
+        table_input: TableInput, current_columns: list[str]
+    ) -> IngestionIssue | None:
         # Signature mismatch is warning-level: user may intentionally reorder/rename columns and remap.
         if not table_input.column_signature:
             return None
@@ -249,5 +280,6 @@ class TableIngestionService:
     def _deduplicate_issues(issues: list[IngestionIssue]) -> list[IngestionIssue]:
         unique: dict[tuple, IngestionIssue] = {}
         for issue in issues:
-            unique[issue.dedup_key()] = issue
+            key = issue.dedup_key()
+            unique[key] = issue
         return list(unique.values())
