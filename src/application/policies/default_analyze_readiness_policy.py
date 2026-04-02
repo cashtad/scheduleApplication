@@ -3,7 +3,9 @@ from __future__ import annotations
 from ..dto import (
     AnalyzeReadinessResult,
     ReadinessDecision,
-    ReadinessReason, ReadinessReasonSeverity, PrepareDataResult
+    ReadinessReason,
+    ReadinessReasonSeverity,
+    PrepareDataResult,
 )
 from src.domain import ScheduleRepositoryValidationReport
 from .analyze_readiness_policy import AnalyzeReadinessPolicy
@@ -24,19 +26,21 @@ class DefaultAnalyzeReadinessPolicy(AnalyzeReadinessPolicy):
     ) -> AnalyzeReadinessResult:
         reasons: list[ReadinessReason] = []
 
-        #TODO: rewrite to use more flexible approach with rules and conditions instead of hardcoded blocks
+        # TODO: rewrite to use more flexible approach with rules and conditions
 
         # BLOCK 1: schema errors
-        # if prepare_data_result.schema_errors_count > 0:
-        #     reasons.append(
-        #         ReadinessReason(
-        #             code="SCHEMA_ERRORS_PRESENT",
-        #             severity=ReadinessReasonSeverity.ERROR,
-        #             message_en="Schema validation errors are present.",
-        #             message_cz="Byly nalezeny chyby struktury tabulek.",
-        #             context={"schema_errors_count": prepare_data_result.schema_errors_count},
-        #         )
-        #     )
+        if prepare_data_result.schema_errors_count > 0:
+            reasons.append(
+                ReadinessReason(
+                    code="SCHEMA_ERRORS_PRESENT",
+                    severity=ReadinessReasonSeverity.ERROR,
+                    message_en="Schema validation errors are present.",
+                    message_cz="Byly nalezeny chyby struktury tabulek.",
+                    context={
+                        "schema_errors_count": prepare_data_result.schema_errors_count
+                    },
+                )
+            )
 
         # BLOCK 2: row error threshold exceeded
         # if prepare_data_result.row_error_rate > self._row_error_threshold:
@@ -54,16 +58,20 @@ class DefaultAnalyzeReadinessPolicy(AnalyzeReadinessPolicy):
         #     )
 
         # BLOCK 3: repository validation errors
-        # if repository_validation_report.errors:
-        #     reasons.append(
-        #         ReadinessReason(
-        #             code="REPOSITORY_ERRORS_PRESENT",
-        #             severity=ReadinessReasonSeverity.ERROR,
-        #             message_en="Repository validation errors are present.",
-        #             message_cz="Byly nalezeny chyby konzistence dat po sestavení repozitáře.",
-        #             context={"repository_errors_count": len(repository_validation_report.errors)},
-        #         )
-        #     )
+        if repository_validation_report.errors:
+            reasons.append(
+                ReadinessReason(
+                    code="REPOSITORY_ERRORS_PRESENT",
+                    severity=ReadinessReasonSeverity.ERROR,
+                    message_en="Repository validation errors are present.",
+                    message_cz="Byly nalezeny chyby konzistence dat po sestavení repozitáře.",
+                    context={
+                        "repository_errors_count": len(
+                            repository_validation_report.errors
+                        )
+                    },
+                )
+            )
 
         # check for not parsed tables
         if not prepare_data_result.jury_members:
@@ -73,7 +81,9 @@ class DefaultAnalyzeReadinessPolicy(AnalyzeReadinessPolicy):
                     severity=ReadinessReasonSeverity.ERROR,
                     message_en="Jury members were not parsed.",
                     message_cz="Tabulka s členy poroty nebyla úspěšně načtena. Zkontrolujte, zda je správně zvolena a namapována.",
-                    context={"jury_members_count": len(prepare_data_result.jury_members)},
+                    context={
+                        "jury_members_count": len(prepare_data_result.jury_members)
+                    },
                 )
             )
 
@@ -84,7 +94,9 @@ class DefaultAnalyzeReadinessPolicy(AnalyzeReadinessPolicy):
                     severity=ReadinessReasonSeverity.ERROR,
                     message_en="Competitions were not parsed.",
                     message_cz="Tabulka s informacemi o soutěžích nebyla úspěšně načtena. Zkontrolujte, zda je správně zvolena a namapována.",
-                    context={"competitions_count": len(prepare_data_result.competitions)},
+                    context={
+                        "competitions_count": len(prepare_data_result.competitions)
+                    },
                 )
             )
 
@@ -95,7 +107,9 @@ class DefaultAnalyzeReadinessPolicy(AnalyzeReadinessPolicy):
                     severity=ReadinessReasonSeverity.ERROR,
                     message_en="Performances were not parsed.",
                     message_cz="Tabulka s harmonogramem nebyla úspěšně načtena. Zkontrolujte, zda je správně zvolena a namapována.",
-                    context={"performances_count": len(prepare_data_result.performances)},
+                    context={
+                        "performances_count": len(prepare_data_result.performances)
+                    },
                 )
             )
 
@@ -111,7 +125,9 @@ class DefaultAnalyzeReadinessPolicy(AnalyzeReadinessPolicy):
             )
 
         # NON-BLOCK: warnings
-        warnings_count = prepare_data_result.total_warnings_count + len(repository_validation_report.warnings)
+        warnings_count = prepare_data_result.total_warnings_count + len(
+            repository_validation_report.warnings
+        )
         if warnings_count > 0:
             reasons.append(
                 ReadinessReason(
@@ -123,6 +139,10 @@ class DefaultAnalyzeReadinessPolicy(AnalyzeReadinessPolicy):
                 )
             )
 
-        has_blocking_error = any(r.severity == ReadinessReasonSeverity.ERROR for r in reasons)
-        decision = ReadinessDecision.BLOCK if has_blocking_error else ReadinessDecision.ALLOW
+        has_blocking_error = any(
+            r.severity == ReadinessReasonSeverity.ERROR for r in reasons
+        )
+        decision = (
+            ReadinessDecision.BLOCK if has_blocking_error else ReadinessDecision.ALLOW
+        )
         return AnalyzeReadinessResult(decision=decision, reasons=reasons)
