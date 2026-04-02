@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Callable
 
+from pandas import DataFrame
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
     QFileDialog,
@@ -14,7 +16,6 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from src.application.contracts import TABLE_MAPPING_SCHEMAS
 from src.presentation.qt.controllers import UiController
 from src.presentation.qt.dialogs.mapping_dialog import MappingDialog
 from src.session import TableStatus
@@ -38,6 +39,16 @@ _STATUS_UI = {
     TableStatus.BROKEN_SHEET: ("Neplatný list", "#EF5350"),
     TableStatus.MAPPING_STALE: ("Mapování zastaralé", "#AB47BC"),
 }
+
+
+@dataclass(slots=True)
+class TableLoadContext:
+    file_path: str
+    sheet_name: str
+    df: DataFrame
+    current_columns: list[str]
+    previous_mapping: dict[str, str]
+    reusable_mapping: dict[str, str] | None
 
 
 class TableLoadPanel(QWidget):
@@ -87,14 +98,65 @@ class TableLoadPanel(QWidget):
         self.status_changed.emit()
 
     def _on_action_clicked(self) -> None:
-        file_path, _ = QFileDialog.getOpenFileName(
-            self, "Vyberte soubor tabulky", "", "Tabulky (*.xlsx *.xls)"
-        )
-        if not file_path:
+        context = self._build_load_context()
+        if context is None:
             return
 
-        self._controller.set_file(self._table_key, file_path)
+        self._commit_file_and_sheet(context)
 
+        if self._try_auto_apply_reusable_mapping(context):
+            self._finalize_success(context.df)
+            return
+
+        if self._open_mapping_dialog_and_apply(context):
+            self._finalize_success(context.df)
+            return
+
+        self.refresh()
+
+    def _build_load_context(self) -> TableLoadContext | None:
+        previous_mapping = dict(
+            self._controller.session.get_table(self._table_key).column_mapping
+        )
+
+        file_path = self._choose_file_path()
+        if file_path is None:
+            return None
+
+        sheet_name = self._choose_sheet_name(file_path)
+        if sheet_name is None:
+            return None
+
+        df = self._read_dataframe(file_path, sheet_name)
+        if df is None:
+            return None
+
+        current_columns = [str(c) for c in df.columns]
+        reusable_mapping = self._controller.get_applicable_mapping_for_columns(
+            table_key=self._table_key,
+            mapping=previous_mapping,
+            current_columns=current_columns,
+        )
+
+        return TableLoadContext(
+            file_path=file_path,
+            sheet_name=sheet_name,
+            df=df,
+            current_columns=current_columns,
+            previous_mapping=previous_mapping,
+            reusable_mapping=reusable_mapping,
+        )
+
+    def _choose_file_path(self) -> str | None:
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Vyberte soubor tabulky",
+            "",
+            "Tabulky (*.xlsx *.xls)",
+        )
+        return file_path or None
+
+    def _choose_sheet_name(self, file_path: str) -> str | None:
         try:
             sheet_names = self._controller.get_sheet_names(file_path)
         except Exception as exc:
@@ -102,115 +164,90 @@ class TableLoadPanel(QWidget):
                 self, "Chyba načítání", f"Nelze otevřít soubor:\n{exc}"
             )
             self.refresh()
-            return
+            return None
 
         if not sheet_names:
             QMessageBox.critical(
                 self, "Chyba načítání", "Soubor neobsahuje žádné listy."
             )
             self.refresh()
-            return
+            return None
 
         if len(sheet_names) == 1:
-            sheet_name = sheet_names[0]
-        else:
-            selected, ok = QInputDialog.getItem(
-                self, "Výběr listu", "Vyberte list tabulky:", sheet_names, 0, False
-            )
-            if not ok:
-                self.refresh()
-                return
-            sheet_name = selected
+            return sheet_names[0]
 
-        self._controller.set_sheet(self._table_key, sheet_name)
+        selected, ok = QInputDialog.getItem(
+            self,
+            "Výběr listu",
+            "Vyberte list tabulky:",
+            sheet_names,
+            0,
+            False,
+        )
+        return selected if ok else None
 
+    def _read_dataframe(self, file_path: str, sheet_name: str) -> DataFrame | None:
         try:
-            df = self._controller.read(file_path, sheet_name)
+            return self._controller.read(file_path, sheet_name)
         except Exception as exc:
             QMessageBox.critical(self, "Chyba načítání", f"Nelze načíst list:\n{exc}")
             self.refresh()
-            return
+            return None
 
-        existing_mapping = self._controller.session.get_table(
-            self._table_key
-        ).column_mapping
-        dlg = MappingDialog(
-            table_key=self._table_key,
-            df=df,
-            existing_mapping=existing_mapping,
-            parent=self,
+    def _commit_file_and_sheet(self, context: TableLoadContext) -> None:
+        self._controller.set_file(self._table_key, context.file_path)
+        self._controller.set_sheet(self._table_key, context.sheet_name)
+
+    def _try_auto_apply_reusable_mapping(self, context: TableLoadContext) -> bool:
+        if not context.reusable_mapping:
+            return False
+
+        answer = QMessageBox.question(
+            self,
+            "Existující mapování",
+            "Bylo nalezeno použitelné uložené mapování.\nPoužít ho automaticky?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.Yes,
         )
-        if dlg.exec() != MappingDialog.Accepted:
-            self.refresh()
-            return
+        if answer != QMessageBox.Yes:
+            return False
 
-        mapping = dict(dlg.result_mapping)
-        ok, error_text = self._validate_mapping_preflight(
-            mapping, [str(c) for c in df.columns]
+        ok, message = self._controller.apply_mapping_and_mark_ready(
+            table_key=self._table_key,
+            mapping=context.reusable_mapping,
+            current_columns=context.current_columns,
         )
         if not ok:
-            QMessageBox.warning(self, "Neplatné mapování", error_text)
-            self.refresh()
-            return
+            QMessageBox.warning(self, "Neplatné mapování", message)
+            return False
 
-        self._controller.set_mapping(
+        return True
+
+    def _open_mapping_dialog_and_apply(self, context: TableLoadContext) -> bool:
+        dialog = MappingDialog(
             table_key=self._table_key,
-            column_mapping=mapping,
-            current_columns=[str(c) for c in df.columns],
+            df=context.df,
+            existing_mapping=context.reusable_mapping or context.previous_mapping,
+            parent=self,
         )
-        self._controller.mark_ready(self._table_key)
+        if dialog.exec() != MappingDialog.Accepted:
+            return False
 
+        ok, message = self._controller.apply_mapping_and_mark_ready(
+            table_key=self._table_key,
+            mapping=dict(dialog.result_mapping),
+            current_columns=context.current_columns,
+        )
+        if not ok:
+            QMessageBox.warning(self, "Neplatné mapování", message)
+            return False
+
+        return True
+
+    def _finalize_success(self, df: DataFrame) -> None:
         if (
             self._table_key == "schedule"
             and self._on_schedule_preview_changed is not None
         ):
             self._on_schedule_preview_changed(df)
-
         self.refresh()
-
-    def _validate_mapping_preflight(
-        self, mapping: dict[str, str], current_columns: list[str]
-    ) -> tuple[bool, str]:
-        schema = TABLE_MAPPING_SCHEMAS[self._table_key]
-        existing_columns = set(current_columns)
-
-        for field in schema.fields:
-            val = (mapping.get(field.key) or "").strip()
-            if field.required and not val:
-                return False, f"Povinné pole '{field.label}' není vyplněno."
-
-        for field in schema.fields:
-            if field.virtual:
-                continue
-            val = (mapping.get(field.key) or "").strip()
-            if val and val not in existing_columns:
-                return (
-                    False,
-                    f"Vybraný sloupec '{val}' pro pole '{field.label}' neexistuje v tabulce.",
-                )
-
-        if self._table_key in {"competitors", "jury"}:
-            prefix = (mapping.get("assignment_prefix") or "").strip()
-            if prefix:
-                matched = [c for c in current_columns if c.startswith(prefix)]
-                if not matched:
-                    return False, f"Prefix '{prefix}' neodpovídá žádnému sloupci."
-            else:
-                numeric = [c for c in current_columns if c.strip().isdigit()]
-                if not numeric:
-                    return (
-                        False,
-                        "Pro prázdný prefix nebyly nalezeny číselné sloupce přiřazení.",
-                    )
-
-        if self._table_key == "jury":
-            fullname = (mapping.get("fullname") or "").strip()
-            name = (mapping.get("name") or "").strip()
-            surname = (mapping.get("surname") or "").strip()
-            if not fullname and not (name and surname):
-                return (
-                    False,
-                    "Pro porotu je potřeba buď 'Celé jméno', nebo kombinace 'Jméno' + 'Příjmení'.",
-                )
-
-        return True, ""

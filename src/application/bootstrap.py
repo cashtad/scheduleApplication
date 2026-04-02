@@ -11,6 +11,7 @@ from .use_cases import (
     RestoreSessionUseCase,
     RunScheduleAnalysisUseCase,
     SaveSessionUseCase,
+    RevalidateSessionUseCase,
 )
 from .workflow.analyze_workflow_service import AnalyzeWorkflowService
 from src.domain import ScheduleRepositoryBuilder
@@ -18,7 +19,9 @@ from src.domain.analysis import InferenceEngine
 from src.ingestion import TableIngestionService
 from src.infrastructure import JsonSessionStore, PandasExcelReader
 from src.infrastructure.config import YamlRulesConfigLoader
-from src.infrastructure.reporting.html_explanation_report_writer import HtmlExplanationReportWriter
+from src.infrastructure.reporting.html_explanation_report_writer import (
+    HtmlExplanationReportWriter,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -26,6 +29,7 @@ class AppContainer:
     analyze_workflow_service: AnalyzeWorkflowService
     restore_session_use_case: RestoreSessionUseCase
     save_session_use_case: SaveSessionUseCase
+    revalidate_session_use_case: RevalidateSessionUseCase
 
 
 def build_app_container(
@@ -37,18 +41,14 @@ def build_app_container(
     session_store: JsonSessionStore | None = None,
     excel_reader: PandasExcelReader | None = None,
 ) -> AppContainer:
-    # Infrastructure
     store = session_store or JsonSessionStore()
     reader = excel_reader or PandasExcelReader()
 
-    # Config
     rules_config = YamlRulesConfigLoader.load_from_file(rules_config_path)
 
-    # Domain services
     repository_builder = ScheduleRepositoryBuilder()
     inference_engine = InferenceEngine(rules_config=rules_config)
 
-    # Application services / use-cases
     save_session_use_case = SaveSessionUseCase(store)
     restore_session_use_case = RestoreSessionUseCase(store)
 
@@ -59,15 +59,23 @@ def build_app_container(
         table_ingestion_service=ingestion_service,
         session_status_sync_service=status_sync_service,
     )
-    build_repository_use_case = BuildRepositoryUseCase(repository_builder=repository_builder)
+    build_repository_use_case = BuildRepositoryUseCase(
+        repository_builder=repository_builder
+    )
 
-    html_writer = HtmlExplanationReportWriter(output_dir=reports_dir) if with_html_report_writer else None
+    html_writer = (
+        HtmlExplanationReportWriter(output_dir=reports_dir)
+        if with_html_report_writer
+        else None
+    )
     run_schedule_analysis_use_case = RunScheduleAnalysisUseCase(
         inference_engine=inference_engine,
         html_report_writer=html_writer,
     )
 
-    readiness_policy = DefaultAnalyzeReadinessPolicy(row_error_threshold=row_error_threshold)
+    readiness_policy = DefaultAnalyzeReadinessPolicy(
+        row_error_threshold=row_error_threshold
+    )
 
     analyze_workflow_service = AnalyzeWorkflowService(
         prepare_data_use_case=prepare_data_use_case,
@@ -77,8 +85,15 @@ def build_app_container(
         row_error_threshold=row_error_threshold,
     )
 
+    revalidate_session_use_case = RevalidateSessionUseCase(
+        table_ingestion_service=ingestion_service,
+        session_status_sync_service=status_sync_service,
+        save_session_use_case=save_session_use_case,
+    )
+
     return AppContainer(
         analyze_workflow_service=analyze_workflow_service,
         restore_session_use_case=restore_session_use_case,
         save_session_use_case=save_session_use_case,
+        revalidate_session_use_case=revalidate_session_use_case,
     )

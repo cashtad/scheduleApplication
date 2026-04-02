@@ -5,15 +5,16 @@ from typing import Iterable
 
 from pandas import DataFrame
 
-from application.bootstrap import AppContainer, build_app_container
-from application.dto import (
+from infrastructure import PandasExcelReader
+from src.application.bootstrap import AppContainer, build_app_container
+from src.application.dto import (
     AnalyzeWorkflowResult,
     AnalysisViewModel,
     build_analysis_view_model,
 )
-from application.services.session_service import SessionService
-from session import AppSession, REQUIRED_TABLE_KEYS, TableStatus
-from src.infrastructure import PandasExcelReader
+from src.application.services import MappingTemplateService
+from src.application.services.session_service import SessionService
+from src.session import AppSession, REQUIRED_TABLE_KEYS, TableStatus
 
 
 class UiController:
@@ -32,9 +33,14 @@ class UiController:
             row_error_threshold=row_error_threshold,
         )
         self._session_service = SessionService(self._container.save_session_use_case)
+        self._mapping_template_service = MappingTemplateService()
+
         self._session: AppSession = self._container.restore_session_use_case.execute()
+        self._container.revalidate_session_use_case.execute(self._session)
+
         self._last_workflow_result: AnalyzeWorkflowResult | None = None
         self._last_analysis_view: AnalysisViewModel | None = None
+
         self.excel_reader = PandasExcelReader()
 
     @property
@@ -97,3 +103,54 @@ class UiController:
         else:
             self._last_analysis_view = None
         return result
+
+    def validate_mapping_preflight(
+        self,
+        table_key: str,
+        mapping: dict[str, str],
+        current_columns: list[str],
+    ) -> tuple[bool, str]:
+        check = self._mapping_template_service.validate_mapping(
+            table_key=table_key,
+            mapping=mapping,
+            current_columns=current_columns,
+        )
+        return check.is_valid, check.message
+
+    def get_applicable_saved_mapping(
+        self,
+        table_key: str,
+        current_columns: list[str],
+    ) -> dict[str, str] | None:
+        table = self._session.get_table(table_key)
+        return self._mapping_template_service.get_applicable_saved_mapping(
+            table_state=table,
+            current_columns=current_columns,
+        )
+
+    def get_applicable_mapping_for_columns(
+        self,
+        table_key: str,
+        mapping: dict[str, str],
+        current_columns: list[str],
+    ) -> dict[str, str] | None:
+        if not mapping:
+            return None
+        ok, _ = self.validate_mapping_preflight(table_key, mapping, current_columns)
+        return dict(mapping) if ok else None
+
+    def apply_mapping_and_mark_ready(
+        self,
+        table_key: str,
+        mapping: dict[str, str],
+        current_columns: list[str],
+    ) -> tuple[bool, str]:
+        ok, message = self.validate_mapping_preflight(
+            table_key, mapping, current_columns
+        )
+        if not ok:
+            return False, message
+
+        self.set_mapping(table_key, mapping, current_columns)
+        self.mark_ready(table_key)
+        return True, ""
