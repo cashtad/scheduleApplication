@@ -11,18 +11,22 @@ from .schedule_repository_validation import (
 class ScheduleRepositoryValidator:
 
     @staticmethod
-    def check_performances_connection_to_competitions(repository: ScheduleRepository) -> list[
-        ScheduleRepositoryValidationIssue]:
+    def check_performances_connection_to_competitions(
+        repository: ScheduleRepository,
+    ) -> list[ScheduleRepositoryValidationIssue]:
         issues: list[ScheduleRepositoryValidationIssue] = []
         competition_ids = set(repository.competitions_by_id.keys())
 
-        for competition_id, performances in repository.performances_by_competition_id.items():
+        for (
+            competition_id,
+            performances,
+        ) in repository.performances_by_competition_id.items():
             if competition_id not in competition_ids:
                 issues.append(
                     ScheduleRepositoryValidationIssue(
                         code="UNKNOWN_COMPETITION_IN_PERFORMANCE",
                         message=f"Performance references unknown competition_id={competition_id}",
-                        severity=ValidationIssueSeverity.ERROR,
+                        severity=ValidationIssueSeverity.WARNING,
                         context={"competition_id": competition_id},
                     )
                 )
@@ -30,7 +34,9 @@ class ScheduleRepositoryValidator:
         return issues
 
     @staticmethod
-    def check_duplicate_performances(repository: ScheduleRepository) -> list[ScheduleRepositoryValidationIssue]:
+    def check_duplicate_performances(
+        repository: ScheduleRepository,
+    ) -> list[ScheduleRepositoryValidationIssue]:
         issues: list[ScheduleRepositoryValidationIssue] = []
         seen_keys: set[tuple] = set()
 
@@ -59,7 +65,9 @@ class ScheduleRepositoryValidator:
         return issues
 
     @staticmethod
-    def check_competitors(repository: ScheduleRepository) -> list[ScheduleRepositoryValidationIssue]:
+    def check_competitors(
+        repository: ScheduleRepository,
+    ) -> list[ScheduleRepositoryValidationIssue]:
 
         issues: list[ScheduleRepositoryValidationIssue] = []
 
@@ -71,7 +79,7 @@ class ScheduleRepositoryValidator:
                 issues.append(
                     ScheduleRepositoryValidationIssue(
                         code="COMPETITOR_UNKNOWN_COMPETITION",
-                        message=f"Competitor '{competitor.dancer_1_name}' references unknown competition ids",
+                        message=f"Competitor '{competitor.dancer_1_name}' references unknown competition ids {missing}",
                         severity=ValidationIssueSeverity.ERROR,
                         context={"missing_competition_ids": tuple(missing)},
                     )
@@ -89,7 +97,9 @@ class ScheduleRepositoryValidator:
         return issues
 
     @staticmethod
-    def check_jury_members(repository: ScheduleRepository) -> list[ScheduleRepositoryValidationIssue]:
+    def check_jury_members(
+        repository: ScheduleRepository,
+    ) -> list[ScheduleRepositoryValidationIssue]:
         issues: list[ScheduleRepositoryValidationIssue] = []
 
         competition_ids = set(repository.competitions_by_id.keys())
@@ -100,8 +110,8 @@ class ScheduleRepositoryValidator:
                 issues.append(
                     ScheduleRepositoryValidationIssue(
                         code="JURY_UNKNOWN_COMPETITION",
-                        message=f"Jury member '{jury_member.fullname}' references unknown competition ids",
-                        severity=ValidationIssueSeverity.ERROR,
+                        message=f"Jury member '{jury_member.fullname}' references unknown competition ids {missing}",
+                        severity=ValidationIssueSeverity.WARNING,
                         context={"missing_competition_ids": tuple(missing)},
                     )
                 )
@@ -118,7 +128,9 @@ class ScheduleRepositoryValidator:
         return issues
 
     @staticmethod
-    def check_competitions_not_used(repository: ScheduleRepository) -> list[ScheduleRepositoryValidationIssue]:
+    def check_competitions_not_used(
+        repository: ScheduleRepository,
+    ) -> list[ScheduleRepositoryValidationIssue]:
         issues: list[ScheduleRepositoryValidationIssue] = []
         competition_ids = set(repository.competitions_by_id.keys())
 
@@ -138,10 +150,16 @@ class ScheduleRepositoryValidator:
     def validate(repository: ScheduleRepository) -> ScheduleRepositoryValidationReport:
         issues: list[ScheduleRepositoryValidationIssue] = []
 
-        connection_issues = ScheduleRepositoryValidator.check_performances_connection_to_competitions(repository)
+        connection_issues = (
+            ScheduleRepositoryValidator.check_performances_connection_to_competitions(
+                repository
+            )
+        )
         issues.extend(connection_issues)
 
-        duplicate_issues = ScheduleRepositoryValidator.check_duplicate_performances(repository)
+        duplicate_issues = ScheduleRepositoryValidator.check_duplicate_performances(
+            repository
+        )
         issues.extend(duplicate_issues)
 
         competitors_issues = ScheduleRepositoryValidator.check_competitors(repository)
@@ -150,7 +168,9 @@ class ScheduleRepositoryValidator:
         jury_issues = ScheduleRepositoryValidator.check_jury_members(repository)
         issues.extend(jury_issues)
 
-        competitions_issues = ScheduleRepositoryValidator.check_competitions_not_used(repository)
+        competitions_issues = ScheduleRepositoryValidator.check_competitions_not_used(
+            repository
+        )
         issues.extend(competitions_issues)
 
         # Deduplicate
@@ -159,7 +179,11 @@ class ScheduleRepositoryValidator:
             unique[issue.dedup_key()] = issue
 
         deduped_issues = list(unique.values())
-        errors = [i for i in deduped_issues if i.severity == ValidationIssueSeverity.ERROR]
-        warnings = [i for i in deduped_issues if i.severity == ValidationIssueSeverity.WARNING]
+        errors = [
+            i for i in deduped_issues if i.severity == ValidationIssueSeverity.ERROR
+        ]
+        warnings = [
+            i for i in deduped_issues if i.severity == ValidationIssueSeverity.WARNING
+        ]
 
         return ScheduleRepositoryValidationReport(errors=errors, warnings=warnings)
