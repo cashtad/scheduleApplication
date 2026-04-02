@@ -5,11 +5,13 @@ from typing import Iterable
 
 from pandas import DataFrame
 
-from infrastructure import PandasExcelReader
+from src.infrastructure import PandasExcelReader
 from src.application.bootstrap import AppContainer, build_app_container
 from src.application.dto import (
     AnalyzeWorkflowResult,
     AnalysisViewModel,
+    DataQualityReport,
+    WorkflowStatus,
     build_analysis_view_model,
 )
 from src.application.services import MappingTemplateService
@@ -154,3 +156,20 @@ class UiController:
         self.set_mapping(table_key, mapping, current_columns)
         self.mark_ready(table_key)
         return True, ""
+
+    # --- Data quality / report helpers ---
+
+    def get_last_workflow_status(self) -> WorkflowStatus | None:
+        return self._last_workflow_result.status if self._last_workflow_result else None
+
+    def get_last_quality_report(self) -> DataQualityReport | None:
+        return (
+            self._last_workflow_result.quality_report
+            if self._last_workflow_result
+            else None
+        )
+
+    def get_last_html_report_path(self) -> str | None:
+        if not self._last_workflow_result:
+            return None
+        return self._last_workflow_result.html_report_path
