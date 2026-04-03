@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from src.application.policies import DefaultAnalyzeReadinessPolicy
+from src.application.policies import AnalyzeReadinessPolicy
 from src.application.services import (
     SessionRuntimeDataSyncService,
     SessionStatusSyncService,
@@ -78,9 +78,7 @@ def build_app_container(
         html_report_writer=html_writer,
     )
 
-    readiness_policy = DefaultAnalyzeReadinessPolicy(
-        row_error_threshold=row_error_threshold
-    )
+    readiness_policy = AnalyzeReadinessPolicy(row_error_threshold=row_error_threshold)
 
     analyze_workflow_service = AnalyzeWorkflowService(
         prepare_data_use_case=prepare_data_use_case,
