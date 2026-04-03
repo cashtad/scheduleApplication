@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
 
+from pandas import DataFrame
+
 from ..contracts import (
     FullIngestionResult,
     IngestionIssue,
@@ -41,19 +43,25 @@ class TableIngestionService:
     def ingest(self, inputs: Iterable[TableInput]) -> FullIngestionResult:
         by_key = {x.table_key: x for x in inputs}
 
-        competitions_result, competitions_schema = self._ingest_competitions(
+        competitions_result, competitions_schema, _ = self._ingest_competitions(
             by_key.get("competitions")
         )
-        competitors_result, competitors_schema = self._ingest_competitors(
+        competitors_result, competitors_schema, _ = self._ingest_competitors(
             by_key.get("competitors")
         )
-        jury_result, jury_schema = self._ingest_jury(by_key.get("jury"))
-        schedule_result, schedule_schema = self._ingest_schedule(by_key.get("schedule"))
+        jury_result, jury_schema, _ = self._ingest_jury(by_key.get("jury"))
+        schedule_result, schedule_schema, schedule_raw_df = self._ingest_schedule(
+            by_key.get("schedule")
+        )
 
         schema_issues = (
             competitions_schema + competitors_schema + jury_schema + schedule_schema
         )
         schema_issues = self._deduplicate_issues(schema_issues)
+
+        raw_tables: dict[str, DataFrame] = {}
+        if schedule_raw_df is not None:
+            raw_tables["schedule"] = schedule_raw_df
 
         return FullIngestionResult(
             competitions=competitions_result,
@@ -61,6 +69,7 @@ class TableIngestionService:
             jury_members=jury_result,
             performances=schedule_result,
             schema_issues=schema_issues,
+            raw_tables=raw_tables,
         )
 
     # --------------------------
@@ -69,22 +78,26 @@ class TableIngestionService:
 
     def _ingest_competitions(
         self, table_input: TableInput | None
-    ) -> tuple[TableParseResult[Competition], list[IngestionIssue]]:
+    ) -> tuple[TableParseResult[Competition], list[IngestionIssue], DataFrame | None]:
         if table_input is None:
-            return self._empty_parse_result("competitions"), [
-                self._missing_table_issue("competitions")
-            ]
+            return (
+                self._empty_parse_result("competitions"),
+                [self._missing_table_issue("competitions")],
+                None,
+            )
 
         parser = CompetitionTableParser(mapping=table_input.mapping)
         return self._read_validate_parse(table_input, parser)
 
     def _ingest_competitors(
         self, table_input: TableInput | None
-    ) -> tuple[TableParseResult[Competitor], list[IngestionIssue]]:
+    ) -> tuple[TableParseResult[Competitor], list[IngestionIssue], DataFrame | None]:
         if table_input is None:
-            return self._empty_parse_result("competitors"), [
-                self._missing_table_issue("competitors")
-            ]
+            return (
+                self._empty_parse_result("competitors"),
+                [self._missing_table_issue("competitors")],
+                None,
+            )
 
         parser = CompetitorTableParser(
             mapping=table_input.mapping,
@@ -97,9 +110,13 @@ class TableIngestionService:
 
     def _ingest_jury(
         self, table_input: TableInput | None
-    ) -> tuple[TableParseResult[JuryMember], list[IngestionIssue]]:
+    ) -> tuple[TableParseResult[JuryMember], list[IngestionIssue], DataFrame | None]:
         if table_input is None:
-            return self._empty_parse_result("jury"), [self._missing_table_issue("jury")]
+            return (
+                self._empty_parse_result("jury"),
+                [self._missing_table_issue("jury")],
+                None,
+            )
 
         parser = JuryTableParser(
             mapping=table_input.mapping,
@@ -112,48 +129,50 @@ class TableIngestionService:
 
     def _ingest_schedule(
         self, table_input: TableInput | None
-    ) -> tuple[TableParseResult[Performance], list[IngestionIssue]]:
+    ) -> tuple[TableParseResult[Performance], list[IngestionIssue], DataFrame | None]:
         if table_input is None:
-            return self._empty_parse_result("schedule"), [
-                self._missing_table_issue("schedule")
-            ]
+            return (
+                self._empty_parse_result("schedule"),
+                [self._missing_table_issue("schedule")],
+                None,
+            )
 
         parser = ScheduleTableParser(mapping=table_input.mapping)
         return self._read_validate_parse(table_input, parser)
 
-    # --------------------------
-    # Shared pipeline
-    # --------------------------
-
     def _read_validate_parse(
         self, table_input: TableInput, parser
-    ) -> tuple[TableParseResult, list[IngestionIssue]]:
+    ) -> tuple[TableParseResult, list[IngestionIssue], DataFrame | None]:
         table_key = table_input.table_key
         schema_issues: list[IngestionIssue] = []
 
         file_issue = TableIngestionService._validate_file_path(table_input)
         if file_issue is not None:
-            return self._empty_parse_result(table_key), [file_issue]
+            return self._empty_parse_result(table_key), [file_issue], None
 
         sheet_issue = self._validate_sheet_exists(table_input)
         if sheet_issue is not None:
-            return self._empty_parse_result(table_key), [sheet_issue]
+            return self._empty_parse_result(table_key), [sheet_issue], None
 
         try:
             df = self._excel_reader.read(table_input.file_path, table_input.sheet_name)
         except Exception as exc:
-            return self._empty_parse_result(table_key), [
-                IngestionIssue(
-                    table_key=table_key,
-                    code="EXCEL_READ_FAILED",
-                    message=f"Failed to read excel table: {exc}",
-                    severity=IngestionSeverity.ERROR,
-                    context={
-                        "file_path": table_input.file_path,
-                        "sheet_name": table_input.sheet_name,
-                    },
-                )
-            ]
+            return (
+                self._empty_parse_result(table_key),
+                [
+                    IngestionIssue(
+                        table_key=table_key,
+                        code="EXCEL_READ_FAILED",
+                        message=f"Failed to read excel table: {exc}",
+                        severity=IngestionSeverity.ERROR,
+                        context={
+                            "file_path": table_input.file_path,
+                            "sheet_name": table_input.sheet_name,
+                        },
+                    )
+                ],
+                None,
+            )
 
         signature_issue = TableIngestionService._validate_signature(
             table_input, [str(c) for c in df.columns]
@@ -164,7 +183,6 @@ class TableIngestionService:
         try:
             parse_result = parser.parse(df)
         except Exception as exc:
-            # Includes mapping/schema parser-level exceptions.
             parse_result = self._empty_parse_result(table_key)
             schema_issues.append(
                 IngestionIssue(
@@ -175,7 +193,7 @@ class TableIngestionService:
                 )
             )
 
-        return parse_result, schema_issues
+        return parse_result, schema_issues, df
 
     # --------------------------
     # Schema checks

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pandas as pd
 from PySide6.QtCore import QUrl
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
@@ -35,7 +34,6 @@ class MainWindow(QMainWindow):
             reports_dir=".reports",
             with_html_report_writer=True,
         )
-        self._schedule_preview_df: pd.DataFrame | None = None
 
         root = QWidget(self)
         self.setCentralWidget(root)
@@ -76,8 +74,9 @@ class MainWindow(QMainWindow):
 
         self._refresh_analyze_button_state()
 
-    def _on_schedule_preview_changed(self, df: pd.DataFrame) -> None:
-        self._schedule_preview_df = df
+    def _on_schedule_preview_changed(self, _df) -> None:
+        # schedule raw_df is now maintained in session runtime via ingestion flow
+        return
 
     def _refresh_analyze_button_state(self) -> None:
         self._analyze_button.setEnabled(self._controller.can_run_analysis())
@@ -155,14 +154,6 @@ class MainWindow(QMainWindow):
         dlg.exec()
 
     def _on_open_schedule_violations(self) -> None:
-        if self._schedule_preview_df is None:
-            QMessageBox.information(
-                self,
-                "Přehled chyb v rozvrhu",
-                "Nejprve načtěte tabulku rozvrhu.",
-            )
-            return
-
         analysis_view = self._controller.last_analysis_view
         if analysis_view is None:
             QMessageBox.information(
@@ -172,8 +163,17 @@ class MainWindow(QMainWindow):
             )
             return
 
+        schedule_df = self._controller.get_last_schedule_df()
+        if schedule_df is None:
+            QMessageBox.information(
+                self,
+                "Přehled chyb v rozvrhu",
+                "Runtime data rozvrhu nejsou dostupná. Spusťte prosím analýzu znovu.",
+            )
+            return
+
         dlg = ScheduleViewDialog(
-            schedule_df=self._schedule_preview_df,
+            schedule_df=schedule_df,
             analysis_view=analysis_view,
             parent=self,
         )

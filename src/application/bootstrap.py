@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .policies import DefaultAnalyzeReadinessPolicy
-from .services import SessionStatusSyncService
+from .services import SessionStatusSyncService, SessionRuntimeDataSyncService
 from .use_cases import (
     BuildRepositoryUseCase,
     PrepareDataUseCase,
@@ -54,10 +54,12 @@ def build_app_container(
 
     ingestion_service = TableIngestionService(excel_reader=reader)
     status_sync_service = SessionStatusSyncService()
+    runtime_data_sync_service = SessionRuntimeDataSyncService()
 
     prepare_data_use_case = PrepareDataUseCase(
         table_ingestion_service=ingestion_service,
         session_status_sync_service=status_sync_service,
+        session_runtime_data_sync_service=runtime_data_sync_service,
     )
     build_repository_use_case = BuildRepositoryUseCase(
         repository_builder=repository_builder

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from pandas import DataFrame
+
 from src.domain import Competition, Competitor, JuryMember, Performance
 from .ingestion_issue import IngestionIssue
 from .table_parse_result import TableParseResult
@@ -15,6 +17,7 @@ class FullIngestionResult:
     jury_members: TableParseResult[JuryMember]
     performances: TableParseResult[Performance]
     schema_issues: list[IngestionIssue] = field(default_factory=list)
+    raw_tables: dict[str, DataFrame] = field(default_factory=dict)
 
     @property
     def all_row_issues(self) -> list[IngestionIssue]:

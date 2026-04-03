@@ -100,10 +100,12 @@ class UiController:
     def run_analysis(self) -> AnalyzeWorkflowResult:
         result = self._container.analyze_workflow_service.run_analysis(self._session)
         self._last_workflow_result = result
+
         if result.analysis_result is not None:
             self._last_analysis_view = build_analysis_view_model(result.analysis_result)
         else:
             self._last_analysis_view = None
+
         return result
 
     def validate_mapping_preflight(
@@ -156,6 +158,9 @@ class UiController:
         self.set_mapping(table_key, mapping, current_columns)
         self.mark_ready(table_key)
         return True, ""
+
+    def get_last_schedule_df(self) -> DataFrame | None:
+        return self._session.get_table("schedule").raw_df
 
     # --- Data quality / report helpers ---
 

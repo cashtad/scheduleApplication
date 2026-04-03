@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ..dto import PrepareDataResult
-from ..services import SessionStatusSyncService
+from ..services import SessionRuntimeDataSyncService, SessionStatusSyncService
 from src.ingestion import TableInput, TableIngestionService
 from src.session import AppSession, REQUIRED_TABLE_KEYS
 
@@ -11,9 +11,11 @@ class PrepareDataUseCase:
         self,
         table_ingestion_service: TableIngestionService,
         session_status_sync_service: SessionStatusSyncService,
+        session_runtime_data_sync_service: SessionRuntimeDataSyncService,
     ) -> None:
         self._table_ingestion_service = table_ingestion_service
         self._session_status_sync_service = session_status_sync_service
+        self._session_runtime_data_sync_service = session_runtime_data_sync_service
 
     def execute(self, session: AppSession) -> PrepareDataResult:
         session.ensure_required_tables()
@@ -35,7 +37,12 @@ class PrepareDataUseCase:
             )
 
         ingestion_result = self._table_ingestion_service.ingest(inputs)
-        self._session_status_sync_service.sync_after_ingestion(session, ingestion_result)
+        self._session_status_sync_service.sync_after_ingestion(
+            session, ingestion_result
+        )
+        self._session_runtime_data_sync_service.sync_raw_tables(
+            session, ingestion_result.raw_tables
+        )
 
         return PrepareDataResult(
             competitions=ingestion_result.competitions.items,
