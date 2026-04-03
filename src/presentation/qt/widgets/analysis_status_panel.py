@@ -40,7 +40,6 @@ class AnalysisStatusPanel(QWidget):
         inner = QVBoxLayout(group)
         inner.setSpacing(8)
 
-        # Row 1: status + quality button
         row_top = QHBoxLayout()
         self._dot = QLabel()
         self._dot.setFixedSize(14, 14)
@@ -53,7 +52,6 @@ class AnalysisStatusPanel(QWidget):
         row_top.addWidget(self._btn_quality)
         inner.addLayout(row_top)
 
-        # Row 2: report open buttons
         row_reports = QHBoxLayout()
         self._btn_report_browser = QPushButton("🌐 Otevřít report v prohlížeči")
         self._btn_report_browser.clicked.connect(
@@ -66,7 +64,6 @@ class AnalysisStatusPanel(QWidget):
         row_reports.addWidget(self._btn_report_app)
         inner.addLayout(row_reports)
 
-        # Row 3: schedule errors button
         row_schedule = QHBoxLayout()
         self._btn_schedule = QPushButton("📋 Chyby v rozvrhu")
         self._btn_schedule.clicked.connect(self.open_schedule_violations_requested.emit)
@@ -101,7 +98,7 @@ class AnalysisStatusPanel(QWidget):
                     quality_enabled=True,
                     report_enabled=has_html,
                     report_in_app_enabled=has_html,
-                    schedule_enabled=False,  # включим, когда доделаем окно расписания
+                    schedule_enabled=True,
                 )
             )
             return

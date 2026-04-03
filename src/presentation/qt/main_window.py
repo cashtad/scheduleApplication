@@ -20,6 +20,7 @@ from src.presentation.qt.dialogs.data_quality_report_dialog import (
     DataQualityReportDialog,
 )
 from src.presentation.qt.dialogs.report_viewer_dialog import ReportViewerDialog
+from src.presentation.qt.dialogs.schedule_view_dialog import ScheduleViewDialog
 from src.presentation.qt.widgets.analysis_status_panel import AnalysisStatusPanel
 from src.presentation.qt.widgets.table_load_panel import TableLoadPanel
 
@@ -154,8 +155,26 @@ class MainWindow(QMainWindow):
         dlg.exec()
 
     def _on_open_schedule_violations(self) -> None:
-        QMessageBox.information(
-            self,
-            "Přehled chyb v rozvrhu",
-            "Tato funkce bude doplněna v dalším kroku.",
+        if self._schedule_preview_df is None:
+            QMessageBox.information(
+                self,
+                "Přehled chyb v rozvrhu",
+                "Nejprve načtěte tabulku rozvrhu.",
+            )
+            return
+
+        analysis_view = self._controller.last_analysis_view
+        if analysis_view is None:
+            QMessageBox.information(
+                self,
+                "Přehled chyb v rozvrhu",
+                "Nejprve spusťte úspěšnou analýzu.",
+            )
+            return
+
+        dlg = ScheduleViewDialog(
+            schedule_df=self._schedule_preview_df,
+            analysis_view=analysis_view,
+            parent=self,
         )
+        dlg.exec()
