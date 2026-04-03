@@ -2,9 +2,8 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from src.domain.analysis import ScheduleAnalysisResult
+from src.domain import ScheduleAnalysisResult
 
 
 class HtmlReportWriter(Protocol):
-    def write(self, analysis_result: ScheduleAnalysisResult) -> str:
-        ...
+    def write(self, analysis_result: ScheduleAnalysisResult) -> str: ...

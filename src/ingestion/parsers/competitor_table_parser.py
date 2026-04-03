@@ -7,8 +7,8 @@ from pandas import DataFrame
 
 from src.domain import Competitor
 from .base_table_parser import BaseTableParser
-from ..contracts import IngestionIssue, TableParseResult
-from ..services import (
+from src.ingestion.contracts import IngestionIssue, TableParseResult
+from src.ingestion.services import (
     AssignmentColumnsMode,
     AssignmentColumnsSelection,
     AssignmentColumnsSelector,

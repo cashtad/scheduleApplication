@@ -6,14 +6,14 @@ from typing import Iterable
 
 from pandas import DataFrame
 
-from ..contracts import (
+from src.ingestion.contracts import (
     FullIngestionResult,
     IngestionIssue,
     IngestionSeverity,
     TableInput,
     TableParseResult,
 )
-from ..parsers import (
+from src.ingestion.parsers import (
     CompetitionTableParser,
     CompetitorTableParser,
     CompetitorParserConfig,

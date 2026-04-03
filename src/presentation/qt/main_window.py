@@ -15,13 +15,12 @@ from PySide6.QtWidgets import (
 
 from src.application.dto import WorkflowStatus
 from src.presentation.qt.controllers import UiController
-from src.presentation.qt.dialogs.data_quality_report_dialog import (
+from src.presentation.qt.dialogs import (
     DataQualityReportDialog,
+    ReportViewerDialog,
+    ScheduleViewDialog,
 )
-from src.presentation.qt.dialogs.report_viewer_dialog import ReportViewerDialog
-from src.presentation.qt.dialogs.schedule_view_dialog import ScheduleViewDialog
-from src.presentation.qt.widgets.analysis_status_panel import AnalysisStatusPanel
-from src.presentation.qt.widgets.table_load_panel import TableLoadPanel
+from src.presentation.qt.widgets import AnalysisStatusPanel, TableLoadPanel
 
 
 class MainWindow(QMainWindow):

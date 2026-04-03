@@ -3,8 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 
-from .prepare_data_result import PrepareDataResult
-from .readiness import AnalyzeReadinessResult
+from src.application.dto.prepare_data_result import PrepareDataResult
+from src.application.dto.readiness import AnalyzeReadinessResult
 from src.domain import ScheduleRepositoryValidationReport
 
 

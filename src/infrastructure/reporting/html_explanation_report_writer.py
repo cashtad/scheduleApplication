@@ -4,7 +4,7 @@ from datetime import datetime
 from pathlib import Path
 
 from src.application.ports.html_report_writer import HtmlReportWriter
-from src.domain.analysis import ExplanationGenerator, ScheduleAnalysisResult
+from src.domain import ExplanationGenerator, ScheduleAnalysisResult
 
 
 class HtmlExplanationReportWriter(HtmlReportWriter):

@@ -10,6 +10,6 @@ class PandasExcelReader(ExcelReader):
         df = read_excel(file_path, sheet_name=sheet_name, dtype=str)
         return df.fillna("")
 
-    def get_sheet_names(self, file_path: str) -> list[str]:
+    def get_sheet_names(self, file_path: str) -> list[str | int]:
         xls = ExcelFile(file_path)
         return list(xls.sheet_names)

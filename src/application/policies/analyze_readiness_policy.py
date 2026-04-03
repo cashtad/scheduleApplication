@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
+from src.application.dto import AnalyzeReadinessResult, PrepareDataResult
 from src.domain import ScheduleRepositoryValidationReport
-from ..dto import PrepareDataResult, AnalyzeReadinessResult
+
 
 class AnalyzeReadinessPolicy(ABC):
     @abstractmethod

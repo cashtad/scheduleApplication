@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
 
-from domain.analysis import ScheduleAnalysisResult
-from .data_quality_report import DataQualityReport
-from .workflow_status import WorkflowStatus
+from src.application.dto.data_quality_report import DataQualityReport
+from src.application.dto.workflow_status import WorkflowStatus
+from src.domain import ScheduleAnalysisResult
 
 
 @dataclass(frozen=True, slots=True)

@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from ..dto import BuildRepositoryResult
-from ..ports.html_report_writer import HtmlReportWriter
-from src.domain.analysis import InferenceEngine, ScheduleAnalysisResult
+from src.application.dto import BuildRepositoryResult
+from src.application.ports import HtmlReportWriter
+from src.domain import InferenceEngine, ScheduleAnalysisResult
 
 
 @dataclass(frozen=True, slots=True)
@@ -22,8 +22,12 @@ class RunScheduleAnalysisUseCase:
         self._inference_engine = inference_engine
         self._html_report_writer = html_report_writer
 
-    def execute(self, build_repository_result: BuildRepositoryResult) -> RunScheduleAnalysisResult:
-        analysis_result = self._inference_engine.analyze(build_repository_result.repository)
+    def execute(
+        self, build_repository_result: BuildRepositoryResult
+    ) -> RunScheduleAnalysisResult:
+        analysis_result = self._inference_engine.analyze(
+            build_repository_result.repository
+        )
 
         html_report_path: str | None = None
         if self._html_report_writer is not None:

@@ -7,7 +7,7 @@ from pandas import DataFrame
 
 from src.domain import JuryMember
 from src.ingestion.contracts import IngestionIssue, TableParseResult
-from src.ingestion.parsers.base_table_parser import BaseTableParser
+from .base_table_parser import BaseTableParser
 from src.ingestion.services import (
     AssignmentColumnsMode,
     AssignmentColumnsSelection,

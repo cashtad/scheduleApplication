@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Iterable
 
-from ..use_cases import SaveSessionUseCase
+from src.application.use_cases import SaveSessionUseCase
 from src.session import AppSession, TableStatus
 
 

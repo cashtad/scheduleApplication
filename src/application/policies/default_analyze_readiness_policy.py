@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-from ..dto import (
+from src.application.dto import (
     AnalyzeReadinessResult,
     ReadinessDecision,
     ReadinessReason,
     ReadinessReasonSeverity,
     PrepareDataResult,
 )
+from src.application.policies.analyze_readiness_policy import AnalyzeReadinessPolicy
 from src.domain import ScheduleRepositoryValidationReport
-from .analyze_readiness_policy import AnalyzeReadinessPolicy
 
 
 class DefaultAnalyzeReadinessPolicy(AnalyzeReadinessPolicy):

@@ -13,6 +13,8 @@ try:
 
     HAS_WEBENGINE = True
 except ImportError:
+    from PySide6.QtWebEngineWidgets import QWebEngineView
+
     HAS_WEBENGINE = False
 
 

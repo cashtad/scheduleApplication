@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from collections import defaultdict
 
-from src.domain import ScheduleRepository
+from src.domain.schedule_repository import ScheduleRepository
 from .severity import Severity
 from .violation import Violation
-from ..rules import load_rules_from_config, RulesConfig
+from src.domain.rules import load_rules_from_config, RulesConfig
 from .schedule_analysis_result import ScheduleAnalysisResult
 
 

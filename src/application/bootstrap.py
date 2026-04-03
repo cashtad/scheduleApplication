@@ -3,9 +3,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from .policies import DefaultAnalyzeReadinessPolicy
-from .services import SessionStatusSyncService, SessionRuntimeDataSyncService
-from .use_cases import (
+from src.application.policies import DefaultAnalyzeReadinessPolicy
+from src.application.services import (
+    SessionRuntimeDataSyncService,
+    SessionStatusSyncService,
+)
+from src.application.use_cases import (
     BuildRepositoryUseCase,
     PrepareDataUseCase,
     RestoreSessionUseCase,
@@ -13,14 +16,14 @@ from .use_cases import (
     SaveSessionUseCase,
     RevalidateSessionUseCase,
 )
-from .workflow.analyze_workflow_service import AnalyzeWorkflowService
-from src.domain import ScheduleRepositoryBuilder
-from src.domain.analysis import InferenceEngine
+from src.application.workflow import AnalyzeWorkflowService
+from src.domain import ScheduleRepositoryBuilder, InferenceEngine
 from src.ingestion import TableIngestionService
-from src.infrastructure import JsonSessionStore, PandasExcelReader
-from src.infrastructure.config import YamlRulesConfigLoader
-from src.infrastructure.reporting.html_explanation_report_writer import (
+from src.infrastructure import (
+    JsonSessionStore,
+    PandasExcelReader,
     HtmlExplanationReportWriter,
+    YamlRulesConfigLoader,
 )
 
 

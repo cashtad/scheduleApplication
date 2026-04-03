@@ -6,7 +6,7 @@ from typing import Any, Generic, TypeVar
 
 from pandas import DataFrame, isna
 
-from ..contracts import IngestionIssue, IngestionSeverity, TableParseResult
+from src.ingestion.contracts import IngestionIssue, IngestionSeverity, TableParseResult
 from .errors import MappingValidationError
 
 T = TypeVar("T")
@@ -31,15 +31,13 @@ class BaseTableParser(ABC, Generic[T]):
         return self._ctx.mapping
 
     @abstractmethod
-    def required_mapping_keys(self) -> list[str]:
-        ...
+    def required_mapping_keys(self) -> list[str]: ...
 
     def virtual_mapping_keys(self) -> set[str]:
         return set()
 
     @abstractmethod
-    def parse(self, df: DataFrame) -> TableParseResult[T]:
-        ...
+    def parse(self, df: DataFrame) -> TableParseResult[T]: ...
 
     # --------------------------
     # Mapping / schema validation
@@ -57,15 +55,22 @@ class BaseTableParser(ABC, Generic[T]):
                 context={"missing_keys": missing_keys, "table_key": self.table_key},
             )
 
-        keys_requiring_real_columns = [k for k in required_keys if k not in virtual_keys]
+        keys_requiring_real_columns = [
+            k for k in required_keys if k not in virtual_keys
+        ]
         missing_columns = [
-            self.mapping[k] for k in keys_requiring_real_columns if self.mapping[k] not in set(df.columns)
+            self.mapping[k]
+            for k in keys_requiring_real_columns
+            if self.mapping[k] not in set(df.columns)
         ]
         if missing_columns:
             raise MappingValidationError(
                 code="MAP_MISSING_COLUMNS",
                 message=f"Mapped columns not found in table: {', '.join(missing_columns)}",
-                context={"missing_columns": missing_columns, "table_key": self.table_key},
+                context={
+                    "missing_columns": missing_columns,
+                    "table_key": self.table_key,
+                },
             )
 
     # --------------------------

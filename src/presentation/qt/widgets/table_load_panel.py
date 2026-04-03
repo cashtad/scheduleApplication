@@ -17,7 +17,7 @@ from PySide6.QtWidgets import (
 )
 
 from src.presentation.qt.controllers import UiController
-from src.presentation.qt.dialogs.mapping_dialog import MappingDialog
+from src.presentation.qt.dialogs import MappingDialog
 from src.session import TableStatus
 
 _DOT_STYLE = "border-radius: 8px; width: 16px; height: 16px; background-color: {color};"

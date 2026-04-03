@@ -7,10 +7,6 @@ from .revalidate_session_use_case import (
 )
 from .run_schedule_analysis_use_case import RunScheduleAnalysisUseCase
 from .save_session_use_case import SaveSessionUseCase
-from .revalidate_session_use_case import (
-    RevalidateSessionUseCase,
-    RevalidateSessionResult,
-)
 
 __all__ = [
     "BuildRepositoryUseCase",

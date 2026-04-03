@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ..dto import BuildRepositoryResult, PrepareDataResult
+from src.application.dto import BuildRepositoryResult, PrepareDataResult
 from src.domain import ScheduleRepositoryBuilder
 
 

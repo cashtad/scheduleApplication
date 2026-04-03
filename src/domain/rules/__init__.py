@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .rules_config import RulesConfig
+from .rules_config import RulesConfig, RuleConfig
 from .rule import ARule
 from .continuous_activity_rule import ContinuousActivityRule
 from .costume_change_time_rule import CostumeChangeTimeRule
@@ -31,4 +31,5 @@ __all__ = [
     "SimultaneousRule",
     "load_rules_from_config",
     "RulesConfig",
+    "RuleConfig",
 ]

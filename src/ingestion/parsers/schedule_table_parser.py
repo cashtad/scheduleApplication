@@ -6,7 +6,7 @@ from typing import Any
 from pandas import DataFrame, to_datetime, to_timedelta
 
 from src.domain import Performance
-from ..contracts import IngestionIssue, TableParseResult
+from src.ingestion.contracts import IngestionIssue, TableParseResult
 from .base_table_parser import BaseTableParser
 
 

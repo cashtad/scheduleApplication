@@ -6,7 +6,7 @@ from typing import Iterable
 from .schedule_repository import ScheduleRepository
 from .schedule_repository_validation import ScheduleRepositoryValidationReport
 from .schedule_repository_validator import ScheduleRepositoryValidator
-from ..model import Competition, Competitor, JuryMember, Performance
+from src.domain.model import Competition, Competitor, JuryMember, Performance
 
 
 @dataclass(frozen=True, slots=True)
@@ -18,10 +18,10 @@ class BuildScheduleRepositoryResult:
 class ScheduleRepositoryBuilder:
     @staticmethod
     def build(
-            competitions: Iterable[Competition],
-            competitors: Iterable[Competitor],
-            jury_members: Iterable[JuryMember],
-            performances: Iterable[Performance],
+        competitions: Iterable[Competition],
+        competitors: Iterable[Competitor],
+        jury_members: Iterable[JuryMember],
+        performances: Iterable[Performance],
     ) -> BuildScheduleRepositoryResult:
         repository = ScheduleRepository()
 
