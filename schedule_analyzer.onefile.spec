@@ -25,9 +25,11 @@ pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 exe = EXE(
     pyz,
     a.scripts,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
     [],
-    exclude_binaries=True,
-    name="schedule_analyzer",
+    name="schedule_analyzer_onefile",
     debug=False,
     strip=False,
     upx=True,
@@ -35,13 +37,3 @@ exe = EXE(
     runtime_tmpdir=None,
 )
 
-coll = COLLECT(
-    exe,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
-    strip=False,
-    upx=True,
-    upx_exclude=[],
-    name="schedule_analyzer",
-)

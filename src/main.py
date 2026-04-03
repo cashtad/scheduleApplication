@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import sys
 from pathlib import Path
 
@@ -13,10 +14,29 @@ from PySide6.QtWidgets import QApplication
 from src.presentation.qt.main_window import MainWindow
 
 
-def main() -> int:
+def parse_args(argv: list[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(add_help=True)
+    parser.add_argument(
+        "--smoke-startup",
+        action="store_true",
+        help="Initialize QApplication and MainWindow, then exit immediately.",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv if argv is not None else sys.argv[1:])
+
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
+
+    if args.smoke_startup:
+        print("SMOKE_STARTUP_OK")
+        window.close()
+        app.quit()
+        return 0
+
     return app.exec()
 
 

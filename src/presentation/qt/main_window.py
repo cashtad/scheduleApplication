@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 from PySide6.QtCore import QUrl
@@ -23,13 +24,26 @@ from src.presentation.qt.dialogs import (
 from src.presentation.qt.widgets import AnalysisStatusPanel, TableLoadPanel
 
 
+def resolve_rules_config_path() -> Path:
+    if getattr(sys, "frozen", False):
+        frozen_candidate = Path(sys.executable).resolve().parent / "rules_config.yaml"
+        return frozen_candidate
+
+    cwd_candidate = Path("rules_config.yaml").resolve()
+    if cwd_candidate.exists():
+        return cwd_candidate
+
+    src_candidate = Path(__file__).resolve().parents[2] / "rules_config.yaml"
+    return src_candidate
+
+
 class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle("Analýza rozvrhu tanečního konkurzu")
 
         self._controller = UiController(
-            rules_config_path=Path("rules_config.yaml"),
+            rules_config_path=resolve_rules_config_path(),
             reports_dir=".reports",
             with_html_report_writer=True,
         )
