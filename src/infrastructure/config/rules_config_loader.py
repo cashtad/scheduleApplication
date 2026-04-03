@@ -6,73 +6,121 @@ from typing import Any, Mapping
 import yaml
 
 from src.domain import Severity, RuleConfig, RulesConfig
+from .default_rules_config import DEFAULT_RULES_CONFIG_YAML
 from .errors import RulesConfigError
 
 
 class YamlRulesConfigLoader:
     @staticmethod
-    def load_from_file(path: str | Path) -> RulesConfig:
-        file_path = Path(path)
-        if not file_path.exists():
-            raise RulesConfigError(f"Rules config file not found: {file_path}")
+    def load_from_file(file_path: str | Path) -> RulesConfig:
+        path = Path(file_path)
+
+        if not path.exists():
+            YamlRulesConfigLoader._create_default_config_file(path)
 
         try:
-            with file_path.open("r", encoding="utf-8") as f:
-                raw = yaml.safe_load(f) or {}
+            raw = yaml.safe_load(path.read_text(encoding="utf-8"))
         except Exception as exc:
             raise RulesConfigError(f"Failed to read rules config: {exc}") from exc
 
         if not isinstance(raw, Mapping):
-            raise RulesConfigError("Top-level YAML must be a mapping")
+            raise RulesConfigError("Rules config root must be a mapping")
+
+        return YamlRulesConfigLoader._parse(raw)
+
+    @staticmethod
+    def _create_default_config_file(path: Path) -> None:
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(DEFAULT_RULES_CONFIG_YAML, encoding="utf-8")
+        except Exception as exc:
+            raise RulesConfigError(
+                f"Rules config file not found and default creation failed: {path} ({exc})"
+            ) from exc
+
+    @staticmethod
+    def _parse(raw: Mapping[str, Any]) -> RulesConfig:
+        required = [
+            "max_continuous_dancing",
+            "costume_change_time",
+            "max_continuous_judging",
+            "max_gap_between_performances",
+            "simultaneous_dancing",
+            "simultaneous_judging",
+        ]
+        missing = [k for k in required if k not in raw]
+        if missing:
+            raise RulesConfigError(f"Missing rule sections: {', '.join(missing)}")
 
         return RulesConfig(
-            max_continuous_dancing=YamlRulesConfigLoader._parse_rule_config(
-                raw, "max_continuous_dancing"
+            max_continuous_dancing=YamlRulesConfigLoader._parse_rule(
+                raw["max_continuous_dancing"], need_thresholds=True, need_rest=True
             ),
-            costume_change_time=YamlRulesConfigLoader._parse_rule_config(
-                raw, "costume_change_time"
+            costume_change_time=YamlRulesConfigLoader._parse_rule(
+                raw["costume_change_time"],
+                need_thresholds=True,
+                need_disciplines=True,
+                need_min_gap=True,
             ),
-            max_continuous_judging=YamlRulesConfigLoader._parse_rule_config(
-                raw, "max_continuous_judging"
+            max_continuous_judging=YamlRulesConfigLoader._parse_rule(
+                raw["max_continuous_judging"], need_thresholds=True, need_rest=True
             ),
-            max_gap_between_performances=YamlRulesConfigLoader._parse_rule_config(
-                raw, "max_gap_between_performances"
+            max_gap_between_performances=YamlRulesConfigLoader._parse_rule(
+                raw["max_gap_between_performances"], need_thresholds=True
             ),
-            simultaneous_dancing=YamlRulesConfigLoader._parse_rule_config(
-                raw, "simultaneous_dancing"
+            simultaneous_dancing=YamlRulesConfigLoader._parse_rule(
+                raw["simultaneous_dancing"], need_thresholds=False
             ),
-            simultaneous_judging=YamlRulesConfigLoader._parse_rule_config(
-                raw, "simultaneous_judging"
+            simultaneous_judging=YamlRulesConfigLoader._parse_rule(
+                raw["simultaneous_judging"], need_thresholds=False
             ),
         )
 
     @staticmethod
-    def _parse_rule_config(config: Mapping[str, Any], key: str) -> RuleConfig:
-        raw_cfg = config.get(key)
-        if raw_cfg is None:
-            raise RulesConfigError(f"Missing required rule config section '{key}'")
-        if not isinstance(raw_cfg, Mapping):
-            raise RulesConfigError(f"Rule section '{key}' must be a mapping")
+    def _parse_rule(
+        section: Any,
+        *,
+        need_thresholds: bool,
+        need_rest: bool = False,
+        need_disciplines: bool = False,
+        need_min_gap: bool = False,
+    ) -> RuleConfig:
+        if not isinstance(section, Mapping):
+            raise RulesConfigError("Rule section must be a mapping")
 
-        enabled = bool(raw_cfg.get("enabled", True))
-        thresholds = YamlRulesConfigLoader._parse_thresholds(
-            raw_cfg.get("thresholds"), key
-        )
+        enabled = bool(section.get("enabled", True))
 
-        rest_time = raw_cfg.get("rest_time")
-        if rest_time is not None:
-            rest_time = int(rest_time)
+        thresholds = None
+        if need_thresholds:
+            tr = section.get("thresholds")
+            if not isinstance(tr, Mapping):
+                raise RulesConfigError("Rule section requires 'thresholds' mapping")
+            for key in ("critical", "medium", "low"):
+                if key not in tr:
+                    raise RulesConfigError(f"Threshold '{key}' is missing")
+            thresholds = {
+                Severity.CRITICAL: int(tr["critical"]),
+                Severity.MEDIUM: int(tr["medium"]),
+                Severity.LOW: int(tr["low"]),
+            }
 
-        min_gap_minutes = raw_cfg.get("min_gap_minutes")
-        if min_gap_minutes is not None:
-            min_gap_minutes = int(min_gap_minutes)
+        rest_time = int(section["rest_time"]) if need_rest else None
+        if need_rest and "rest_time" not in section:
+            raise RulesConfigError("Rule section requires 'rest_time'")
 
-        disciplines_raw = raw_cfg.get("disciplines")
-        disciplines: tuple[str, ...] | None = None
-        if disciplines_raw is not None:
-            if not isinstance(disciplines_raw, list):
-                raise RulesConfigError(f"'{key}.disciplines' must be a list")
-            disciplines = tuple(str(item) for item in disciplines_raw)
+        if need_disciplines:
+            vals = section.get("disciplines")
+            if not isinstance(vals, list) or not vals:
+                raise RulesConfigError(
+                    "Rule section requires non-empty 'disciplines' list"
+                )
+            disciplines = tuple(str(v) for v in vals)
+        else:
+            disciplines = None
+
+        min_gap_minutes = int(section["min_gap_minutes"]) if need_min_gap else None
+        if need_min_gap and "min_gap_minutes" not in section:
+            raise RulesConfigError("Rule section requires 'min_gap_minutes'")
 
         return RuleConfig(
             enabled=enabled,
@@ -81,37 +129,3 @@ class YamlRulesConfigLoader:
             disciplines=disciplines,
             min_gap_minutes=min_gap_minutes,
         )
-
-    @staticmethod
-    def _parse_thresholds(value: Any, key: str) -> dict[Severity, int] | None:
-        if value is None:
-            return None
-        if not isinstance(value, Mapping):
-            raise RulesConfigError(f"'{key}.thresholds' must be a mapping")
-
-        parsed: dict[Severity, int] = {}
-        for raw_severity, raw_limit in value.items():
-            severity = YamlRulesConfigLoader._parse_severity(raw_severity)
-            parsed[severity] = int(raw_limit)
-        return parsed
-
-    @staticmethod
-    def _parse_severity(value: Any) -> Severity:
-        if isinstance(value, Severity):
-            return value
-        if not isinstance(value, str):
-            raise RulesConfigError(
-                f"Severity must be string, got: {type(value).__name__}"
-            )
-
-        normalized = value.strip().lower()
-        mapping = {
-            "critical": Severity.CRITICAL,
-            "medium": Severity.MEDIUM,
-            "low": Severity.LOW,
-        }
-        if normalized not in mapping:
-            raise RulesConfigError(
-                f"Unknown severity '{value}'. Expected one of: {', '.join(mapping.keys())}"
-            )
-        return mapping[normalized]

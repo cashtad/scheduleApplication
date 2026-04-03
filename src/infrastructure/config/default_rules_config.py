@@ -1,4 +1,6 @@
-max_continuous_dancing:
+from __future__ import annotations
+
+DEFAULT_RULES_CONFIG_YAML = """max_continuous_dancing:
   enabled: true
   rest_time: 10
   thresholds:
@@ -37,3 +39,4 @@ simultaneous_dancing:
 
 simultaneous_judging:
   enabled: true
+"""
