@@ -15,4 +15,4 @@ class JuryMember(Human):
     def __post_init__(self) -> None:
         super(JuryMember, self).__post_init__()
         if not self.fullname.strip():
-            raise ValueError("fullname cannot be empty")
+            raise ValueError("Pole 'fullname' nesmí být prázdné")

@@ -53,13 +53,13 @@ class AnalysisStatusPanel(QWidget):
         inner.addLayout(row_top)
 
         row_reports = QHBoxLayout()
-        self._btn_report_browser = QPushButton("🌐 Otevřít report v prohlížeči")
+        self._btn_report_browser = QPushButton("🌐 Otevřít zprávu v prohlížeči")
         self._btn_report_browser.clicked.connect(
             self.open_report_browser_requested.emit
         )
         row_reports.addWidget(self._btn_report_browser)
 
-        self._btn_report_app = QPushButton("🖥️ Otevřít report v aplikaci")
+        self._btn_report_app = QPushButton("🖥️ Otevřít zprávu v aplikaci")
         self._btn_report_app.clicked.connect(self.open_report_in_app_requested.emit)
         row_reports.addWidget(self._btn_report_app)
         inner.addLayout(row_reports)

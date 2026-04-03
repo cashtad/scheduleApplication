@@ -11,6 +11,6 @@ class Human(ABC):
 
     def __post_init__(self) -> None:
         if not self.competition_ids:
-            raise ValueError("competition_ids cannot be empty")
+            raise ValueError("Pole 'competition_ids' nesmí být prázdné")
         if any(cid <= 0 for cid in self.competition_ids):
-            raise ValueError("All competition_ids must be greater than zero")
+            raise ValueError("Všechna ID soutěží v 'competition_ids' musí být větší než nula")

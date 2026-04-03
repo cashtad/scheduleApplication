@@ -81,7 +81,7 @@ class JuryTableParser(BaseTableParser[JuryMember]):
                     self.make_row_error(
                         row_index=int(row_index),
                         code="JURY_ROW_PARSE_FAILED",
-                        message=f"Failed to parse jury row: {exc}",
+                        message=f"Nepodařilo se zpracovat řádek poroty: {exc}",
                     )
                 )
 
@@ -103,7 +103,7 @@ class JuryTableParser(BaseTableParser[JuryMember]):
             return
 
         raise ValueError(
-            "Jury mapping must contain either 'fullname' or both 'name' and 'surname'"
+            "Mapování poroty musí obsahovat buď 'fullname', nebo obě pole 'name' a 'surname'"
         )
 
     def _parse_row(
@@ -125,7 +125,7 @@ class JuryTableParser(BaseTableParser[JuryMember]):
         if fullname_col:
             fullname = self.as_str(row[fullname_col])
             if not fullname:
-                raise ValueError("fullname is empty")
+                raise ValueError("Pole 'fullname' je prázdné")
             return fullname
 
         name_col = (self.mapping.get("name") or "").strip()
@@ -134,7 +134,7 @@ class JuryTableParser(BaseTableParser[JuryMember]):
         surname = self.as_str(row[surname_col])
         full = f"{name} {surname}".strip()
         if not full:
-            raise ValueError("name/surname are empty")
+            raise ValueError("Pole 'name'/'surname' jsou prázdná")
         return full
 
     def _select_assignment_columns(self, df: DataFrame) -> AssignmentColumnsSelection:
@@ -178,7 +178,7 @@ class JuryTableParser(BaseTableParser[JuryMember]):
         if assignment_selection.mode == AssignmentColumnsMode.NUMERIC_HEADERS:
             txt = column_name.strip()
             if not txt.isdigit():
-                raise ValueError(f"Assignment column '{column_name}' is not numeric")
+                raise ValueError(f"Sloupec přiřazení '{column_name}' není číselný")
             return int(txt)
 
         # PREFIX mode
@@ -186,8 +186,8 @@ class JuryTableParser(BaseTableParser[JuryMember]):
         remainder = column_name.removeprefix(assignment_selection.prefix).strip()
         if not remainder.isdigit():
             raise ValueError(
-                f"Assignment column '{column_name}' does not contain numeric competition id "
-                f"after prefix '{assignment_selection.prefix}'"
+                f"Sloupec přiřazení '{column_name}' neobsahuje číselné ID soutěže "
+                f"za prefixem '{assignment_selection.prefix}'"
             )
         return int(remainder)
 

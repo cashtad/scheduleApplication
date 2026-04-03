@@ -56,8 +56,8 @@ class SimultaneousRule(ARule, ABC):
                             "overlap_minutes": overlap_minutes,
                             "overlap_start": overlap_start,
                             "overlap_end": overlap_end,
-                            "competition1": comp1.name if comp1 else "N/A",
-                            "competition2": comp2.name if comp2 else "N/A",
+                            "competition1": comp1.name if comp1 else "neuvedeno",
+                            "competition2": comp2.name if comp2 else "neuvedeno",
                         },
                         source_rows=self._source_rows(perf1, perf2),
                     )

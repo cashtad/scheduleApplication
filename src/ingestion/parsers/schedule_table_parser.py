@@ -33,7 +33,7 @@ class ScheduleTableParser(BaseTableParser[Performance]):
                         self.make_row_warning(
                             row_index=int(row_index),
                             code="SCHEDULE_ROW_EMPTY_COMPETITION_ID",
-                            message="Row skipped because competition_id is empty",
+                            message="Řádek byl přeskočen, protože ID soutěže je prázdné",
                             column_key="competition_id",
                         )
                     )
@@ -47,7 +47,7 @@ class ScheduleTableParser(BaseTableParser[Performance]):
                     self.make_row_error(
                         row_index=int(row_index),
                         code="SCHEDULE_ROW_PARSE_FAILED",
-                        message=f"Failed to parse schedule row: {exc}",
+                        message=f"Nepodařilo se zpracovat řádek rozvrhu: {exc}",
                     )
                 )
 
@@ -85,7 +85,7 @@ class ScheduleTableParser(BaseTableParser[Performance]):
             return raw
         text = str(raw).strip()
         if not text:
-            raise ValueError("start_time is empty")
+            raise ValueError("Pole 'start_time' je prázdné")
 
         # strict formats first
         for fmt in ("%H:%M", "%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M"):
@@ -101,15 +101,15 @@ class ScheduleTableParser(BaseTableParser[Performance]):
     def _parse_duration_minutes(raw: Any) -> int:
         text = str(raw).strip()
         if not text:
-            raise ValueError("duration is empty")
+            raise ValueError("Pole 'duration' je prázdné")
         if text.isdigit():
             value = int(text)
             if value <= 0:
-                raise ValueError("duration must be > 0")
+                raise ValueError("Pole 'duration' musí být > 0")
             return value
 
         td = to_timedelta(text, errors="raise")
         minutes = int(td.total_seconds() // 60)
         if minutes <= 0:
-            raise ValueError("duration must be > 0")
+            raise ValueError("Pole 'duration' musí být > 0")
         return minutes

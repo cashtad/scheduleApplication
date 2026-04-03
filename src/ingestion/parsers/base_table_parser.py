@@ -51,7 +51,7 @@ class BaseTableParser(ABC, Generic[T]):
         if missing_keys:
             raise MappingValidationError(
                 code="MAP_MISSING_KEYS",
-                message=f"Missing mapping keys: {', '.join(missing_keys)}",
+                message=f"Chybějící klíče mapování: {', '.join(missing_keys)}",
                 context={"missing_keys": missing_keys, "table_key": self.table_key},
             )
 
@@ -66,7 +66,7 @@ class BaseTableParser(ABC, Generic[T]):
         if missing_columns:
             raise MappingValidationError(
                 code="MAP_MISSING_COLUMNS",
-                message=f"Mapped columns not found in table: {', '.join(missing_columns)}",
+                message=f"Namapované sloupce nebyly v tabulce nalezeny: {', '.join(missing_columns)}",
                 context={
                     "missing_columns": missing_columns,
                     "table_key": self.table_key,

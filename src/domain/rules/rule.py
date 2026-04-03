@@ -55,5 +55,5 @@ class ARule(ABC):
                     return datetime.strptime(dt, fmt)
                 except ValueError:
                     pass
-            raise ValueError(f"Cannot parse datetime: {dt}")
-        raise TypeError(f"Unsupported datetime type: {type(dt)}")
+            raise ValueError(f"Nelze zpracovat datum/čas: {dt}")
+        raise TypeError(f"Nepodporovaný typ datum/čas: {type(dt)}")

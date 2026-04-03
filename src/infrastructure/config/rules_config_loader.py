@@ -21,10 +21,10 @@ class YamlRulesConfigLoader:
         try:
             raw = yaml.safe_load(path.read_text(encoding="utf-8"))
         except Exception as exc:
-            raise RulesConfigError(f"Failed to read rules config: {exc}") from exc
+            raise RulesConfigError(f"Nepodařilo se načíst konfiguraci pravidel: {exc}") from exc
 
         if not isinstance(raw, Mapping):
-            raise RulesConfigError("Rules config root must be a mapping")
+            raise RulesConfigError("Kořen konfigurace pravidel musí být mapování")
 
         return YamlRulesConfigLoader._parse(raw)
 
@@ -35,7 +35,7 @@ class YamlRulesConfigLoader:
             path.write_text(DEFAULT_RULES_CONFIG_YAML, encoding="utf-8")
         except Exception as exc:
             raise RulesConfigError(
-                f"Rules config file not found and default creation failed: {path} ({exc})"
+                f"Soubor konfigurace pravidel nebyl nalezen a vytvoření výchozího selhalo: {path} ({exc})"
             ) from exc
 
     @staticmethod
@@ -50,7 +50,7 @@ class YamlRulesConfigLoader:
         ]
         missing = [k for k in required if k not in raw]
         if missing:
-            raise RulesConfigError(f"Missing rule sections: {', '.join(missing)}")
+            raise RulesConfigError(f"Chybějící sekce pravidel: {', '.join(missing)}")
 
         return RulesConfig(
             max_continuous_dancing=YamlRulesConfigLoader._parse_rule(
@@ -86,7 +86,7 @@ class YamlRulesConfigLoader:
         need_min_gap: bool = False,
     ) -> RuleConfig:
         if not isinstance(section, Mapping):
-            raise RulesConfigError("Rule section must be a mapping")
+            raise RulesConfigError("Sekce pravidla musí být mapování")
 
         enabled = bool(section.get("enabled", True))
 
@@ -94,10 +94,10 @@ class YamlRulesConfigLoader:
         if need_thresholds:
             tr = section.get("thresholds")
             if not isinstance(tr, Mapping):
-                raise RulesConfigError("Rule section requires 'thresholds' mapping")
+                raise RulesConfigError("Sekce pravidla vyžaduje mapování 'thresholds'")
             for key in ("critical", "medium", "low"):
                 if key not in tr:
-                    raise RulesConfigError(f"Threshold '{key}' is missing")
+                    raise RulesConfigError(f"Chybí práh '{key}'")
             thresholds = {
                 Severity.CRITICAL: int(tr["critical"]),
                 Severity.MEDIUM: int(tr["medium"]),
@@ -106,13 +106,13 @@ class YamlRulesConfigLoader:
 
         rest_time = int(section["rest_time"]) if need_rest else None
         if need_rest and "rest_time" not in section:
-            raise RulesConfigError("Rule section requires 'rest_time'")
+            raise RulesConfigError("Sekce pravidla vyžaduje položku 'rest_time'")
 
         if need_disciplines:
             vals = section.get("disciplines")
             if not isinstance(vals, list) or not vals:
                 raise RulesConfigError(
-                    "Rule section requires non-empty 'disciplines' list"
+                    "Sekce pravidla vyžaduje neprázdný seznam 'disciplines'"
                 )
             disciplines = tuple(str(v) for v in vals)
         else:
@@ -120,7 +120,7 @@ class YamlRulesConfigLoader:
 
         min_gap_minutes = int(section["min_gap_minutes"]) if need_min_gap else None
         if need_min_gap and "min_gap_minutes" not in section:
-            raise RulesConfigError("Rule section requires 'min_gap_minutes'")
+            raise RulesConfigError("Sekce pravidla vyžaduje položku 'min_gap_minutes'")
 
         return RuleConfig(
             enabled=enabled,

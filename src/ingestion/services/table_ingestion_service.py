@@ -163,7 +163,7 @@ class TableIngestionService:
                     IngestionIssue(
                         table_key=table_key,
                         code="EXCEL_READ_FAILED",
-                        message=f"Failed to read excel table: {exc}",
+                        message=f"Nepodařilo se načíst tabulku Excelu: {exc}",
                         severity=IngestionSeverity.ERROR,
                         context={
                             "file_path": table_input.file_path,
@@ -188,7 +188,7 @@ class TableIngestionService:
                 IngestionIssue(
                     table_key=table_key,
                     code="TABLE_PARSE_FAILED",
-                    message=f"Parser failed before row parsing: {exc}",
+                    message=f"Parser selhal před zpracováním řádků: {exc}",
                     severity=IngestionSeverity.ERROR,
                 )
             )
@@ -204,7 +204,7 @@ class TableIngestionService:
             return IngestionIssue(
                 table_key=table_input.table_key,
                 code="FILE_PATH_EMPTY",
-                message="File path is empty",
+                message="Cesta k souboru je prázdná",
                 severity=IngestionSeverity.ERROR,
             )
 
@@ -212,7 +212,7 @@ class TableIngestionService:
             return IngestionIssue(
                 table_key=table_input.table_key,
                 code="FILE_NOT_FOUND",
-                message="Configured file does not exist",
+                message="Nastavený soubor neexistuje",
                 severity=IngestionSeverity.ERROR,
                 context={"file_path": table_input.file_path},
             )
@@ -226,7 +226,7 @@ class TableIngestionService:
             return IngestionIssue(
                 table_key=table_input.table_key,
                 code="SHEET_ENUMERATION_FAILED",
-                message=f"Failed to read sheet names: {exc}",
+                message=f"Nepodařilo se načíst názvy listů: {exc}",
                 severity=IngestionSeverity.ERROR,
                 context={"file_path": table_input.file_path},
             )
@@ -238,7 +238,7 @@ class TableIngestionService:
             return IngestionIssue(
                 table_key=table_input.table_key,
                 code="SHEET_NOT_FOUND",
-                message=f"Sheet '{table_input.sheet_name}' not found",
+                message=f"List '{table_input.sheet_name}' nebyl nalezen",
                 severity=IngestionSeverity.ERROR,
                 context={
                     "file_path": table_input.file_path,
@@ -262,7 +262,7 @@ class TableIngestionService:
         return IngestionIssue(
             table_key=table_input.table_key,
             code="COLUMN_SIGNATURE_MISMATCH",
-            message="Current columns differ from saved mapping signature",
+            message="Aktuální sloupce se liší od uložené signatury mapování",
             severity=IngestionSeverity.WARNING,
             context={
                 "saved_signature": list(table_input.column_signature),
@@ -279,7 +279,7 @@ class TableIngestionService:
         return IngestionIssue(
             table_key=table_key,
             code="TABLE_INPUT_MISSING",
-            message="Table input is missing in session",
+            message="V relaci chybí vstup tabulky",
             severity=IngestionSeverity.ERROR,
         )
 

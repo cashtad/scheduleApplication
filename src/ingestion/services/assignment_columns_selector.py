@@ -28,12 +28,14 @@ class AssignmentColumnsSelector:
         if mode == AssignmentColumnsMode.PREFIX:
             normalized_prefix = (prefix or "").strip()
             if not normalized_prefix:
-                raise ValueError("Prefix mode requires non-empty prefix")
+                raise ValueError("Režim prefixu vyžaduje neprázdný prefix")
             selected = [
                 c for c in available_columns if str(c).startswith(normalized_prefix)
             ]
             if not selected:
-                raise ValueError(f"No columns found with prefix '{normalized_prefix}'")
+                raise ValueError(
+                    f"Nebyly nalezeny žádné sloupce s prefixem '{normalized_prefix}'"
+                )
             return AssignmentColumnsSelection(
                 mode=mode,
                 columns=selected,
@@ -43,11 +45,11 @@ class AssignmentColumnsSelector:
         if mode == AssignmentColumnsMode.NUMERIC_HEADERS:
             selected = [c for c in available_columns if str(c).strip().isdigit()]
             if not selected:
-                raise ValueError("No numeric-header assignment columns found")
+                raise ValueError("Nebyly nalezeny sloupce přiřazení s číselným záhlavím")
             return AssignmentColumnsSelection(
                 mode=mode,
                 columns=selected,
                 prefix=None,
             )
 
-        raise ValueError(f"Unsupported assignment columns mode: {mode}")
+        raise ValueError(f"Nepodporovaný režim sloupců přiřazení: {mode}")

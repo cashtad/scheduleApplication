@@ -15,10 +15,10 @@ class Competition:
 
     def __post_init__(self) -> None:
         if self.id <= 0:
-            raise ValueError("id must be greater than zero")
+            raise ValueError("Pole 'id' musí být větší než nula")
         if self.amount_of_rounds < 0:
-            raise ValueError("amount_of_rounds must be positive integer")
+            raise ValueError("Pole 'amount_of_rounds' musí být kladné celé číslo")
         if not self.discipline.strip():
-            raise ValueError("discipline cannot be empty")
+            raise ValueError("Pole 'discipline' nesmí být prázdné")
         if not self.name.strip():
-            raise ValueError("name cannot be empty")
+            raise ValueError("Pole 'name' nesmí být prázdné")

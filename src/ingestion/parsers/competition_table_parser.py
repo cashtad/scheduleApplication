@@ -39,7 +39,7 @@ class CompetitionTableParser(BaseTableParser[Competition]):
                     self.make_row_error(
                         row_index=int(row_index),
                         code="COMPETITION_ROW_PARSE_FAILED",
-                        message=f"Failed to parse competition row: {exc}",
+                        message=f"Nepodařilo se zpracovat řádek soutěže: {exc}",
                     )
                 )
 

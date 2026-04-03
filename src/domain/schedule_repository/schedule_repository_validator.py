@@ -25,7 +25,7 @@ class ScheduleRepositoryValidator:
                 issues.append(
                     ScheduleRepositoryValidationIssue(
                         code="UNKNOWN_COMPETITION_IN_PERFORMANCE",
-                        message=f"Performance references unknown competition_id={competition_id}",
+                        message=f"Vystoupení odkazuje na neznámé ID soutěže={competition_id}",
                         severity=ValidationIssueSeverity.WARNING,
                         context={"competition_id": competition_id},
                     )
@@ -52,7 +52,7 @@ class ScheduleRepositoryValidator:
                     issues.append(
                         ScheduleRepositoryValidationIssue(
                             code="DUPLICATE_PERFORMANCE",
-                            message="Duplicate performance detected within competition",
+                            message="Bylo nalezeno duplicitní vystoupení v rámci soutěže",
                             severity=ValidationIssueSeverity.ERROR,
                             context={
                                 "competition_id": performance.competition_id,
@@ -79,7 +79,7 @@ class ScheduleRepositoryValidator:
                 issues.append(
                     ScheduleRepositoryValidationIssue(
                         code="COMPETITOR_UNKNOWN_COMPETITION",
-                        message=f"Competitor '{competitor.dancer_1_name}' references unknown competition ids {missing}",
+                        message=f"Soutěžící '{competitor.dancer_1_name}' odkazuje na neznámá ID soutěží {missing}",
                         severity=ValidationIssueSeverity.ERROR,
                         context={"missing_competition_ids": tuple(missing)},
                     )
@@ -89,7 +89,7 @@ class ScheduleRepositoryValidator:
                 issues.append(
                     ScheduleRepositoryValidationIssue(
                         code="COMPETITOR_WITHOUT_PERFORMANCES",
-                        message=f"Competitor '{competitor.dancer_1_name}' has no performances in schedule",
+                        message=f"Soutěžící '{competitor.dancer_1_name}' nemá v rozvrhu žádná vystoupení",
                         severity=ValidationIssueSeverity.WARNING,
                         context={"competitor_name": competitor.dancer_1_name},
                     )
@@ -110,7 +110,7 @@ class ScheduleRepositoryValidator:
                 issues.append(
                     ScheduleRepositoryValidationIssue(
                         code="JURY_UNKNOWN_COMPETITION",
-                        message=f"Jury member '{jury_member.fullname}' references unknown competition ids {missing}",
+                        message=f"Člen poroty '{jury_member.fullname}' odkazuje na neznámá ID soutěží {missing}",
                         severity=ValidationIssueSeverity.WARNING,
                         context={"missing_competition_ids": tuple(missing)},
                     )
@@ -120,7 +120,7 @@ class ScheduleRepositoryValidator:
                 issues.append(
                     ScheduleRepositoryValidationIssue(
                         code="JURY_WITHOUT_PERFORMANCES",
-                        message=f"Jury member '{jury_member.fullname}' has no performances in schedule",
+                        message=f"Člen poroty '{jury_member.fullname}' nemá v rozvrhu žádná vystoupení",
                         severity=ValidationIssueSeverity.WARNING,
                         context={"jury_member_fullname": jury_member.fullname},
                     )
@@ -139,7 +139,7 @@ class ScheduleRepositoryValidator:
                 issues.append(
                     ScheduleRepositoryValidationIssue(
                         code="COMPETITION_WITHOUT_PERFORMANCES",
-                        message=f"Competition id={competition_id} has no performances",
+                        message=f"Soutěž id={competition_id} nemá žádná vystoupení",
                         severity=ValidationIssueSeverity.WARNING,
                         context={"competition_id": competition_id},
                     )

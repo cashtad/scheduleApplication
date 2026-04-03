@@ -18,14 +18,14 @@ class Performance:
 
     def __post_init__(self) -> None:
         if self.duration <= 0:
-            raise ValueError("duration must be greater than zero")
+            raise ValueError("Pole 'duration' musí být větší než nula")
         if self.end_time <= self.start_time:
-            raise ValueError("end_time must be greater than start_time")
+            raise ValueError("Pole 'end_time' musí být později než 'start_time'")
         if timedelta(minutes=self.duration) != self.end_time - self.start_time:
-            raise ValueError("duration must match end_time - start_time")
+            raise ValueError("Pole 'duration' musí odpovídat rozdílu end_time - start_time")
         if not self.round_type.strip():
-            raise ValueError("round_type cannot be empty")
+            raise ValueError("Pole 'round_type' nesmí být prázdné")
         if self.competition_id <= 0:
-            raise ValueError("competition_id must be greater than zero")
+            raise ValueError("Pole 'competition_id' musí být větší než nula")
         if self.source_row < 0:
-            raise ValueError("source_row cannot be negative")
+            raise ValueError("Pole 'source_row' nesmí být záporné")

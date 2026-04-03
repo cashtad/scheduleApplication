@@ -85,7 +85,7 @@ class CompetitorTableParser(BaseTableParser[Competitor]):
                     self.make_row_error(
                         row_index=row_index,
                         code="COMPETITOR_ROW_PARSE_FAILED",
-                        message=f"Failed to parse competitor row: {exc}",
+                        message=f"Nepodařilo se zpracovat řádek soutěžícího: {exc}",
                         context={"row_index": row_index},
                     )
                 )
@@ -128,11 +128,11 @@ class CompetitorTableParser(BaseTableParser[Competitor]):
 
     def _parse_count_or_raise(self, raw_value: Any) -> int:
         if self.is_empty(raw_value):
-            raise ValueError("'count' is empty")
+            raise ValueError("Pole 'count' je prázdné")
 
         count_text = self.as_str(raw_value)
         if count_text not in {"1", "2"}:
-            raise ValueError(f"'count' must be 1 or 2, got '{count_text}'")
+            raise ValueError(f"Pole 'count' musí být 1 nebo 2, ale je '{count_text}'")
 
         return int(count_text)
 
@@ -143,7 +143,7 @@ class CompetitorTableParser(BaseTableParser[Competitor]):
 
         value = self.as_str(raw_value)
         if not value:
-            raise ValueError("'p2_name_surname' is required when count=2")
+            raise ValueError("Pole 'p2_name_surname' je povinné, když count=2")
         return value
 
     def _select_assignment_columns(self, df: DataFrame) -> AssignmentColumnsSelection:
@@ -187,7 +187,7 @@ class CompetitorTableParser(BaseTableParser[Competitor]):
         if assignment_selection.mode == AssignmentColumnsMode.NUMERIC_HEADERS:
             text = str(column_name).strip()
             if not text.isdigit():
-                raise ValueError(f"Assignment column '{column_name}' is not numeric")
+                raise ValueError(f"Sloupec přiřazení '{column_name}' není číselný")
             return int(text)
 
         # PREFIX mode
@@ -195,8 +195,8 @@ class CompetitorTableParser(BaseTableParser[Competitor]):
         remainder = column_name.removeprefix(assignment_selection.prefix).strip()
         if not remainder.isdigit():
             raise ValueError(
-                f"Assignment column '{column_name}' does not contain numeric competition id "
-                f"after prefix '{assignment_selection.prefix}'"
+                f"Sloupec přiřazení '{column_name}' neobsahuje číselné ID soutěže "
+                f"za prefixem '{assignment_selection.prefix}'"
             )
         return int(remainder)
 

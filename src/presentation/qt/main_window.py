@@ -118,14 +118,14 @@ class MainWindow(QMainWindow):
         QMessageBox.information(
             self,
             "Analýza dokončena",
-            f"HTML report: {result.html_report_path or 'nevygenerován'}",
+            f"HTML zpráva: {result.html_report_path or 'nevygenerována'}",
         )
 
     def _on_open_quality_report(self) -> None:
         report = self._controller.get_last_quality_report()
         if report is None:
             QMessageBox.information(
-                self, "Kvalita dat", "Zatím není dostupný žádný report kvality dat."
+                self, "Kvalita dat", "Zatím není dostupná žádná zpráva o kvalitě dat."
             )
             return
 
@@ -145,21 +145,21 @@ class MainWindow(QMainWindow):
         path = self._resolve_report_path()
         if path is None:
             QMessageBox.warning(
-                self, "Report", "HTML report není k dispozici nebo soubor neexistuje."
+                self, "Zpráva", "HTML zpráva není k dispozici nebo soubor neexistuje."
             )
             return
 
         ok = QDesktopServices.openUrl(QUrl.fromLocalFile(str(path)))
         if not ok:
             QMessageBox.warning(
-                self, "Report", "Nepodařilo se otevřít report v prohlížeči."
+                self, "Zpráva", "Nepodařilo se otevřít zprávu v prohlížeči."
             )
 
     def _on_open_report_in_app(self) -> None:
         path = self._resolve_report_path()
         if path is None:
             QMessageBox.warning(
-                self, "Report", "HTML report není k dispozici nebo soubor neexistuje."
+                self, "Zpráva", "HTML zpráva není k dispozici nebo soubor neexistuje."
             )
             return
 
@@ -181,7 +181,7 @@ class MainWindow(QMainWindow):
             QMessageBox.information(
                 self,
                 "Přehled chyb v rozvrhu",
-                "Runtime data rozvrhu nejsou dostupná. Spusťte prosím analýzu znovu.",
+                "Běhová data rozvrhu nejsou dostupná. Spusťte prosím analýzu znovu.",
             )
             return
 
