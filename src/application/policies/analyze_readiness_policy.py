@@ -72,57 +72,6 @@ class AnalyzeReadinessPolicy:
                 )
             )
 
-        # check for not parsed tables
-        if not prepare_data_result.jury_members:
-            reasons.append(
-                ReadinessReason(
-                    code="JURY_MEMBERS_WERE_NOT_PARSED",
-                    severity=ReadinessReasonSeverity.ERROR,
-                    message_en="Jury members were not parsed.",
-                    message_cz="Tabulka s členy poroty nebyla úspěšně načtena. Zkontrolujte, zda je správně zvolena a namapována.",
-                    context={
-                        "jury_members_count": len(prepare_data_result.jury_members)
-                    },
-                )
-            )
-
-        if not prepare_data_result.competitions:
-            reasons.append(
-                ReadinessReason(
-                    code="COMPETITIONS_WERE_NOT_PARSED",
-                    severity=ReadinessReasonSeverity.ERROR,
-                    message_en="Competitions were not parsed.",
-                    message_cz="Tabulka s informacemi o soutěžích nebyla úspěšně načtena. Zkontrolujte, zda je správně zvolena a namapována.",
-                    context={
-                        "competitions_count": len(prepare_data_result.competitions)
-                    },
-                )
-            )
-
-        if not prepare_data_result.performances:
-            reasons.append(
-                ReadinessReason(
-                    code="PERFORMANCES_WERE_NOT_PARSED",
-                    severity=ReadinessReasonSeverity.ERROR,
-                    message_en="Performances were not parsed.",
-                    message_cz="Tabulka s harmonogramem nebyla úspěšně načtena. Zkontrolujte, zda je správně zvolena a namapována.",
-                    context={
-                        "performances_count": len(prepare_data_result.performances)
-                    },
-                )
-            )
-
-        if not prepare_data_result.competitors:
-            reasons.append(
-                ReadinessReason(
-                    code="COMPETITORS_WERE_NOT_PARSED",
-                    severity=ReadinessReasonSeverity.ERROR,
-                    message_en="Competitors were not parsed.",
-                    message_cz="Tabulka s informacemi o soutěžících nebyla úspěšně načtena. Zkontrolujte, zda je správně zvolena a namapována.",
-                    context={"competitors_count": len(prepare_data_result.competitors)},
-                )
-            )
-
         # NON-BLOCK: warnings
         warnings_count = prepare_data_result.total_warnings_count + len(
             repository_validation_report.warnings

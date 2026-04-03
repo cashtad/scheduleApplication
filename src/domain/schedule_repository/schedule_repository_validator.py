@@ -147,6 +147,80 @@ class ScheduleRepositoryValidator:
         return issues
 
     @staticmethod
+    def check_competitions_not_empty(
+        repository: ScheduleRepository,
+    ) -> list[ScheduleRepositoryValidationIssue]:
+        issues: list[ScheduleRepositoryValidationIssue] = []
+        competition_ids = set(repository.competitions_by_id.keys())
+
+        if not competition_ids:
+            issues.append(
+                ScheduleRepositoryValidationIssue(
+                    code="NO_COMPETITIONS_PARSED",
+                    message="Nenalezena žádná soutěž. Zkontrolujte, zda je správně zvolena a namapována tabulka s informacemi o soutěžích.",
+                    severity=ValidationIssueSeverity.ERROR,
+                    context={},
+                )
+            )
+
+        return issues
+
+    @staticmethod
+    def check_competitors_not_empty(
+        repository: ScheduleRepository,
+    ) -> list[ScheduleRepositoryValidationIssue]:
+        issues: list[ScheduleRepositoryValidationIssue] = []
+        competitors = repository.competitors
+
+        if not competitors:
+            issues.append(
+                ScheduleRepositoryValidationIssue(
+                    code="NO_COMPETITORS_PARSED",
+                    message="Nenalezen žádný soutěžící. Zkontrolujte, zda je správně zvolena a namapována tabulka s informacemi o soutěžících.",
+                    severity=ValidationIssueSeverity.ERROR,
+                    context={},
+                )
+            )
+
+        return issues
+
+    @staticmethod
+    def check_jury_members_not_empty(
+        repository: ScheduleRepository,
+    ) -> list[ScheduleRepositoryValidationIssue]:
+        issues: list[ScheduleRepositoryValidationIssue] = []
+        jury_members = repository.jury_members
+
+        if not jury_members:
+            issues.append(
+                ScheduleRepositoryValidationIssue(
+                    code="NO_JURY_MEMBERS_PARSED",
+                    message="Nenalezen žádný člen poroty. Zkontrolujte, zda je správně zvolena a namapována tabulka s členy poroty.",
+                    severity=ValidationIssueSeverity.ERROR,
+                    context={},
+                )
+            )
+        return issues
+
+    @staticmethod
+    def check_performances_not_empty(
+        repository: ScheduleRepository,
+    ) -> list[ScheduleRepositoryValidationIssue]:
+        issues: list[ScheduleRepositoryValidationIssue] = []
+        performances = set(repository.performances_by_competition_id.keys())
+
+        if not performances:
+            issues.append(
+                ScheduleRepositoryValidationIssue(
+                    code="NO_PERFORMANCES_PARSED",
+                    message="Nenalezena žádná vystoupení. Zkontrolujte, zda je správně zvolena a namapována tabulka s harmonogramem.",
+                    severity=ValidationIssueSeverity.ERROR,
+                    context={},
+                )
+            )
+        return issues
+
+    @staticmethod
     def validate(repository: ScheduleRepository) -> ScheduleRepositoryValidationReport:
         issues: list[ScheduleRepositoryValidationIssue] = []
 
@@ -172,6 +246,26 @@ class ScheduleRepositoryValidator:
             repository
         )
         issues.extend(competitions_issues)
+
+        jury_empty_issue = ScheduleRepositoryValidator.check_jury_members_not_empty(
+            repository
+        )
+        issues.extend(jury_empty_issue)
+
+        competitions_empty_issues = (
+            ScheduleRepositoryValidator.check_competitions_not_empty(repository)
+        )
+        issues.extend(competitions_empty_issues)
+
+        performances_empty_issues = (
+            ScheduleRepositoryValidator.check_performances_not_empty(repository)
+        )
+        issues.extend(performances_empty_issues)
+
+        competitors_empty_issues = (
+            ScheduleRepositoryValidator.check_competitors_not_empty(repository)
+        )
+        issues.extend(competitors_empty_issues)
 
         # Deduplicate
         unique: dict[tuple, ScheduleRepositoryValidationIssue] = {}
