@@ -20,7 +20,6 @@ from PySide6.QtWidgets import (
 from src.application.dto import DataQualityReport
 from src.ingestion import IngestionIssue
 
-
 _SEVERITY_FILTER_OPTIONS: tuple[tuple[str, str], ...] = (
     ("Vše", "all"),
     ("Chyby", "error"),
@@ -60,6 +59,12 @@ class DataQualityReportDialog(QDialog):
         )
 
         summary_layout.addWidget(
+            QLabel(
+                f"Upozornění (celkem): {report.prepare_data_result.total_warnings_count + len(report.repository_validation_report.warnings)}"
+            )
+        )
+
+        summary_layout.addWidget(
             QLabel(f"Celkem řádků: {report.prepare_data_result.total_rows}")
         )
         summary_layout.addWidget(
@@ -70,11 +75,6 @@ class DataQualityReportDialog(QDialog):
         )
         summary_layout.addWidget(
             QLabel(f"Chyby schématu: {report.prepare_data_result.schema_errors_count}")
-        )
-        summary_layout.addWidget(
-            QLabel(
-                f"Upozornění (celkem): {report.prepare_data_result.total_warnings_count + len(report.repository_validation_report.warnings)}"
-            )
         )
 
         root.addWidget(summary_group)
@@ -96,9 +96,9 @@ class DataQualityReportDialog(QDialog):
         self._repo_list = QListWidget()
 
         self._tabs.addTab(self._wrap_list(self._readiness_list), "Důvody připravenosti")
-        self._tabs.addTab(self._wrap_list(self._schema_list), "Problémy schématu")
-        self._tabs.addTab(self._wrap_list(self._row_list), "Problémy řádků")
         self._tabs.addTab(self._wrap_list(self._repo_list), "Validace repozitáře")
+        self._tabs.addTab(self._wrap_list(self._row_list), "Problémy řádků")
+        self._tabs.addTab(self._wrap_list(self._schema_list), "Problémy schématu")
 
         root.addWidget(self._tabs, 1)
 
