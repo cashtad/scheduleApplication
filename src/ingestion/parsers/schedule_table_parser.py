@@ -8,6 +8,7 @@ from pandas import DataFrame, to_datetime, to_timedelta
 from src.domain import Performance
 from src.ingestion.contracts import IngestionIssue, TableParseResult
 from .base_table_parser import BaseTableParser
+from .errors import UserFacingParseError
 
 
 class ScheduleTableParser(BaseTableParser[Performance]):
@@ -26,12 +27,13 @@ class ScheduleTableParser(BaseTableParser[Performance]):
         parsed_rows = 0
 
         for row_index, row in df.iterrows():
+            safe_row_index = self.as_row_index(row_index)
             try:
-                performance = self._parse_row(row_index=int(row_index), row=row)
+                performance = self._parse_row(row_index=safe_row_index, row=row)
                 if performance is None:
                     issues.append(
                         self.make_row_warning(
-                            row_index=int(row_index),
+                            row_index=safe_row_index,
                             code="SCHEDULE_ROW_EMPTY_COMPETITION_ID",
                             message="Řádek byl přeskočen, protože ID soutěže je prázdné",
                             column_key="competition_id",
@@ -44,10 +46,11 @@ class ScheduleTableParser(BaseTableParser[Performance]):
 
             except Exception as exc:
                 issues.append(
-                    self.make_row_error(
-                        row_index=int(row_index),
-                        code="SCHEDULE_ROW_PARSE_FAILED",
-                        message=f"Nepodařilo se zpracovat řádek rozvrhu: {exc}",
+                    self.make_row_error_from_exception(
+                        row_index=safe_row_index,
+                        exc=exc,
+                        default_code="SCHEDULE_ROW_PARSE_FAILED",
+                        default_message="Nepodařilo se zpracovat řádek rozvrhu. Zkontrolujte ID soutěže, čas začátku a délku trvání.",
                     )
                 )
 
@@ -63,7 +66,7 @@ class ScheduleTableParser(BaseTableParser[Performance]):
         if self.is_empty(competition_raw):
             return None
 
-        competition_id = self.as_int(competition_raw)
+        competition_id = self.as_int(competition_raw, column_key="competition_id")
         start_time = self._parse_datetime(row[self.mapping["start_time"]])
         duration_minutes = self._parse_duration_minutes(row[self.mapping["duration"]])
         round_type = self.as_str(row[self.mapping["round_type"]])
@@ -85,7 +88,11 @@ class ScheduleTableParser(BaseTableParser[Performance]):
             return raw
         text = str(raw).strip()
         if not text:
-            raise ValueError("Pole 'start_time' je prázdné")
+            raise UserFacingParseError(
+                code="START_TIME_EMPTY",
+                message="Pole 'start_time' je prázdné",
+                column_key="start_time",
+            )
 
         # strict formats first
         for fmt in ("%H:%M", "%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M"):
@@ -95,21 +102,57 @@ class ScheduleTableParser(BaseTableParser[Performance]):
                 pass
 
         # pandas fallback
-        return to_datetime(text, errors="raise").to_pydatetime()
+        try:
+            return to_datetime(text, errors="raise").to_pydatetime()
+        except Exception:
+            raise UserFacingParseError(
+                code="START_TIME_INVALID",
+                message=(
+                    "Pole 'start_time' má neplatný formát času/datu. "
+                    "Použijte například HH:MM nebo YYYY-MM-DD HH:MM."
+                ),
+                column_key="start_time",
+                context={"value": text},
+            ) from None
 
     @staticmethod
     def _parse_duration_minutes(raw: Any) -> int:
         text = str(raw).strip()
         if not text:
-            raise ValueError("Pole 'duration' je prázdné")
+            raise UserFacingParseError(
+                code="DURATION_EMPTY",
+                message="Pole 'duration' je prázdné",
+                column_key="duration",
+            )
         if text.isdigit():
             value = int(text)
             if value <= 0:
-                raise ValueError("Pole 'duration' musí být > 0")
+                raise UserFacingParseError(
+                    code="DURATION_NOT_POSITIVE",
+                    message="Pole 'duration' musí být větší než 0",
+                    column_key="duration",
+                    context={"value": text},
+                )
             return value
 
-        td = to_timedelta(text, errors="raise")
+        try:
+            td = to_timedelta(text, errors="raise")
+        except Exception:
+            raise UserFacingParseError(
+                code="DURATION_INVALID",
+                message=(
+                    "Pole 'duration' má neplatný formát. "
+                    "Použijte počet minut nebo časový interval (např. 00:30:00)."
+                ),
+                column_key="duration",
+                context={"value": text},
+            ) from None
         minutes = int(td.total_seconds() // 60)
         if minutes <= 0:
-            raise ValueError("Pole 'duration' musí být > 0")
+            raise UserFacingParseError(
+                code="DURATION_NOT_POSITIVE",
+                message="Pole 'duration' musí být větší než 0",
+                column_key="duration",
+                context={"value": text},
+            )
         return minutes

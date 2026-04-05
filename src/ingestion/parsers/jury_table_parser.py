@@ -8,6 +8,7 @@ from pandas import DataFrame
 from src.domain import JuryMember
 from src.ingestion.contracts import IngestionIssue, TableParseResult
 from .base_table_parser import BaseTableParser
+from .errors import UserFacingParseError
 from src.ingestion.services import (
     AssignmentColumnsMode,
     AssignmentColumnsSelection,
@@ -54,9 +55,10 @@ class JuryTableParser(BaseTableParser[JuryMember]):
             assignment_selection = self._select_assignment_columns(df)
         except Exception as exc:
             issues.append(
-                self.make_issue(
-                    code="ASSIGNMENT_COLUMNS_NOT_FOUND",
-                    message=str(exc),
+                self.make_issue_from_exception(
+                    exc=exc,
+                    default_code="ASSIGNMENT_COLUMNS_NOT_FOUND",
+                    default_message="Nepodařilo se určit sloupce přiřazení soutěží. Zkontrolujte mapování prefixu nebo názvy sloupců.",
                     severity=self._error_severity(),
                     context={
                         "assignment_mode": self._config.assignment_mode.value,
@@ -72,16 +74,18 @@ class JuryTableParser(BaseTableParser[JuryMember]):
             )
 
         for row_index, row in df.iterrows():
+            safe_row_index = self.as_row_index(row_index)
             try:
                 member = self._parse_row(row, assignment_selection=assignment_selection)
                 items.append(member)
                 parsed_rows += 1
             except Exception as exc:
                 issues.append(
-                    self.make_row_error(
-                        row_index=int(row_index),
-                        code="JURY_ROW_PARSE_FAILED",
-                        message=f"Nepodařilo se zpracovat řádek poroty: {exc}",
+                    self.make_row_error_from_exception(
+                        row_index=safe_row_index,
+                        exc=exc,
+                        default_code="JURY_ROW_PARSE_FAILED",
+                        default_message="Nepodařilo se zpracovat řádek poroty. Zkontrolujte hodnoty ve sloupcích.",
                     )
                 )
 
@@ -102,8 +106,9 @@ class JuryTableParser(BaseTableParser[JuryMember]):
         if has_name and has_surname:
             return
 
-        raise ValueError(
-            "Mapování poroty musí obsahovat buď 'fullname', nebo obě pole 'name' a 'surname'"
+        raise UserFacingParseError(
+            code="JURY_MAPPING_INVALID",
+            message="Mapování poroty musí obsahovat buď 'fullname', nebo obě pole 'name' a 'surname'",
         )
 
     def _parse_row(
@@ -125,7 +130,11 @@ class JuryTableParser(BaseTableParser[JuryMember]):
         if fullname_col:
             fullname = self.as_str(row[fullname_col])
             if not fullname:
-                raise ValueError("Pole 'fullname' je prázdné")
+                raise UserFacingParseError(
+                    code="JURY_FULLNAME_EMPTY",
+                    message="Pole 'fullname' je prázdné",
+                    column_key="fullname",
+                )
             return fullname
 
         name_col = (self.mapping.get("name") or "").strip()
@@ -134,7 +143,11 @@ class JuryTableParser(BaseTableParser[JuryMember]):
         surname = self.as_str(row[surname_col])
         full = f"{name} {surname}".strip()
         if not full:
-            raise ValueError("Pole 'name'/'surname' jsou prázdná")
+            raise UserFacingParseError(
+                code="JURY_NAME_SURNAME_EMPTY",
+                message="Pole 'name'/'surname' jsou prázdná",
+                context={"name": name_col, "surname": surname_col},
+            )
         return full
 
     def _select_assignment_columns(self, df: DataFrame) -> AssignmentColumnsSelection:
@@ -178,16 +191,27 @@ class JuryTableParser(BaseTableParser[JuryMember]):
         if assignment_selection.mode == AssignmentColumnsMode.NUMERIC_HEADERS:
             txt = column_name.strip()
             if not txt.isdigit():
-                raise ValueError(f"Sloupec přiřazení '{column_name}' není číselný")
+                raise UserFacingParseError(
+                    code="ASSIGNMENT_COLUMN_NOT_NUMERIC",
+                    message=f"Sloupec přiřazení '{column_name}' není číselný",
+                    context={"column_name": column_name},
+                )
             return int(txt)
 
         # PREFIX mode
         assert assignment_selection.prefix is not None  # guaranteed by selector
         remainder = column_name.removeprefix(assignment_selection.prefix).strip()
         if not remainder.isdigit():
-            raise ValueError(
-                f"Sloupec přiřazení '{column_name}' neobsahuje číselné ID soutěže "
-                f"za prefixem '{assignment_selection.prefix}'"
+            raise UserFacingParseError(
+                code="ASSIGNMENT_COLUMN_ID_INVALID",
+                message=(
+                    f"Sloupec přiřazení '{column_name}' neobsahuje číselné ID soutěže "
+                    f"za prefixem '{assignment_selection.prefix}'"
+                ),
+                context={
+                    "column_name": column_name,
+                    "prefix": assignment_selection.prefix,
+                },
             )
         return int(remainder)
 

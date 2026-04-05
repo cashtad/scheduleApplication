@@ -7,6 +7,7 @@ from pandas import DataFrame
 
 from src.domain import Competitor
 from .base_table_parser import BaseTableParser
+from .errors import UserFacingParseError
 from src.ingestion.contracts import IngestionIssue, TableParseResult
 from src.ingestion.services import (
     AssignmentColumnsMode,
@@ -54,9 +55,10 @@ class CompetitorTableParser(BaseTableParser[Competitor]):
             assignment_selection = self._select_assignment_columns(df)
         except Exception as exc:
             issues.append(
-                self.make_issue(
-                    code="ASSIGNMENT_COLUMNS_NOT_FOUND",
-                    message=str(exc),
+                self.make_issue_from_exception(
+                    exc=exc,
+                    default_code="ASSIGNMENT_COLUMNS_NOT_FOUND",
+                    default_message="Nepodařilo se určit sloupce přiřazení soutěží. Zkontrolujte mapování prefixu nebo názvy sloupců.",
                     severity=self._error_severity(),
                     context={
                         "assignment_mode": self._config.assignment_mode.value,
@@ -72,6 +74,7 @@ class CompetitorTableParser(BaseTableParser[Competitor]):
             )
 
         for row_index, row in df.iterrows():
+            safe_row_index = self.as_row_index(row_index)
             try:
                 competitor = self._parse_row(
                     row=row,
@@ -82,11 +85,12 @@ class CompetitorTableParser(BaseTableParser[Competitor]):
 
             except Exception as exc:
                 issues.append(
-                    self.make_row_error(
-                        row_index=row_index,
-                        code="COMPETITOR_ROW_PARSE_FAILED",
-                        message=f"Nepodařilo se zpracovat řádek soutěžícího: {exc}",
-                        context={"row_index": row_index},
+                    self.make_row_error_from_exception(
+                        row_index=safe_row_index,
+                        exc=exc,
+                        default_code="COMPETITOR_ROW_PARSE_FAILED",
+                        default_message="Nepodařilo se zpracovat řádek soutěžícího. Zkontrolujte hodnoty ve sloupcích.",
+                        context={"row_index": safe_row_index},
                     )
                 )
 
@@ -128,11 +132,20 @@ class CompetitorTableParser(BaseTableParser[Competitor]):
 
     def _parse_count_or_raise(self, raw_value: Any) -> int:
         if self.is_empty(raw_value):
-            raise ValueError("Pole 'count' je prázdné")
+            raise UserFacingParseError(
+                code="COUNT_EMPTY",
+                message="Pole 'count' je prázdné",
+                column_key="count",
+            )
 
         count_text = self.as_str(raw_value)
         if count_text not in {"1", "2"}:
-            raise ValueError(f"Pole 'count' musí být 1 nebo 2, ale je '{count_text}'")
+            raise UserFacingParseError(
+                code="COUNT_INVALID",
+                message=f"Pole 'count' musí být 1 nebo 2, ale je '{count_text}'",
+                column_key="count",
+                context={"value": count_text},
+            )
 
         return int(count_text)
 
@@ -143,7 +156,11 @@ class CompetitorTableParser(BaseTableParser[Competitor]):
 
         value = self.as_str(raw_value)
         if not value:
-            raise ValueError("Pole 'p2_name_surname' je povinné, když count=2")
+            raise UserFacingParseError(
+                code="SECOND_NAME_REQUIRED",
+                message="Pole 'p2_name_surname' je povinné, když count=2",
+                column_key="p2_name_surname",
+            )
         return value
 
     def _select_assignment_columns(self, df: DataFrame) -> AssignmentColumnsSelection:
@@ -187,16 +204,27 @@ class CompetitorTableParser(BaseTableParser[Competitor]):
         if assignment_selection.mode == AssignmentColumnsMode.NUMERIC_HEADERS:
             text = str(column_name).strip()
             if not text.isdigit():
-                raise ValueError(f"Sloupec přiřazení '{column_name}' není číselný")
+                raise UserFacingParseError(
+                    code="ASSIGNMENT_COLUMN_NOT_NUMERIC",
+                    message=f"Sloupec přiřazení '{column_name}' není číselný",
+                    context={"column_name": column_name},
+                )
             return int(text)
 
         # PREFIX mode
         assert assignment_selection.prefix is not None  # guaranteed by selector
         remainder = column_name.removeprefix(assignment_selection.prefix).strip()
         if not remainder.isdigit():
-            raise ValueError(
-                f"Sloupec přiřazení '{column_name}' neobsahuje číselné ID soutěže "
-                f"za prefixem '{assignment_selection.prefix}'"
+            raise UserFacingParseError(
+                code="ASSIGNMENT_COLUMN_ID_INVALID",
+                message=(
+                    f"Sloupec přiřazení '{column_name}' neobsahuje číselné ID soutěže "
+                    f"za prefixem '{assignment_selection.prefix}'"
+                ),
+                context={
+                    "column_name": column_name,
+                    "prefix": assignment_selection.prefix,
+                },
             )
         return int(remainder)
 

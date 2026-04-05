@@ -157,18 +157,20 @@ class TableIngestionService:
         try:
             df = self._excel_reader.read(table_input.file_path, table_input.sheet_name)
         except Exception as exc:
+            issue_context = {
+                "file_path": table_input.file_path,
+                "sheet_name": table_input.sheet_name,
+            }
+            issue_context.update(self._technical_exception_context(exc))
             return (
                 self._empty_parse_result(table_key),
                 [
                     IngestionIssue(
                         table_key=table_key,
                         code="EXCEL_READ_FAILED",
-                        message=f"Nepodařilo se načíst tabulku Excelu: {exc}",
+                        message="Nepodařilo se načíst Excel tabulku. Zkontrolujte, zda je soubor dostupný a není poškozený.",
                         severity=IngestionSeverity.ERROR,
-                        context={
-                            "file_path": table_input.file_path,
-                            "sheet_name": table_input.sheet_name,
-                        },
+                        context=issue_context,
                     )
                 ],
                 None,
@@ -184,12 +186,30 @@ class TableIngestionService:
             parse_result = parser.parse(df)
         except Exception as exc:
             parse_result = self._empty_parse_result(table_key)
+            issue_code = "TABLE_PARSE_FAILED"
+            issue_message = (
+                "Nepodařilo se spustit parser tabulky. Zkontrolujte mapování sloupců a formát dat."
+            )
+            issue_context = self._technical_exception_context(exc)
+
+            # Respect custom ingestion exceptions with stable code/message.
+            parsed_code = getattr(exc, "code", None)
+            parsed_message = getattr(exc, "message", None)
+            if isinstance(parsed_code, str) and parsed_code:
+                issue_code = parsed_code
+            if isinstance(parsed_message, str) and parsed_message:
+                issue_message = parsed_message
+            parsed_context = getattr(exc, "context", None)
+            if isinstance(parsed_context, dict):
+                issue_context.update(parsed_context)
+
             schema_issues.append(
                 IngestionIssue(
                     table_key=table_key,
-                    code="TABLE_PARSE_FAILED",
-                    message=f"Parser selhal před zpracováním řádků: {exc}",
+                    code=issue_code,
+                    message=issue_message,
                     severity=IngestionSeverity.ERROR,
+                    context=issue_context,
                 )
             )
 
@@ -223,12 +243,14 @@ class TableIngestionService:
         try:
             sheet_names = self._excel_reader.get_sheet_names(table_input.file_path)
         except Exception as exc:
+            issue_context = {"file_path": table_input.file_path}
+            issue_context.update(self._technical_exception_context(exc))
             return IngestionIssue(
                 table_key=table_input.table_key,
                 code="SHEET_ENUMERATION_FAILED",
-                message=f"Nepodařilo se načíst názvy listů: {exc}",
+                message="Nepodařilo se načíst seznam listů v Excel souboru.",
                 severity=IngestionSeverity.ERROR,
-                context={"file_path": table_input.file_path},
+                context=issue_context,
             )
 
         if table_input.sheet_name is None:
@@ -301,3 +323,12 @@ class TableIngestionService:
             key = issue.dedup_key()
             unique[key] = issue
         return list(unique.values())
+
+    @staticmethod
+    def _technical_exception_context(exc: Exception) -> dict[str, str]:
+        details = {"exception_type": type(exc).__name__}
+        raw_message = str(exc).strip()
+        if raw_message:
+            details["exception_message"] = raw_message
+        return details
+

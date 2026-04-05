@@ -12,3 +12,14 @@ class MappingValidationError(Exception):
 
     def __str__(self) -> str:
         return f"[{self.code}] {self.message}"
+
+
+@dataclass(frozen=True, slots=True)
+class UserFacingParseError(Exception):
+    code: str
+    message: str
+    column_key: str | None = None
+    context: dict[str, Any] = field(default_factory=dict)
+
+    def __str__(self) -> str:
+        return self.message

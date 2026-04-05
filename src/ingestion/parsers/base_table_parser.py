@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Generic, TypeVar
+from typing import Any, Generic, TypeVar, cast
 
 from pandas import DataFrame, isna
 
 from src.ingestion.contracts import IngestionIssue, IngestionSeverity, TableParseResult
-from .errors import MappingValidationError
+from .errors import MappingValidationError, UserFacingParseError
 
 T = TypeVar("T")
 
@@ -80,7 +80,10 @@ class BaseTableParser(ABC, Generic[T]):
     @staticmethod
     def is_empty(value: Any) -> bool:
         try:
-            return isna(value) or str(value).strip() == ""
+            na_value = isna(value)
+            if isinstance(na_value, bool):
+                return na_value or str(value).strip() == ""
+            return str(value).strip() == ""
         except Exception:
             return False
 
@@ -89,13 +92,34 @@ class BaseTableParser(ABC, Generic[T]):
         return str(value).strip()
 
     @staticmethod
-    def as_int(value: Any) -> int:
-        return int(str(value).strip())
+    def as_int(value: Any, column_key: str | None = None) -> int:
+        text = str(value).strip()
+        try:
+            return int(text)
+        except (TypeError, ValueError):
+            column_label = (
+                f"Pole '{column_key}' musí obsahovat celé číslo"
+                if column_key
+                else "Hodnota musí být celé číslo"
+            )
+            raise UserFacingParseError(
+                code="INVALID_INTEGER",
+                message=column_label,
+                column_key=column_key,
+                context={"value": text},
+            ) from None
 
     @staticmethod
     def row_to_dict(row: Any) -> dict[str, Any]:
         # pandas Series -> dict
-        return dict(row.items())
+        return cast(dict[str, Any], dict(row.items()))
+
+    @staticmethod
+    def as_row_index(value: Any) -> int:
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return -1
 
     def make_issue(
         self,
@@ -127,6 +151,66 @@ class BaseTableParser(ABC, Generic[T]):
         return self.make_issue(
             code=code,
             message=message,
+            severity=IngestionSeverity.ERROR,
+            row_index=row_index,
+            column_key=column_key,
+            context=context,
+        )
+
+    def make_issue_from_exception(
+        self,
+        exc: Exception,
+        default_code: str,
+        default_message: str,
+        severity: IngestionSeverity,
+        row_index: int | None = None,
+        column_key: str | None = None,
+        context: dict[str, Any] | None = None,
+    ) -> IngestionIssue:
+        issue_code = default_code
+        issue_message = default_message
+        issue_column_key = column_key
+        issue_context = dict(context or {})
+
+        if isinstance(exc, UserFacingParseError):
+            issue_code = exc.code
+            issue_message = exc.message
+            issue_column_key = exc.column_key or issue_column_key
+            if isinstance(exc.context, dict):
+                issue_context.update(exc.context)
+        elif isinstance(exc, MappingValidationError):
+            issue_code = exc.code
+            issue_message = exc.message
+            if isinstance(exc.context, dict):
+                issue_context.update(exc.context)
+        else:
+            issue_context.setdefault("exception_type", type(exc).__name__)
+            raw_message = str(exc).strip()
+            if raw_message:
+                issue_context.setdefault("exception_message", raw_message)
+
+        return self.make_issue(
+            code=issue_code,
+            message=issue_message,
+            severity=severity,
+            row_index=row_index,
+            column_key=issue_column_key,
+            context=issue_context,
+        )
+
+    def make_row_error_from_exception(
+        self,
+        row_index: int,
+        exc: Exception,
+        default_code: str,
+        default_message: str,
+        column_key: str | None = None,
+        context: dict[str, Any] | None = None,
+    ) -> IngestionIssue:
+        return self.make_issue_from_exception(
+            exc=exc,
+            default_code=default_code,
+            default_message=default_message,
             severity=IngestionSeverity.ERROR,
             row_index=row_index,
             column_key=column_key,
