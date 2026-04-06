@@ -29,16 +29,24 @@ class MaxGapBetweenPerformancesRule(ARule):
                 threshold = self.config.thresholds[severity]
                 excess = gap_minutes - threshold
 
-                entity_name = (
-                    f"{competitor.dancer_1_name}"
-                    + (f" a {competitor.dancer_2_name}" if competitor.dancer_2_name else "")
+                entity_name = f"{competitor.dancer_1_name}" + (
+                    f" a {competitor.dancer_2_name}" if competitor.dancer_2_name else ""
+                )
+
+                description = (
+                    f"Příliš velká přestávka ({gap_minutes:.0f} min) mezi vystoupeními pro {competitor.dancer_1_name}"
+                    + (
+                        f" a {competitor.dancer_2_name}"
+                        if competitor.participants_per_entry == 2
+                        else ""
+                    )
                 )
 
                 violations.append(
                     Violation(
                         rule_name="MaxGapBetweenPerformances",
                         severity=severity,
-                        description=f"Příliš velká přestávka ({gap_minutes:.0f} min) mezi vystoupeními pro {competitor.dancer_1_name}",
+                        description=description,
                         entity_id=competitor.dancer_1_name,
                         entity_name=entity_name,
                         details={

@@ -10,7 +10,9 @@ from .readiness import (
 )
 from .workflow_status import WorkflowStatus
 from .analysis_view import (
+    AnalysisViewPresenter,
     AnalysisViewModel,
+    LocalizedDetailItem,
     build_analysis_view_model,
     ViolationViewItem,
 )
@@ -26,6 +28,8 @@ __all__ = [
     "WorkflowStatus",
     "ReadinessReasonSeverity",
     "AnalysisViewModel",
+    "AnalysisViewPresenter",
+    "LocalizedDetailItem",
     "build_analysis_view_model",
     "ViolationViewItem",
 ]

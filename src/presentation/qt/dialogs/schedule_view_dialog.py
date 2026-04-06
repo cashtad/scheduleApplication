@@ -156,7 +156,7 @@ class ScheduleViewDialog(QDialog):
 
         header = QLabel(
             f"<b>{_SEVERITY_LABELS.get(violation.severity, violation.severity)}</b>"
-            f" — <i>{violation.rule_name}</i>"
+            f" — <i>{violation.rule_display_name or violation.rule_name}</i>"
         )
         header.setWordWrap(True)
         lay.addWidget(header)
@@ -169,7 +169,15 @@ class ScheduleViewDialog(QDialog):
         desc.setWordWrap(True)
         lay.addWidget(desc)
 
-        if violation.details:
+        if violation.localized_details:
+            detail_lines = ["<b>Podrobnosti:</b>"]
+            for item in violation.localized_details:
+                detail_lines.append(f"• {item.label}: {item.value}")
+            details = QLabel("<br>".join(detail_lines))
+            details.setWordWrap(True)
+            details.setTextInteractionFlags(Qt.TextSelectableByMouse)
+            lay.addWidget(details)
+        elif violation.details:
             detail_lines = ["<b>Podrobnosti:</b>"]
             for key, value in violation.details.items():
                 if isinstance(value, datetime):
@@ -257,7 +265,7 @@ class ScheduleViewDialog(QDialog):
                 child.widget().deleteLater()
 
     def _on_row_clicked(self, index) -> None:
-        model_row = index.row()
+        model_row = int(index.row())
         df_idx = self._model_row_to_df_idx[model_row]
         violation_ids = self._row_to_violation_ids.get(df_idx, [])
 
