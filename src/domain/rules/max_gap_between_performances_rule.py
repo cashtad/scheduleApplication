@@ -33,14 +33,7 @@ class MaxGapBetweenPerformancesRule(ARule):
                     f" a {competitor.dancer_2_name}" if competitor.dancer_2_name else ""
                 )
 
-                description = (
-                    f"Příliš velká přestávka ({gap_minutes:.0f} min) mezi vystoupeními pro {competitor.dancer_1_name}"
-                    + (
-                        f" a {competitor.dancer_2_name}"
-                        if competitor.participants_per_entry == 2
-                        else ""
-                    )
-                )
+                description = f"Příliš velká přestávka ({gap_minutes:.0f} min) mezi vystoupeními pro {entity_name}"
 
                 violations.append(
                     Violation(

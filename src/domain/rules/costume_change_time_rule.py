@@ -41,17 +41,18 @@ class CostumeChangeTimeRule(ARule):
                     threshold = self.config.thresholds.get(severity)
                     shortage = threshold - gap_minutes
 
-                    entity_name = (
-                        f"{competitor.dancer_1_name}"
-                        + (f" a {competitor.dancer_2_name}" if competitor.dancer_2_name else "")
+                    entity_name = f"{competitor.dancer_1_name}" + (
+                        f" a {competitor.dancer_2_name}"
+                        if competitor.dancer_2_name
+                        else ""
                     )
 
                     violations.append(
                         Violation(
                             rule_name="CostumeChangeTime",
                             severity=severity,
-                            description=f"Nedostatečný čas ({gap_minutes:.0f} min) na převlečení kostýmu pro {competitor.dancer_1_name}",
-                            entity_id=competitor.dancer_1_name,
+                            description=f"Nedostatečný čas ({gap_minutes:.0f} min) na převlečení kostýmu pro {entity_name}",
+                            entity_id=entity_name,
                             entity_name=entity_name,
                             details={
                                 "gap_minutes": gap_minutes,
