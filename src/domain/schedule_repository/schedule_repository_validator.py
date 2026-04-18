@@ -196,7 +196,7 @@ class ScheduleRepositoryValidator:
                 ScheduleRepositoryValidationIssue(
                     code="NO_JURY_MEMBERS_PARSED",
                     message="Nenalezen žádný člen poroty. Zkontrolujte, zda je správně zvolena a namapována tabulka s členy poroty.",
-                    severity=ValidationIssueSeverity.ERROR,
+                    severity=ValidationIssueSeverity.WARNING,
                     context={},
                 )
             )
@@ -248,11 +248,11 @@ class ScheduleRepositoryValidator:
         issues.extend(competitions_issues)
 
         # We discuessed this moment, decided to not treat empty jury members as an error,
-        # because it will not stop the flow of the program.
-        # jury_empty_issue = ScheduleRepositoryValidator.check_jury_members_not_empty(
-        #     repository
-        # )
-        # issues.extend(jury_empty_issue)
+        # because it will not stop the flow of the program. So I made it like a warning
+        jury_empty_issue = ScheduleRepositoryValidator.check_jury_members_not_empty(
+            repository
+        )
+        issues.extend(jury_empty_issue)
 
         competitions_empty_issues = (
             ScheduleRepositoryValidator.check_competitions_not_empty(repository)
