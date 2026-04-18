@@ -8,7 +8,7 @@ from pandas import DataFrame
 from src.domain import Competitor
 from .base_table_parser import BaseTableParser
 from .errors import UserFacingParseError
-from src.ingestion.contracts import IngestionIssue, TableParseResult
+from src.ingestion.dto import IngestionIssue, TableParseResult
 from src.ingestion.services import (
     AssignmentColumnsMode,
     AssignmentColumnsSelection,
@@ -234,6 +234,6 @@ class CompetitorTableParser(BaseTableParser[Competitor]):
 
     @staticmethod
     def _error_severity():
-        from src.ingestion.contracts.ingestion_severity import IngestionSeverity
+        from src.ingestion.dto.ingestion_severity import IngestionSeverity
 
         return IngestionSeverity.ERROR

@@ -6,7 +6,7 @@ from typing import Iterable
 
 from pandas import DataFrame
 
-from src.ingestion.contracts import (
+from src.ingestion.dto import (
     FullIngestionResult,
     IngestionIssue,
     IngestionSeverity,

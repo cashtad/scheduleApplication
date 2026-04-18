@@ -41,6 +41,7 @@ class FullIngestionResult:
             self.performances.stats,
         ]
 
+    # Code below seems redundant
     @property
     def total_rows(self) -> int:
         return sum(s.total_rows for s in self.table_stats)

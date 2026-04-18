@@ -6,7 +6,7 @@ from typing import Any, Generic, TypeVar, cast
 
 from pandas import DataFrame, isna
 
-from src.ingestion.contracts import IngestionIssue, IngestionSeverity, TableParseResult
+from src.ingestion.dto import IngestionIssue, IngestionSeverity, TableParseResult
 from .errors import MappingValidationError, UserFacingParseError
 
 T = TypeVar("T")

@@ -5,7 +5,7 @@ from typing import Any
 from pandas import DataFrame
 
 from src.domain import Competition
-from src.ingestion.contracts import IngestionIssue, TableParseResult
+from src.ingestion.dto import IngestionIssue, TableParseResult
 from .base_table_parser import BaseTableParser
 
 
