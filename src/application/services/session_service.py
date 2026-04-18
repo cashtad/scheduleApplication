@@ -18,7 +18,6 @@ class SessionService:
         table.column_signature.clear()
         table.raw_df = None
         table.status = TableStatus.FILE_SELECTED
-        session.analysis.is_stale = True
         self._save_session_use_case.execute(session)
 
     def set_sheet(self, session: AppSession, table_key: str, sheet_name: str) -> None:
@@ -28,7 +27,6 @@ class SessionService:
         table.column_signature.clear()
         table.raw_df = None
         table.status = TableStatus.SHEET_SELECTED
-        session.analysis.is_stale = True
         self._save_session_use_case.execute(session)
 
     def set_mapping(
@@ -45,7 +43,6 @@ class SessionService:
 
         table.status = TableStatus.MAPPED
 
-        session.analysis.is_stale = True
         self._save_session_use_case.execute(session)
 
     def mark_ready(self, session: AppSession, table_key: str) -> None:
@@ -56,11 +53,9 @@ class SessionService:
     def mark_mapping_stale(self, session: AppSession, table_key: str) -> None:
         table = session.get_table(table_key)
         table.status = TableStatus.MAPPING_STALE
-        session.analysis.is_stale = True
         self._save_session_use_case.execute(session)
 
     def mark_broken_sheet(self, session: AppSession, table_key: str) -> None:
         table = session.get_table(table_key)
         table.status = TableStatus.BROKEN_SHEET
-        session.analysis.is_stale = True
         self._save_session_use_case.execute(session)
