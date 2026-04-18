@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from .analysis_runtime_state import AnalysisRuntimeState
 from .table_runtime_state import TableRuntimeState
 
 
@@ -13,7 +12,6 @@ REQUIRED_TABLE_KEYS: tuple[str, ...] = ("competitions", "competitors", "jury", "
 class AppSession:
     version: int = 1
     tables: dict[str, TableRuntimeState] = field(default_factory=dict)
-    analysis: AnalysisRuntimeState = field(default_factory=AnalysisRuntimeState) #TODO: seems redundant
     saved_at: str | None = None  # ISO timestamp of last persisted snapshot
 
     def ensure_required_tables(self) -> None:
