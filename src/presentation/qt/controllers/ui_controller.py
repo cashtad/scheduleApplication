@@ -5,6 +5,7 @@ from typing import Iterable
 
 from pandas import DataFrame
 
+from session import TableRuntimeState
 from src.application.bootstrap import AppContainer, build_app_container
 from src.application.dto import (
     AnalyzeWorkflowResult,
@@ -59,14 +60,14 @@ class UiController:
     def read(self, file_path: str, sheet_name: str | None) -> DataFrame:
         return self.excel_reader.read(file_path, sheet_name)
 
-    def get_sheet_names(self, file_path: str) -> list[str]:
+    def get_sheet_names(self, file_path: str) -> list[str | int]:
         return self.excel_reader.get_sheet_names(file_path)
 
     def required_table_keys(self) -> tuple[str, ...]:
         return REQUIRED_TABLE_KEYS
 
-    def get_table_status(self, table_key: str) -> TableStatus:
-        return self._session.get_table(table_key).status
+    def get_table_state(self, table_key: str) -> TableRuntimeState:
+        return self._session.get_table(table_key)
 
     def get_table_statuses(self) -> dict[str, TableStatus]:
         return {k: self._session.get_table(k).status for k in REQUIRED_TABLE_KEYS}

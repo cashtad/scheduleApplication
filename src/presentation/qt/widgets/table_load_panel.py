@@ -4,7 +4,8 @@ from dataclasses import dataclass
 from typing import Callable
 
 from pandas import DataFrame
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Signal, Qt
+from PySide6.QtGui import QResizeEvent
 from PySide6.QtWidgets import (
     QFileDialog,
     QHBoxLayout,
@@ -12,6 +13,7 @@ from PySide6.QtWidgets import (
     QLabel,
     QMessageBox,
     QPushButton,
+    QSizePolicy,
     QVBoxLayout,
     QWidget,
 )
@@ -65,6 +67,7 @@ class TableLoadPanel(QWidget):
         self._table_key = table_key
         self._controller = controller
         self._on_schedule_preview_changed = on_schedule_preview_changed
+        self._full_path = ""
 
         root = QVBoxLayout(self)
 
@@ -81,6 +84,11 @@ class TableLoadPanel(QWidget):
         status_row.addStretch()
         root.addLayout(status_row)
 
+        self._path_label = QLabel()
+        self._path_label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+        self._path_label.setMinimumWidth(50)
+        root.addWidget(self._path_label)
+
         self._action_btn = QPushButton()
         self._action_btn.clicked.connect(self._on_action_clicked)
         root.addWidget(self._action_btn)
@@ -88,14 +96,32 @@ class TableLoadPanel(QWidget):
         self.refresh()
 
     def refresh(self) -> None:
-        status = self._controller.get_table_status(self._table_key)
+        state = self._controller.get_table_state(self._table_key)
+        status = state.status
         text, color = _STATUS_UI.get(status, (status.value, "#9E9E9E"))
         self._dot.setStyleSheet(_DOT_STYLE.format(color=color))
         self._status_label.setText(text)
         self._action_btn.setText(
             "Změnit" if status in {TableStatus.MAPPED, TableStatus.READY} else "Načíst"
         )
+        self._full_path = state.file_path if state.file_path else ""
+        self._update_path_label()
         self.status_changed.emit()
+
+    def _update_path_label(self) -> None:
+        if not self._full_path:
+            self._path_label.clear()
+            self._path_label.setToolTip("")
+            return
+        self._path_label.setToolTip(self._full_path)
+        elided = self._path_label.fontMetrics().elidedText(
+            self._full_path, Qt.ElideMiddle, self._path_label.width()
+        )
+        self._path_label.setText(elided)
+
+    def resizeEvent(self, event: QResizeEvent) -> None:
+        super().resizeEvent(event)
+        self._update_path_label()
 
     def _on_action_clicked(self) -> None:
         context = self._build_load_context()
@@ -127,7 +153,7 @@ class TableLoadPanel(QWidget):
         if sheet_name is None:
             return None
 
-        df = self._read_dataframe(file_path, sheet_name)
+        df = self._read_dataframe(file_path, str(sheet_name))
         if df is None:
             return None
 
@@ -156,7 +182,7 @@ class TableLoadPanel(QWidget):
         )
         return file_path or None
 
-    def _choose_sheet_name(self, file_path: str) -> str | None:
+    def _choose_sheet_name(self, file_path: str) -> str | int | None:
         try:
             sheet_names = self._controller.get_sheet_names(file_path)
         except Exception as exc:
