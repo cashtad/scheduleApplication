@@ -132,16 +132,16 @@ class ScheduleRepositoryValidator:
         repository: ScheduleRepository,
     ) -> list[ScheduleRepositoryValidationIssue]:
         issues: list[ScheduleRepositoryValidationIssue] = []
-        competition_ids = set(repository.competitions_by_id.keys())
+        competitions = set(repository.competitions_by_id.values())
 
-        for competition_id in competition_ids:
-            if not repository.list_performances_by_competition_id(competition_id):
+        for competition in competitions:
+            if not repository.list_performances_by_competition_id(competition.id):
                 issues.append(
                     ScheduleRepositoryValidationIssue(
                         code="COMPETITION_WITHOUT_PERFORMANCES",
-                        message=f"Soutěž id={competition_id} nemá žádná vystoupení",
+                        message=f"Soutěž '{competition.name}' (ID: {competition.id}) nemá žádná vystoupení",
                         severity=ValidationIssueSeverity.WARNING,
-                        context={"competition_id": competition_id},
+                        context={"competition_id": competition.id},
                     )
                 )
         return issues
@@ -221,6 +221,29 @@ class ScheduleRepositoryValidator:
         return issues
 
     @staticmethod
+    def check_amount_of_rounds(
+            repository: ScheduleRepository,
+    ) -> list[ScheduleRepositoryValidationIssue]:
+        issues: list[ScheduleRepositoryValidationIssue] = []
+
+        competitions = repository.competitions_by_id.values()
+        for competition in competitions:
+            performances = repository.list_performances_by_competition_id(competition.id)
+            amount = len(performances)
+            if competition.amount_of_rounds and competition.amount_of_rounds is not amount:
+                issues.append(
+                    ScheduleRepositoryValidationIssue(
+                        code="WRONG_AMOUNT_OF_ROUNDS",
+                        message=f"Soutěž '{competition.name}' (ID: {competition.id}) má v harmonogramu {amount} kol/vystoupení, ale v informacích o soutěži je očekáváno {competition.amount_of_rounds}.",
+                        severity=ValidationIssueSeverity.WARNING,
+                        context={"competition_id": competition.id, "expected_amount_of_rounds": competition.amount_of_rounds, "actual_amount_of_rounds": len(performances) },
+                    )
+                )
+
+        return issues
+
+
+    @staticmethod
     def validate(repository: ScheduleRepository) -> ScheduleRepositoryValidationReport:
         issues: list[ScheduleRepositoryValidationIssue] = []
 
@@ -268,6 +291,11 @@ class ScheduleRepositoryValidator:
             ScheduleRepositoryValidator.check_competitors_not_empty(repository)
         )
         issues.extend(competitors_empty_issues)
+
+        wrong_amount_of_performances_issues = (
+            ScheduleRepositoryValidator.check_amount_of_rounds(repository)
+        )
+        issues.extend(wrong_amount_of_performances_issues)
 
         # Deduplicate
         unique: dict[tuple, ScheduleRepositoryValidationIssue] = {}

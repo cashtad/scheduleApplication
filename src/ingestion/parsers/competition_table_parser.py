@@ -18,7 +18,6 @@ class CompetitionTableParser(BaseTableParser[Competition]):
             "id",
             "name",
             "discipline",
-            "amount_of_rounds",
         ]
 
     def parse(self, df: DataFrame) -> TableParseResult[Competition]:
@@ -56,10 +55,11 @@ class CompetitionTableParser(BaseTableParser[Competition]):
         id_value = self.as_int(row[self.mapping["id"]], column_key="id")
         name = self.as_str(row[self.mapping["name"]])
         discipline = self.as_str(row[self.mapping["discipline"]])
-        amount_of_rounds = self.as_int(
-            row[self.mapping["amount_of_rounds"]],
-            column_key="amount_of_rounds",
-        )
+
+        amount_of_rounds = None
+        amount_of_rounds_col = self.mapping.get("amount_of_rounds")
+        if amount_of_rounds_col:
+            amount_of_rounds = self.as_int(row[amount_of_rounds_col], column_key="amount_of_rounds")
 
         return Competition(
             id=id_value,

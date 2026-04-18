@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True, slots=True)
-class TableInput:
+class TableInput: # TODO: duplicates table_runtime_state's class
     table_key: str
     file_path: str
     sheet_name: str | None

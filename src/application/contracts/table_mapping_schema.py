@@ -33,7 +33,7 @@ TABLE_MAPPING_SCHEMAS: dict[str, TableMappingSchema] = {
             MappingField("id", "ID soutěže", True),
             MappingField("name", "Název", True),
             MappingField("discipline", "Disciplína", True),
-            MappingField("amount_of_rounds", "Počet kol", True),
+            MappingField("amount_of_rounds", "Počet kol", False),
         ),
     ),
     "competitors": TableMappingSchema(
