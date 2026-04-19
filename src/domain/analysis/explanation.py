@@ -34,7 +34,7 @@ class ExplanationGenerator:
         summary = result.get_summary()
         lines: list[str] = [
             "=" * 80,
-            "ANALÝZA ROZVRHU TANEČNÍHO KONKURZU",
+            "ANALÝZA HARMONOGRAMU TANEČNÍ SOUTĚŽE",
             "=" * 80,
             "",
             f"📝 Celkem porušení: {summary['total_violations']}",
@@ -89,7 +89,7 @@ class ExplanationGenerator:
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Analýza rozvrhu tanečního konkurzu</title>
+  <title>Analýza harmonogramu tanečního soutěže</title>
   <style>
     body {{
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -153,7 +153,7 @@ class ExplanationGenerator:
 </head>
 <body>
   <div class="header">
-    <h1>📊 Analýza rozvrhu tanečního konkurzu</h1>
+    <h1>📊 Analýza harmonogramu tanečního soutěže</h1>
     <p>Datum vytvoření zprávy: {datetime.now().strftime('%d.%m.%Y %H:%M')}</p>
   </div>
 
@@ -260,7 +260,7 @@ class ExplanationGenerator:
 
         if violation.source_rows:
             rows = ", ".join(str(r) for r in sorted(set(violation.source_rows)))
-            html += f"        <p>📍 Řádky rozvrhu: {rows}</p>\n"
+            html += f"        <p>📍 Řádky harmonogramu: {rows}</p>\n"
 
         html += """
       </div>

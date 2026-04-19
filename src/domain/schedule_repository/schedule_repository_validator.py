@@ -89,7 +89,7 @@ class ScheduleRepositoryValidator:
                 issues.append(
                     ScheduleRepositoryValidationIssue(
                         code="COMPETITOR_WITHOUT_PERFORMANCES",
-                        message=f"Soutěžící '{competitor.dancer_1_name}' nemá v rozvrhu žádná vystoupení",
+                        message=f"Soutěžící '{competitor.dancer_1_name}' nemá v harmonogramu žádná vystoupení",
                         severity=ValidationIssueSeverity.WARNING,
                         context={"competitor_name": competitor.dancer_1_name},
                     )
@@ -120,7 +120,7 @@ class ScheduleRepositoryValidator:
                 issues.append(
                     ScheduleRepositoryValidationIssue(
                         code="JURY_WITHOUT_PERFORMANCES",
-                        message=f"Člen poroty '{jury_member.fullname}' nemá v rozvrhu žádná vystoupení",
+                        message=f"Člen poroty '{jury_member.fullname}' nemá v harmonogramu žádná vystoupení",
                         severity=ValidationIssueSeverity.WARNING,
                         context={"jury_member_fullname": jury_member.fullname},
                     )

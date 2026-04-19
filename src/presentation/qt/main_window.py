@@ -40,7 +40,7 @@ def resolve_rules_config_path() -> Path:
 class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
-        self.setWindowTitle("Analýza rozvrhu tanečního konkurzu")
+        self.setWindowTitle("Analýza harmonogramu tanečního soutěže")
 
         self._controller = UiController(
             rules_config_path=resolve_rules_config_path(),
@@ -171,7 +171,7 @@ class MainWindow(QMainWindow):
         if analysis_view is None:
             QMessageBox.information(
                 self,
-                "Přehled chyb v rozvrhu",
+                "Přehled chyb v harmonogramu",
                 "Nejprve spusťte úspěšnou analýzu.",
             )
             return
@@ -180,8 +180,8 @@ class MainWindow(QMainWindow):
         if schedule_df is None:
             QMessageBox.information(
                 self,
-                "Přehled chyb v rozvrhu",
-                "Běhová data rozvrhu nejsou dostupná. Spusťte prosím analýzu znovu.",
+                "Přehled chyb v harmonogramu",
+                "Běhová data harmonogramu nejsou dostupná. Spusťte prosím analýzu znovu.",
             )
             return
 

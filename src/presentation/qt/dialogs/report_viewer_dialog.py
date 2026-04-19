@@ -23,7 +23,7 @@ class ReportViewerDialog(QDialog):
 
     def __init__(self, report_path: str, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Zpráva o analýze rozvrhu")
+        self.setWindowTitle("Zpráva o analýze harmonogramu")
         self.resize(960, 720)
 
         layout = QVBoxLayout(self)

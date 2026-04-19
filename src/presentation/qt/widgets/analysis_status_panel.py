@@ -65,7 +65,7 @@ class AnalysisStatusPanel(QWidget):
         inner.addLayout(row_reports)
 
         row_schedule = QHBoxLayout()
-        self._btn_schedule = QPushButton("📋 Chyby v rozvrhu")
+        self._btn_schedule = QPushButton("📋 Chyby v harmonogramu")
         self._btn_schedule.clicked.connect(self.open_schedule_violations_requested.emit)
         row_schedule.addWidget(self._btn_schedule)
         inner.addLayout(row_schedule)

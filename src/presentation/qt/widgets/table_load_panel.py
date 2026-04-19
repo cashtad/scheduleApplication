@@ -26,9 +26,9 @@ _DOT_STYLE = "border-radius: 8px; width: 16px; height: 16px; background-color: {
 
 _TABLE_LABELS = {
     "competitions": "Soutěže",
-    "competitors": "Účastníci",
+    "competitors": "Soutěžící",
     "jury": "Porotci",
-    "schedule": "Rozvrh",
+    "schedule": "Harmonogram",
 }
 
 _STATUS_UI = {

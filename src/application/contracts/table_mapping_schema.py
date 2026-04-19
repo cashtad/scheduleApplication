@@ -39,9 +39,9 @@ TABLE_MAPPING_SCHEMAS: dict[str, TableMappingSchema] = {
     "competitors": TableMappingSchema(
         table_key="competitors",
         fields=(
-            MappingField("count", "Počet závodníků páru", True),
-            MappingField("p1_name_surname", "Jméno závodníka 1", True),
-            MappingField("p2_name_surname", "Jméno závodníka 2", False),
+            MappingField("count", "Počet soutěžících páru", True),
+            MappingField("p1_name_surname", "Jméno soutěžícího 1", True),
+            MappingField("p2_name_surname", "Jméno soutěžícího 2", False),
             MappingField("assignment_prefix", "Prefix pro ID soutěží (např. '#')", False, virtual=True),
         ),
     ),

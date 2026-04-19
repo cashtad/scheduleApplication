@@ -50,7 +50,7 @@ class ScheduleTableParser(BaseTableParser[Performance]):
                         row_index=safe_row_index,
                         exc=exc,
                         default_code="SCHEDULE_ROW_PARSE_FAILED",
-                        default_message="Nepodařilo se zpracovat řádek rozvrhu. Zkontrolujte ID soutěže, čas začátku a délku trvání.",
+                        default_message="Nepodařilo se zpracovat řádek harmonogramu. Zkontrolujte ID soutěže, čas začátku a délku trvání.",
                     )
                 )
 

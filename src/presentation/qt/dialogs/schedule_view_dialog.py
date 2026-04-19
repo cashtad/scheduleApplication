@@ -45,7 +45,7 @@ class ScheduleViewDialog(QDialog):
         parent=None,
     ) -> None:
         super().__init__(parent)
-        self.setWindowTitle("Přehled chyb v rozvrhu")
+        self.setWindowTitle("Přehled chyb v harmonogramu")
         self.resize(1300, 760)
 
         self._df = schedule_df
