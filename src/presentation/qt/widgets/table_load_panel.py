@@ -89,9 +89,15 @@ class TableLoadPanel(QWidget):
         self._path_label.setMinimumWidth(50)
         root.addWidget(self._path_label)
 
-        self._action_btn = QPushButton()
-        self._action_btn.clicked.connect(self._on_action_clicked)
-        root.addWidget(self._action_btn)
+        actions_row = QHBoxLayout()
+        self._edit_selected_btn = QPushButton()
+        self._edit_selected_btn.clicked.connect(self._on_edit_selected_clicked)
+        actions_row.addWidget(self._edit_selected_btn)
+
+        self._select_other_btn = QPushButton()
+        self._select_other_btn.clicked.connect(self._on_select_other_clicked)
+        actions_row.addWidget(self._select_other_btn)
+        root.addLayout(actions_row)
 
         self.refresh()
 
@@ -101,9 +107,17 @@ class TableLoadPanel(QWidget):
         text, color = _STATUS_UI.get(status, (status.value, "#9E9E9E"))
         self._dot.setStyleSheet(_DOT_STYLE.format(color=color))
         self._status_label.setText(text)
-        self._action_btn.setText(
-            "Změnit" if status in {TableStatus.MAPPED, TableStatus.READY} else "Načíst"
-        )
+
+        has_current_selection = bool(state.file_path and state.sheet_name)
+        self._edit_selected_btn.setVisible(has_current_selection)
+        self._edit_selected_btn.setEnabled(has_current_selection)
+        if status in {TableStatus.MAPPED, TableStatus.READY, TableStatus.MAPPING_STALE}:
+            self._edit_selected_btn.setText("Upravit mapování")
+        else:
+            self._edit_selected_btn.setText("Pracovat s vybraným listem")
+
+        self._select_other_btn.setText("Vybrat jiný" if has_current_selection else "Načíst")
+
         self._full_path = state.file_path if state.file_path else ""
         self._update_path_label()
         self.status_changed.emit()
@@ -123,8 +137,8 @@ class TableLoadPanel(QWidget):
         super().resizeEvent(event)
         self._update_path_label()
 
-    def _on_action_clicked(self) -> None:
-        context = self._build_load_context()
+    def _on_select_other_clicked(self) -> None:
+        context = self._build_load_context_from_new_selection()
         if context is None:
             return
 
@@ -140,7 +154,18 @@ class TableLoadPanel(QWidget):
 
         self.refresh()
 
-    def _build_load_context(self) -> TableLoadContext | None:
+    def _on_edit_selected_clicked(self) -> None:
+        context = self._build_load_context_from_current_selection()
+        if context is None:
+            return
+
+        if self._open_mapping_dialog_and_apply(context):
+            self._finalize_success(context.df)
+            return
+
+        self.refresh()
+
+    def _build_load_context_from_new_selection(self) -> TableLoadContext | None:
         previous_mapping = dict(
             self._controller.session.get_table(self._table_key).column_mapping
         )
@@ -153,7 +178,42 @@ class TableLoadPanel(QWidget):
         if sheet_name is None:
             return None
 
-        df = self._read_dataframe(file_path, str(sheet_name))
+        df = self._read_dataframe(file_path, sheet_name)
+        if df is None:
+            return None
+
+        current_columns = [str(c) for c in df.columns]
+        reusable_mapping = self._controller.get_applicable_mapping_for_columns(
+            table_key=self._table_key,
+            mapping=previous_mapping,
+            current_columns=current_columns,
+        )
+
+        return TableLoadContext(
+            file_path=file_path,
+            sheet_name=sheet_name,
+            df=df,
+            current_columns=current_columns,
+            previous_mapping=previous_mapping,
+            reusable_mapping=reusable_mapping,
+        )
+
+    def _build_load_context_from_current_selection(self) -> TableLoadContext | None:
+        state = self._controller.get_table_state(self._table_key)
+        if not state.file_path or not state.sheet_name:
+            QMessageBox.information(
+                self,
+                "Vybraná tabulka",
+                "Nejprve vyberte soubor a list tabulky.",
+            )
+            self.refresh()
+            return None
+
+        previous_mapping = dict(state.column_mapping)
+        file_path = state.file_path
+        sheet_name = state.sheet_name
+
+        df = self._read_dataframe(file_path, sheet_name)
         if df is None:
             return None
 
@@ -182,7 +242,7 @@ class TableLoadPanel(QWidget):
         )
         return file_path or None
 
-    def _choose_sheet_name(self, file_path: str) -> str | int | None:
+    def _choose_sheet_name(self, file_path: str) -> str | None:
         try:
             sheet_names = self._controller.get_sheet_names(file_path)
         except Exception as exc:
@@ -200,13 +260,15 @@ class TableLoadPanel(QWidget):
             return None
 
         if len(sheet_names) == 1:
-            return sheet_names[0]
+            return str(sheet_names[0])
+
+        sheet_options = [str(name) for name in sheet_names]
 
         selected, ok = QInputDialog.getItem(
             self,
             "Výběr listu",
             "Vyberte list tabulky:",
-            sheet_names,
+            sheet_options,
             0,
             False,
         )
