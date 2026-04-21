@@ -99,23 +99,23 @@ class AnalysisViewPresenter:
                 items.append(LocalizedDetailItem(label=label, value=text))
 
         if rule_name == "MaxGapBetweenPerformances":
-            add("Přestavka", details.get("gap_minutes"))
+            add("Přestavka", self.format_minutes_into_hours(details.get("gap_minutes")))
             add("Časový úsek", self._format_time_range(details, "from_time", "to_time"))
         elif rule_name == "CostumeChangeTime":
-            add("Dostupný čas na převlečení", details.get("gap_minutes"))
+            add("Dostupný čas na převlečení", self.format_minutes_into_hours(details.get("gap_minutes")))
             add(
                 "Přechod disciplín",
                 self._format_pair(details, "from_discipline", "to_discipline", " -> "),
             )
             add("Časový úsek", self._format_time_range(details, "from_time", "to_time"))
         elif rule_name in {"MaxContinuousDancing", "MaxContinuousJudging"}:
-            add("Délka souvislé aktivity", details.get("duration_minutes"))
+            add("Délka souvislé aktivity", self.format_minutes_into_hours(details.get("duration_minutes")))
             add(
                 "Časový úsek",
                 self._format_time_range(details, "start_time", "end_time"),
             )
         elif rule_name in {"SimultaneousDancing", "SimultaneousJudging"}:
-            add("Doba překryvu", details.get("overlap_minutes"))
+            add("Doba překryvu", self.format_minutes_into_hours(details.get("overlap_minutes")))
             add(
                 "Čas překryvu",
                 self._format_time_range(details, "overlap_start", "overlap_end"),
@@ -134,6 +134,22 @@ class AnalysisViewPresenter:
                 add(label, value)
 
         return items
+
+    def format_minutes_into_hours(self, minutes: Any) -> str:
+        if minutes is None or not isinstance(minutes, (int, float)):
+            return ""
+        if isinstance(minutes, float):
+            minutes = int(minutes)
+        hours, minutes = self.minutes_to_hours_minutes(minutes)
+        if hours > 0:
+            return f"{int(hours)} h {int(minutes)} min" if minutes > 0 else f"{int(hours)}h"
+        else:
+            return f"{int(minutes)} min"
+
+    def minutes_to_hours_minutes(self, minutes: int) -> tuple[int, int]:
+        hours = minutes // 60
+        minutes = minutes % 60
+        return hours, minutes
 
     def _format_value(self, value: Any) -> str:
         if value is None:
