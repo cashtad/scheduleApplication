@@ -1,4 +1,4 @@
-from .analyze_workflow_result import AnalyzeWorkflowResult
+from .analyze_workflow_result import AnalyzeWorkflowResult, WorkflowStatus
 from .build_repository_result import BuildRepositoryResult
 from .data_quality_report import DataQualityReport
 from .prepare_data_result import PrepareDataResult
@@ -8,7 +8,6 @@ from .readiness import (
     ReadinessReason,
     ReadinessReasonSeverity,
 )
-from .workflow_status import WorkflowStatus
 from .analysis_view import (
     AnalysisViewPresenter,
     AnalysisViewModel,
