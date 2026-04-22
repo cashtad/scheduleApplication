@@ -1,10 +1,18 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Any
 
-from .table_status import TableStatus
-
+class TableStatus(Enum):
+    EMPTY = "empty"
+    FILE_SELECTED = "file_selected"
+    SHEET_SELECTED = "sheet_selected"
+    MAPPED = "mapped"
+    READY = "ready"
+    BROKEN_PATH = "broken_path"
+    BROKEN_SHEET = "broken_sheet"
+    MAPPING_STALE = "mapping_stale"
 
 @dataclass(slots=True)
 class TableRuntimeState:
@@ -14,7 +22,7 @@ class TableRuntimeState:
     column_mapping: dict[str, str] = field(default_factory=dict)
     column_signature: list[str] = field(default_factory=list)
     status: TableStatus = TableStatus.EMPTY
-    raw_df: Any | None = None  # runtime only
+    raw_df: Any | None = None
 
     def is_minimally_configured(self) -> bool:
         return bool(self.file_path and self.sheet_name and self.column_mapping)

@@ -41,27 +41,28 @@ class TableIngestionService:
         self._config = config or IngestionServiceConfig()
 
     def ingest(self, inputs: Iterable[TableInput]) -> FullIngestionResult:
+        raw_tables: dict[str, DataFrame | None] = {}
+
         by_key = {x.table_key: x for x in inputs}
 
-        competitions_result, competitions_schema, _ = self._ingest_competitions(
+        competitions_result, competitions_schema, competitions_raw_df = self._ingest_competitions(
             by_key.get("competitions")
         )
-        competitors_result, competitors_schema, _ = self._ingest_competitors(
+        raw_tables["competitions"] = competitions_raw_df
+        competitors_result, competitors_schema, competitors_raw_df = self._ingest_competitors(
             by_key.get("competitors")
         )
-        jury_result, jury_schema, _ = self._ingest_jury(by_key.get("jury"))
+        raw_tables["competitors"] = competitors_raw_df
+        jury_result, jury_schema, jury_raw_df = self._ingest_jury(by_key.get("jury"))
+        raw_tables["jury"] = jury_raw_df
         schedule_result, schedule_schema, schedule_raw_df = self._ingest_schedule(
             by_key.get("schedule")
         )
-
+        raw_tables["schedule"] = schedule_raw_df
         schema_issues = (
             competitions_schema + competitors_schema + jury_schema + schedule_schema
         )
         schema_issues = self._deduplicate_issues(schema_issues)
-
-        raw_tables: dict[str, DataFrame] = {}
-        if schedule_raw_df is not None:
-            raw_tables["schedule"] = schedule_raw_df
 
         return FullIngestionResult(
             competitions=competitions_result,

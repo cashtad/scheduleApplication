@@ -1,11 +1,16 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import Enum
 
 from src.application.dto.data_quality_report import DataQualityReport
-from src.application.dto.workflow_status import WorkflowStatus
 from src.domain import ScheduleAnalysisResult
 
+
+class WorkflowStatus(Enum):
+    SUCCESS = "success"
+    BLOCKED = "blocked"
+    FAILED = "failed"
 
 @dataclass(frozen=True, slots=True)
 class AnalyzeWorkflowResult:

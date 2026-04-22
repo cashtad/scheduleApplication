@@ -17,7 +17,7 @@ class FullIngestionResult:
     jury_members: TableParseResult[JuryMember]
     performances: TableParseResult[Performance]
     schema_issues: list[IngestionIssue] = field(default_factory=list)
-    raw_tables: dict[str, DataFrame] = field(default_factory=dict)
+    raw_tables: dict[str, DataFrame | None] = field(default_factory=dict)
 
     @property
     def all_row_issues(self) -> list[IngestionIssue]:

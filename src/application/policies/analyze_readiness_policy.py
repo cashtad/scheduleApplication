@@ -25,8 +25,6 @@ class AnalyzeReadinessPolicy:
     ) -> AnalyzeReadinessResult:
         reasons: list[ReadinessReason] = []
 
-        # TODO: rewrite to use more flexible approach with rules and conditions
-
         # BLOCK 1: schema errors
         if prepare_data_result.schema_errors_count > 0:
             reasons.append(

@@ -125,15 +125,20 @@ class MappingDialog(QDialog):
         buttons.rejected.connect(self.reject)
         root.addWidget(buttons)
 
-        if existing_mapping:
-            for k, v in existing_mapping.items():
-                self._selected_values[k] = v
+        self._sync_selected_values_from_widgets()
 
         for field in self._fields:
             if field.key.endswith("_prefix"):
                 self._update_prefix_hint(field.key, self._selected_values.get(field.key, ""))
 
         self._refresh_highlights()
+
+    def _sync_selected_values_from_widgets(self) -> None:
+        for field in self._fields:
+            if field.key in self._combos:
+                self._selected_values[field.key] = self._combos[field.key].currentText()
+            elif field.key in self._line_edits:
+                self._selected_values[field.key] = self._line_edits[field.key].text()
 
     def _build_prefix_editor(self, field_key: str, existing_value: str) -> QWidget:
         box = QWidget()

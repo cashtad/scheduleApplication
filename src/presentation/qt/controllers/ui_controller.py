@@ -5,18 +5,17 @@ from typing import Iterable
 
 from pandas import DataFrame
 
-from session import TableRuntimeState
 from src.application.bootstrap import AppContainer, build_app_container
 from src.application.dto import (
     AnalyzeWorkflowResult,
     AnalysisViewModel,
     DataQualityReport,
-    WorkflowStatus,
     build_analysis_view_model,
+    WorkflowStatus
 )
 from src.application.services import MappingTemplateService, SessionService
 from src.infrastructure import PandasExcelReader
-from src.session import AppSession, REQUIRED_TABLE_KEYS, TableStatus
+from src.session import AppSession, REQUIRED_TABLE_KEYS, TableRuntimeState, TableStatus
 
 
 class UiController:
