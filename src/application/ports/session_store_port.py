@@ -19,9 +19,10 @@ class PersistedSession:
     tables: dict[str, PersistedTableState]
 
 
-class SessionStore(Protocol):
+class SessionStorePort(Protocol):
     def load(self) -> PersistedSession | None:
         ...
 
     def save(self, session: PersistedSession) -> None:
         ...
+

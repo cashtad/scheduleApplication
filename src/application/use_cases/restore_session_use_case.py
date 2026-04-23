@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from src.infrastructure import SessionStore
+from src.application.ports import SessionStorePort
 from src.session import AppSession, REQUIRED_TABLE_KEYS, TableRuntimeState, TableStatus
 
 
 class RestoreSessionUseCase:
-    def __init__(self, session_store: SessionStore) -> None:
+    def __init__(self, session_store: SessionStorePort) -> None:
         self._session_store = session_store
 
     def execute(self) -> AppSession:

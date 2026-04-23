@@ -6,8 +6,13 @@ import tempfile
 from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import cast
 
-from .session_store import PersistedSession, PersistedTableState, SessionStore
+from src.application.ports import (
+    PersistedSession,
+    PersistedTableState,
+    SessionStorePort,
+)
 
 try:
     from platformdirs import user_data_dir
@@ -15,7 +20,7 @@ except Exception:
     user_data_dir = None
 
 
-class JsonSessionStore(SessionStore):
+class JsonSessionStore(SessionStorePort):
     def __init__(self, app_name: str = "DanceScheduleAnalyzer", app_author: str = "Leonid Malakhov") -> None:
         self._path = JsonSessionStore._resolve_session_path(app_name=app_name, app_author=app_author)
 
@@ -41,7 +46,9 @@ class JsonSessionStore(SessionStore):
             tables[table_key] = PersistedTableState(
                 file_path=payload.get("file_path"),
                 sheet_name=payload.get("sheet_name"),
-                column_mapping=dict(payload.get("column_mapping", {})),
+                column_mapping=cast(
+                    dict[str, str], dict(payload.get("column_mapping", {}))
+                ),
                 column_signature=list(payload.get("column_signature", [])),
             )
 

@@ -6,6 +6,7 @@ from typing import Iterable
 from pandas import DataFrame
 
 from src.application.bootstrap import AppContainer, build_app_container
+from src.application.ports import ExcelReaderPort
 from src.application.dto import (
     AnalyzeWorkflowResult,
     AnalysisViewModel,
@@ -14,7 +15,6 @@ from src.application.dto import (
     WorkflowStatus
 )
 from src.application.services import MappingTemplateService, SessionService
-from src.infrastructure import PandasExcelReader
 from src.session import AppSession, REQUIRED_TABLE_KEYS, TableRuntimeState, TableStatus
 
 
@@ -41,8 +41,7 @@ class UiController:
 
         self._last_workflow_result: AnalyzeWorkflowResult | None = None
         self._last_analysis_view: AnalysisViewModel | None = None
-
-        self.excel_reader = PandasExcelReader()
+        self._excel_reader: ExcelReaderPort = self._container.excel_reader
 
     @property
     def session(self) -> AppSession:
@@ -57,10 +56,10 @@ class UiController:
         return self._last_analysis_view
 
     def read(self, file_path: str, sheet_name: str | None) -> DataFrame:
-        return self.excel_reader.read(file_path, sheet_name)
+        return self._excel_reader.read(file_path, sheet_name)
 
     def get_sheet_names(self, file_path: str) -> list[str | int]:
-        return self.excel_reader.get_sheet_names(file_path)
+        return self._excel_reader.get_sheet_names(file_path)
 
     def required_table_keys(self) -> tuple[str, ...]:
         return REQUIRED_TABLE_KEYS

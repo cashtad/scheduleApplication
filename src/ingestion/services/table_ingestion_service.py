@@ -22,8 +22,8 @@ from src.ingestion.parsers import (
     ScheduleTableParser,
 )
 from .assignment_columns_selector import AssignmentColumnsMode
+from src.application.ports import ExcelReaderPort
 from src.domain import Competition, Competitor, JuryMember, Performance
-from src.infrastructure import ExcelReader
 
 
 @dataclass(frozen=True, slots=True)
@@ -35,7 +35,7 @@ class IngestionServiceConfig:
 
 class TableIngestionService:
     def __init__(
-        self, excel_reader: ExcelReader, config: IngestionServiceConfig | None = None
+        self, excel_reader: ExcelReaderPort, config: IngestionServiceConfig | None = None
     ) -> None:
         self._excel_reader = excel_reader
         self._config = config or IngestionServiceConfig()

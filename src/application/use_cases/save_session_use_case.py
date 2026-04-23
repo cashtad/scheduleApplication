@@ -2,12 +2,16 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from src.infrastructure import PersistedSession, PersistedTableState, SessionStore
+from src.application.ports import (
+    PersistedSession,
+    PersistedTableState,
+    SessionStorePort,
+)
 from src.session import AppSession
 
 
 class SaveSessionUseCase:
-    def __init__(self, session_store: SessionStore) -> None:
+    def __init__(self, session_store: SessionStorePort) -> None:
         self._session_store = session_store
 
     def execute(self, session: AppSession) -> None:

@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
+from src.application.ports import ExcelReaderPort, SessionStorePort
 from src.application.policies import AnalyzeReadinessPolicy
 from src.application.services import (
     SessionRuntimeDataSyncService,
@@ -33,6 +34,7 @@ class AppContainer:
     restore_session_use_case: RestoreSessionUseCase
     save_session_use_case: SaveSessionUseCase
     revalidate_session_use_case: RevalidateSessionUseCase
+    excel_reader: ExcelReaderPort
 
 
 def build_app_container(
@@ -41,8 +43,8 @@ def build_app_container(
     row_error_threshold: float = 0.5,
     reports_dir: str = ".reports",
     with_html_report_writer: bool = True,
-    session_store: JsonSessionStore | None = None,
-    excel_reader: PandasExcelReader | None = None,
+    session_store: SessionStorePort | None = None,
+    excel_reader: ExcelReaderPort | None = None,
 ) -> AppContainer:
     store = session_store or JsonSessionStore()
     reader = excel_reader or PandasExcelReader()
@@ -99,4 +101,5 @@ def build_app_container(
         restore_session_use_case=restore_session_use_case,
         save_session_use_case=save_session_use_case,
         revalidate_session_use_case=revalidate_session_use_case,
+        excel_reader=reader,
     )
