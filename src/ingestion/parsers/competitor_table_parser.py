@@ -231,9 +231,3 @@ class CompetitorTableParser(BaseTableParser[Competitor]):
     def _is_assigned(self, value: Any) -> bool:
         normalized = self.as_str(value).lower()
         return normalized in {m.lower() for m in self._config.assigned_markers}
-
-    @staticmethod
-    def _error_severity():
-        from src.ingestion.dto.ingestion_severity import IngestionSeverity
-
-        return IngestionSeverity.ERROR

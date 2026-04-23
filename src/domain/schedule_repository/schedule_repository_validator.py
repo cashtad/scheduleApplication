@@ -230,7 +230,7 @@ class ScheduleRepositoryValidator:
         for competition in competitions:
             performances = repository.list_performances_by_competition_id(competition.id)
             amount = len(performances)
-            if competition.amount_of_rounds and competition.amount_of_rounds is not amount:
+            if competition.amount_of_rounds and competition.amount_of_rounds != amount:
                 issues.append(
                     ScheduleRepositoryValidationIssue(
                         code="WRONG_AMOUNT_OF_ROUNDS",

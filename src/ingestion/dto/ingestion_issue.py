@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Any
 
-from .ingestion_severity import IngestionSeverity
-
+class IngestionSeverity(Enum):
+    ERROR = "error"
+    WARNING = "warning"
 
 @dataclass(frozen=True, slots=True)
 class IngestionIssue:

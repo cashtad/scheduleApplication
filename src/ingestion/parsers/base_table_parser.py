@@ -258,3 +258,9 @@ class BaseTableParser(ABC, Generic[T]):
             parsed_rows=parsed_rows,
             skipped_rows=skipped_rows,
         )
+
+    @staticmethod
+    def _error_severity():
+        from src.ingestion.dto import IngestionSeverity
+
+        return IngestionSeverity.ERROR

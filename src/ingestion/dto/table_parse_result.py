@@ -3,8 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Generic, TypeVar
 
-from .ingestion_issue import IngestionIssue
-from .ingestion_severity import IngestionSeverity
+from .ingestion_issue import IngestionIssue, IngestionSeverity
 from .table_parse_stats import TableParseStats
 
 T = TypeVar("T")
