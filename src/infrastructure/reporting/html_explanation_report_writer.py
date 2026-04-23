@@ -3,11 +3,11 @@ from __future__ import annotations
 from datetime import datetime
 from pathlib import Path
 
-from src.application.ports.html_report_writer import HtmlReportWriter
+from src.application.ports import HtmlReportWriterPort
 from src.domain import ExplanationGenerator, ScheduleAnalysisResult
 
 
-class HtmlExplanationReportWriter(HtmlReportWriter):
+class HtmlExplanationReportWriter(HtmlReportWriterPort):
     def __init__(self, output_dir: str = ".reports") -> None:
         self._output_dir = Path(output_dir)
         self._generator = ExplanationGenerator()

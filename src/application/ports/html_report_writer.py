@@ -5,5 +5,5 @@ from typing import Protocol
 from src.domain import ScheduleAnalysisResult
 
 
-class HtmlReportWriter(Protocol):
+class HtmlReportWriterPort(Protocol):
     def write(self, analysis_result: ScheduleAnalysisResult) -> str: ...

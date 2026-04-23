@@ -1,4 +1,4 @@
-from .html_report_writer import HtmlReportWriter
+from .html_report_writer import HtmlReportWriterPort
 from .excel_reader_port import ExcelReaderPort
 from .session_store_port import (
 	PersistedSession,
@@ -7,7 +7,7 @@ from .session_store_port import (
 )
 
 __all__ = [
-	"HtmlReportWriter",
+	"HtmlReportWriterPort",
 	"ExcelReaderPort",
 	"SessionStorePort",
 	"PersistedSession",

@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from src.application.dto import BuildRepositoryResult
-from src.application.ports import HtmlReportWriter
+from src.application.ports import HtmlReportWriterPort
 from src.domain import InferenceEngine, ScheduleAnalysisResult
 
 
@@ -17,7 +17,7 @@ class RunScheduleAnalysisUseCase:
     def __init__(
         self,
         inference_engine: InferenceEngine,
-        html_report_writer: HtmlReportWriter | None = None,
+        html_report_writer: HtmlReportWriterPort | None = None,
     ) -> None:
         self._inference_engine = inference_engine
         self._html_report_writer = html_report_writer
