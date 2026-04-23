@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from src.application.services import SessionStatusSyncService
+from src.application.services.session_status_sync_service import SessionStatusSyncService
 from src.application.use_cases.save_session_use_case import SaveSessionUseCase
 from src.ingestion import TableInput, TableIngestionService
 from src.session import AppSession, REQUIRED_TABLE_KEYS, TableStatus

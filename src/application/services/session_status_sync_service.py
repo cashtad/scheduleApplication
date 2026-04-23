@@ -1,13 +1,19 @@
 from __future__ import annotations
 
 from src.ingestion import FullIngestionResult, IngestionSeverity
-from src.session import AppSession, REQUIRED_TABLE_KEYS, TableStatus
+from src.session import AppSession, REQUIRED_TABLE_KEYS
+
+from .table_status_transition_service import TableStatusTransitionService
 
 
 class SessionStatusSyncService:
-    @staticmethod
+    def __init__(self, transition_service: TableStatusTransitionService) -> None:
+        self._transition_service = transition_service
+
     def sync_after_ingestion(
-        session: AppSession, ingestion_result: FullIngestionResult
+        self,
+        session: AppSession,
+        ingestion_result: FullIngestionResult,
     ) -> None:
         session.ensure_required_tables()
 
@@ -19,10 +25,6 @@ class SessionStatusSyncService:
             table = session.get_table(table_key)
             issues = schema_by_table.get(table_key, [])
 
-            if not table.file_path:
-                table.status = TableStatus.EMPTY
-                continue
-
             error_codes = {
                 i.code for i in issues if i.severity == IngestionSeverity.ERROR
             }
@@ -30,24 +32,8 @@ class SessionStatusSyncService:
                 i.code for i in issues if i.severity == IngestionSeverity.WARNING
             }
 
-            if "FILE_NOT_FOUND" in error_codes or "FILE_PATH_EMPTY" in error_codes:
-                table.status = TableStatus.BROKEN_PATH
-                continue
-
-            if (
-                "SHEET_NOT_FOUND" in error_codes
-                or "SHEET_ENUMERATION_FAILED" in error_codes
-            ):
-                table.status = TableStatus.BROKEN_SHEET
-                continue
-
-            if "COLUMN_SIGNATURE_MISMATCH" in warning_codes:
-                table.status = TableStatus.MAPPING_STALE
-                continue
-
-            if table.column_mapping:
-                table.status = TableStatus.READY
-            elif table.sheet_name:
-                table.status = TableStatus.SHEET_SELECTED
-            else:
-                table.status = TableStatus.FILE_SELECTED
+            table.status = self._transition_service.on_ingestion_outcome(
+                table=table,
+                error_codes=error_codes,
+                warning_codes=warning_codes,
+            )

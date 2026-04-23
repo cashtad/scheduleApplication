@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from src.application.dto import PrepareDataResult
-from src.application.services import (
+from src.application.services.session_runtime_data_sync_service import (
     SessionRuntimeDataSyncService,
-    SessionStatusSyncService,
 )
+from src.application.services.session_status_sync_service import SessionStatusSyncService
 from src.ingestion import TableInput, TableIngestionService
 from src.session import AppSession, REQUIRED_TABLE_KEYS
 

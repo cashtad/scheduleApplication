@@ -14,7 +14,7 @@ from src.application.dto import (
     build_analysis_view_model,
     WorkflowStatus
 )
-from src.application.services import MappingValidationService, SessionService
+from src.application.services import MappingValidationService
 from src.session import AppSession, REQUIRED_TABLE_KEYS, TableRuntimeState, TableStatus
 
 
@@ -33,7 +33,7 @@ class UiController:
             with_html_report_writer=with_html_report_writer,
             row_error_threshold=row_error_threshold,
         )
-        self._session_service = SessionService(self._container.save_session_use_case)
+        self._session_service = self._container.session_service
         self._mapping_validation_service = MappingValidationService()
 
         self._session: AppSession = self._container.restore_session_use_case.execute()

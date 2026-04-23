@@ -5,9 +5,13 @@ from pathlib import Path
 
 from src.application.ports import ExcelReaderPort, SessionStorePort
 from src.application.policies import AnalyzeReadinessPolicy
-from src.application.services import (
+from src.application.services.session_runtime_data_sync_service import (
     SessionRuntimeDataSyncService,
-    SessionStatusSyncService,
+)
+from src.application.services.session_service import SessionService
+from src.application.services.session_status_sync_service import SessionStatusSyncService
+from src.application.services.table_status_transition_service import (
+    TableStatusTransitionService,
 )
 from src.application.use_cases import (
     BuildRepositoryUseCase,
@@ -34,6 +38,7 @@ class AppContainer:
     restore_session_use_case: RestoreSessionUseCase
     save_session_use_case: SaveSessionUseCase
     revalidate_session_use_case: RevalidateSessionUseCase
+    session_service: SessionService
     excel_reader: ExcelReaderPort
 
 
@@ -53,12 +58,22 @@ def build_app_container(
 
     repository_builder = ScheduleRepositoryBuilder()
     inference_engine = InferenceEngine(rules_config=rules_config)
+    status_transition_service = TableStatusTransitionService()
 
     save_session_use_case = SaveSessionUseCase(store)
-    restore_session_use_case = RestoreSessionUseCase(store)
+    restore_session_use_case = RestoreSessionUseCase(
+        store,
+        transition_service=status_transition_service,
+    )
+    session_service = SessionService(
+        save_session_use_case=save_session_use_case,
+        transition_service=status_transition_service,
+    )
 
     ingestion_service = TableIngestionService(excel_reader=reader)
-    status_sync_service = SessionStatusSyncService()
+    status_sync_service = SessionStatusSyncService(
+        transition_service=status_transition_service,
+    )
     runtime_data_sync_service = SessionRuntimeDataSyncService()
 
     prepare_data_use_case = PrepareDataUseCase(
@@ -101,5 +116,6 @@ def build_app_container(
         restore_session_use_case=restore_session_use_case,
         save_session_use_case=save_session_use_case,
         revalidate_session_use_case=revalidate_session_use_case,
+        session_service=session_service,
         excel_reader=reader,
     )
