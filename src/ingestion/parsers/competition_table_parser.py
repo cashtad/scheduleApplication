@@ -13,15 +13,7 @@ class CompetitionTableParser(BaseTableParser[Competition]):
     def __init__(self, mapping: dict[str, str]) -> None:
         super().__init__(table_key="competitions", mapping=mapping)
 
-    def required_mapping_keys(self) -> list[str]:
-        return [
-            "id",
-            "name",
-            "discipline",
-        ]
-
     def parse(self, df: DataFrame) -> TableParseResult[Competition]:
-        self.validate_mapping_columns(df)
 
         issues: list[IngestionIssue] = []
         items: list[Competition] = []

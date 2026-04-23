@@ -6,11 +6,12 @@ from .table_runtime_state import TableRuntimeState
 
 
 REQUIRED_TABLE_KEYS: tuple[str, ...] = ("competitions", "competitors", "jury", "schedule")
+SESSION_VERSION: int = 2
 
 
 @dataclass(slots=True)
 class AppSession:
-    version: int = 1
+    version: int = SESSION_VERSION
     tables: dict[str, TableRuntimeState] = field(default_factory=dict)
     saved_at: str | None = None  # ISO timestamp of last persisted snapshot
 

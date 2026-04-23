@@ -4,6 +4,7 @@ from pathlib import Path
 
 from src.application.ports import SessionStorePort
 from src.session import AppSession, REQUIRED_TABLE_KEYS, TableRuntimeState, TableStatus
+from src.session.app_session import SESSION_VERSION
 
 
 class RestoreSessionUseCase:
@@ -18,7 +19,8 @@ class RestoreSessionUseCase:
         if persisted is None:
             return session
 
-        session.version = persisted.version
+        is_compatible = persisted.version == SESSION_VERSION
+        session.version = SESSION_VERSION
         session.saved_at = persisted.saved_at
 
         for table_key in REQUIRED_TABLE_KEYS:
@@ -30,8 +32,12 @@ class RestoreSessionUseCase:
                 table_key=table_key,
                 file_path=payload.file_path,
                 sheet_name=payload.sheet_name,
-                column_mapping=dict(payload.column_mapping),
-                column_signature=list(payload.column_signature),
+                column_mapping=(
+                    dict(payload.column_mapping) if is_compatible else {}
+                ),
+                column_signature=(
+                    list(payload.column_signature) if is_compatible else []
+                ),
             )
             table.status = self._infer_status(table)
             session.tables[table_key] = table

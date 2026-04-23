@@ -8,6 +8,7 @@ from src.application.ports import (
     SessionStorePort,
 )
 from src.session import AppSession
+from src.session.app_session import SESSION_VERSION
 
 
 class SaveSessionUseCase:
@@ -16,6 +17,7 @@ class SaveSessionUseCase:
 
     def execute(self, session: AppSession) -> None:
         session.ensure_required_tables()
+        session.version = SESSION_VERSION
 
         persisted_tables: dict[str, PersistedTableState] = {}
         for table_key, table in session.tables.items():
@@ -28,7 +30,7 @@ class SaveSessionUseCase:
 
         saved_at = datetime.now(timezone.utc).isoformat()
         persisted = PersistedSession(
-            version=session.version,
+            version=SESSION_VERSION,
             saved_at=saved_at,
             tables=persisted_tables,
         )

@@ -1,7 +1,4 @@
 from .mapping_validation_service import MappingValidationService, MappingValidationResult
-from .session_runtime_data_sync_service import SessionRuntimeDataSyncService
-from .session_status_sync_service import SessionStatusSyncService
-from .session_service import SessionService
 
 __all__ = [
     "MappingValidationService",
@@ -10,3 +7,20 @@ __all__ = [
     "SessionStatusSyncService",
     "SessionService",
 ]
+
+
+def __getattr__(name: str):
+    if name == "SessionRuntimeDataSyncService":
+        from .session_runtime_data_sync_service import SessionRuntimeDataSyncService
+
+        return SessionRuntimeDataSyncService
+    if name == "SessionStatusSyncService":
+        from .session_status_sync_service import SessionStatusSyncService
+
+        return SessionStatusSyncService
+    if name == "SessionService":
+        from .session_service import SessionService
+
+        return SessionService
+    raise AttributeError(name)
+

@@ -15,11 +15,7 @@ class ScheduleTableParser(BaseTableParser[Performance]):
     def __init__(self, mapping: dict[str, str]) -> None:
         super().__init__(table_key="schedule", mapping=mapping)
 
-    def required_mapping_keys(self) -> list[str]:
-        return ["competition_id", "start_time", "duration", "round_type"]
-
     def parse(self, df: DataFrame) -> TableParseResult[Performance]:
-        self.validate_mapping_columns(df)
 
         issues: list[IngestionIssue] = []
         items: list[Performance] = []

@@ -7,7 +7,7 @@ from typing import Any, Generic, TypeVar, cast
 from pandas import DataFrame, isna
 
 from src.ingestion.dto import IngestionIssue, IngestionSeverity, TableParseResult
-from .errors import MappingValidationError, UserFacingParseError
+from .errors import UserFacingParseError
 
 T = TypeVar("T")
 
@@ -31,47 +31,7 @@ class BaseTableParser(ABC, Generic[T]):
         return self._ctx.mapping
 
     @abstractmethod
-    def required_mapping_keys(self) -> list[str]: ...
-
-    def virtual_mapping_keys(self) -> set[str]:
-        return set()
-
-    @abstractmethod
     def parse(self, df: DataFrame) -> TableParseResult[T]: ...
-
-    # --------------------------
-    # Mapping / schema validation
-    # --------------------------
-
-    def validate_mapping_columns(self, df: DataFrame) -> None:
-        required_keys = self.required_mapping_keys()
-        virtual_keys = self.virtual_mapping_keys()
-
-        missing_keys = [k for k in required_keys if k not in self.mapping]
-        if missing_keys:
-            raise MappingValidationError(
-                code="MAP_MISSING_KEYS",
-                message=f"Chybějící klíče mapování: {', '.join(missing_keys)}",
-                context={"missing_keys": missing_keys, "table_key": self.table_key},
-            )
-
-        keys_requiring_real_columns = [
-            k for k in required_keys if k not in virtual_keys
-        ]
-        missing_columns = [
-            self.mapping[k]
-            for k in keys_requiring_real_columns
-            if self.mapping[k] not in set(df.columns)
-        ]
-        if missing_columns:
-            raise MappingValidationError(
-                code="MAP_MISSING_COLUMNS",
-                message=f"Namapované sloupce nebyly v tabulce nalezeny: {', '.join(missing_columns)}",
-                context={
-                    "missing_columns": missing_columns,
-                    "table_key": self.table_key,
-                },
-            )
 
     # --------------------------
     # Row helpers
@@ -176,11 +136,6 @@ class BaseTableParser(ABC, Generic[T]):
             issue_code = exc.code
             issue_message = exc.message
             issue_column_key = exc.column_key or issue_column_key
-            if isinstance(exc.context, dict):
-                issue_context.update(exc.context)
-        elif isinstance(exc, MappingValidationError):
-            issue_code = exc.code
-            issue_message = exc.message
             if isinstance(exc.context, dict):
                 issue_context.update(exc.context)
         else:

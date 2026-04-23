@@ -32,20 +32,7 @@ class JuryTableParser(BaseTableParser[JuryMember]):
         super().__init__(table_key="jury", mapping=mapping)
         self._config = config or JuryParserConfig()
 
-    def required_mapping_keys(self) -> list[str]:
-        base = []
-        if self._config.assignment_mode == AssignmentColumnsMode.PREFIX:
-            base.append("assignment_prefix")
-        return base
-
-    def virtual_mapping_keys(self) -> set[str]:
-        # assignment_prefix is not a dataframe column reference, but parser configuration value
-        return {"assignment_prefix"}
-
     def parse(self, df: DataFrame) -> TableParseResult[JuryMember]:
-        self._validate_jury_mapping_shape()
-        self.validate_mapping_columns(df)
-
         issues: list[IngestionIssue] = []
         items: list[JuryMember] = []
         total_rows = len(df.index)
@@ -96,20 +83,6 @@ class JuryTableParser(BaseTableParser[JuryMember]):
             parsed_rows=parsed_rows,
         )
 
-    def _validate_jury_mapping_shape(self) -> None:
-        has_fullname = bool((self.mapping.get("fullname") or "").strip())
-        has_name = bool((self.mapping.get("name") or "").strip())
-        has_surname = bool((self.mapping.get("surname") or "").strip())
-
-        if has_fullname:
-            return
-        if has_name and has_surname:
-            return
-
-        raise UserFacingParseError(
-            code="JURY_MAPPING_INVALID",
-            message="Mapování poroty musí obsahovat buď 'fullname', nebo obě pole 'name' a 'surname'",
-        )
 
     def _parse_row(
         self, row: Any, assignment_selection: AssignmentColumnsSelection

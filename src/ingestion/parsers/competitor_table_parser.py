@@ -32,18 +32,7 @@ class CompetitorTableParser(BaseTableParser[Competitor]):
         super().__init__(table_key="competitors", mapping=mapping)
         self._config = config or CompetitorParserConfig()
 
-    def required_mapping_keys(self) -> list[str]:
-        base = ["count", "p1_name_surname", "p2_name_surname"]
-        if self._config.assignment_mode == AssignmentColumnsMode.PREFIX:
-            base.append("assignment_prefix")
-        return base
-
-    def virtual_mapping_keys(self) -> set[str]:
-        # assignment_prefix is not a dataframe column reference, but parser configuration value
-        return {"assignment_prefix"}
-
     def parse(self, df: DataFrame) -> TableParseResult[Competitor]:
-        self.validate_mapping_columns(df)
 
         issues: list[IngestionIssue] = []
         items: list[Competitor] = []

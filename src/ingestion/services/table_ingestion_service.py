@@ -6,6 +6,7 @@ from typing import Iterable
 
 from pandas import DataFrame
 
+from src.application.services.mapping_validation_service import MappingValidationService
 from src.ingestion.dto import (
     FullIngestionResult,
     IngestionIssue,
@@ -35,10 +36,16 @@ class IngestionServiceConfig:
 
 class TableIngestionService:
     def __init__(
-        self, excel_reader: ExcelReaderPort, config: IngestionServiceConfig | None = None
+        self,
+        excel_reader: ExcelReaderPort,
+        config: IngestionServiceConfig | None = None,
+        mapping_validation_service: MappingValidationService | None = None,
     ) -> None:
         self._excel_reader = excel_reader
         self._config = config or IngestionServiceConfig()
+        self._mapping_validation_service = (
+            mapping_validation_service or MappingValidationService()
+        )
 
     def ingest(self, inputs: Iterable[TableInput]) -> FullIngestionResult:
         raw_tables: dict[str, DataFrame | None] = {}
@@ -183,6 +190,11 @@ class TableIngestionService:
         if signature_issue is not None:
             schema_issues.append(signature_issue)
 
+        mapping_issue = self._validate_mapping(table_input=table_input, df=df)
+        if mapping_issue is not None:
+            schema_issues.append(mapping_issue)
+            return self._empty_parse_result(table_key), schema_issues, df
+
         try:
             parse_result = parser.parse(df)
         except Exception as exc:
@@ -291,6 +303,31 @@ class TableIngestionService:
                 "saved_signature": list(table_input.column_signature),
                 "current_columns": list(current_columns),
             },
+        )
+
+    def _validate_mapping(
+        self,
+        table_input: TableInput,
+        df: DataFrame,
+    ) -> IngestionIssue | None:
+        check = self._mapping_validation_service.validate_mapping(
+            table_key=table_input.table_key,
+            mapping=table_input.mapping,
+            current_columns=[str(c) for c in df.columns],
+        )
+        if check.is_valid:
+            return None
+
+        context: dict[str, str] = {}
+        if check.field_key:
+            context["field_key"] = check.field_key
+
+        return IngestionIssue(
+            table_key=table_input.table_key,
+            code=check.code or "MAPPING_INVALID",
+            message=check.message or "Mapování tabulky je neplatné.",
+            severity=IngestionSeverity.ERROR,
+            context=context,
         )
 
     # --------------------------
