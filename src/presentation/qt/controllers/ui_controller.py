@@ -14,7 +14,7 @@ from src.application.dto import (
     build_analysis_view_model,
     WorkflowStatus
 )
-from src.application.services import MappingTemplateService, SessionService
+from src.application.services import MappingValidationService, SessionService
 from src.session import AppSession, REQUIRED_TABLE_KEYS, TableRuntimeState, TableStatus
 
 
@@ -34,7 +34,7 @@ class UiController:
             row_error_threshold=row_error_threshold,
         )
         self._session_service = SessionService(self._container.save_session_use_case)
-        self._mapping_template_service = MappingTemplateService()
+        self._mapping_validation_service = MappingValidationService()
 
         self._session: AppSession = self._container.restore_session_use_case.execute()
         self._container.revalidate_session_use_case.execute(self._session)
@@ -112,7 +112,7 @@ class UiController:
         mapping: dict[str, str],
         current_columns: list[str],
     ) -> tuple[bool, str]:
-        check = self._mapping_template_service.validate_mapping(
+        check = self._mapping_validation_service.validate_mapping(
             table_key=table_key,
             mapping=mapping,
             current_columns=current_columns,
@@ -125,7 +125,7 @@ class UiController:
         current_columns: list[str],
     ) -> dict[str, str] | None:
         table = self._session.get_table(table_key)
-        return self._mapping_template_service.get_applicable_saved_mapping(
+        return self._mapping_validation_service.get_applicable_saved_mapping(
             table_state=table,
             current_columns=current_columns,
         )

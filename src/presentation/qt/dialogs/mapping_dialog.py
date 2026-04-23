@@ -298,12 +298,5 @@ class MappingDialog(QDialog):
             if field.required and not value:
                 missing.append(field.label)
 
-        if self._table_key == "jury":
-            fullname = (mapping.get("fullname") or "").strip()
-            name = (mapping.get("name") or "").strip()
-            surname = (mapping.get("surname") or "").strip()
-
-            if not fullname and not (name and surname):
-                missing.append("Celé jméno nebo kombinace Jméno + Příjmení")
 
         return missing
