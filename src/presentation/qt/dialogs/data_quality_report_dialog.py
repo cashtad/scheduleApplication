@@ -17,6 +17,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from src.application.contracts import get_table_spec
 from src.application.dto import DataQualityReport
 from src.ingestion import IngestionIssue
 
@@ -30,14 +31,6 @@ _SEVERITY_LABELS_CZ = {
     "error": "chyba",
     "warning": "upozornění",
 }
-
-_TABLE_LABELS_CZ = {
-    "competitions": "Soutěže",
-    "competitors": "Soutěžící",
-    "jury": "Porota",
-    "schedule": "Rozvrh",
-}
-
 
 class DataQualityReportDialog(QDialog):
     def __init__(self, report: DataQualityReport, parent=None) -> None:
@@ -104,7 +97,7 @@ class DataQualityReportDialog(QDialog):
 
         close_btn = QPushButton("Zavřít")
         close_btn.clicked.connect(self.accept)
-        root.addWidget(close_btn, alignment=Qt.AlignRight)
+        root.addWidget(close_btn, alignment=Qt.AlignmentFlag.AlignRight)
 
         self._reload_lists()
 
@@ -190,7 +183,7 @@ class DataQualityReportDialog(QDialog):
             if severity_filter != "all" and sev != severity_filter:
                 continue
 
-            where = _TABLE_LABELS_CZ.get(issue.table_key, issue.table_key)
+            where = get_table_spec(issue.table_key).label_cz
             if issue.row_index is not None:
                 where += f" řádek={issue.row_index}"
             rows.append(

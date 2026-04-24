@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+from src.application.contracts import required_table_keys
 from src.application.ports import SessionStorePort
 from src.application.services.table_status_transition_service import (
     TableStatusTransitionService,
 )
-from src.session import AppSession, REQUIRED_TABLE_KEYS, TableRuntimeState
+from src.session import AppSession, TableRuntimeState
 from src.session.app_session import SESSION_VERSION
 
 
@@ -29,7 +30,7 @@ class RestoreSessionUseCase:
         session.version = SESSION_VERSION
         session.saved_at = persisted.saved_at
 
-        for table_key in REQUIRED_TABLE_KEYS:
+        for table_key in required_table_keys():
             payload = persisted.tables.get(table_key)
             if payload is None:
                 continue

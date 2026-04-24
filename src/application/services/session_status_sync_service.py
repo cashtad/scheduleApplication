@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from src.application.contracts import required_table_keys
 from src.ingestion import FullIngestionResult, IngestionSeverity
-from src.session import AppSession, REQUIRED_TABLE_KEYS
+from src.session import AppSession
 
 from .table_status_transition_service import TableStatusTransitionService
 
@@ -21,7 +22,7 @@ class SessionStatusSyncService:
         for issue in ingestion_result.schema_issues:
             schema_by_table.setdefault(issue.table_key, []).append(issue)
 
-        for table_key in REQUIRED_TABLE_KEYS:
+        for table_key in required_table_keys():
             table = session.get_table(table_key)
             issues = schema_by_table.get(table_key, [])
 

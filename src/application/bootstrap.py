@@ -5,8 +5,8 @@ from pathlib import Path
 
 from src.application.ports import ExcelReaderPort, SessionStorePort
 from src.application.policies import AnalyzeReadinessPolicy
-from src.application.services.session_runtime_data_sync_service import (
-    SessionRuntimeDataSyncService,
+from src.application.services.schedule_table_runtime_data_sync_service import (
+    ScheduleTableRuntimeDataSyncService,
 )
 from src.application.services.session_service import SessionService
 from src.application.services.session_status_sync_service import SessionStatusSyncService
@@ -74,7 +74,7 @@ def build_app_container(
     status_sync_service = SessionStatusSyncService(
         transition_service=status_transition_service,
     )
-    runtime_data_sync_service = SessionRuntimeDataSyncService()
+    runtime_data_sync_service = ScheduleTableRuntimeDataSyncService()
 
     prepare_data_use_case = PrepareDataUseCase(
         table_ingestion_service=ingestion_service,

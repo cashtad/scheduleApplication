@@ -4,6 +4,7 @@ from typing import Any
 
 from pandas import DataFrame
 
+from src.application.contracts import TableKey
 from src.domain import Competition
 from src.ingestion.dto import IngestionIssue, TableParseResult
 from .base_table_parser import BaseTableParser
@@ -11,7 +12,7 @@ from .base_table_parser import BaseTableParser
 
 class CompetitionTableParser(BaseTableParser[Competition]):
     def __init__(self, mapping: dict[str, str]) -> None:
-        super().__init__(table_key="competitions", mapping=mapping)
+        super().__init__(table_key=TableKey.COMPETITIONS.value, mapping=mapping)
 
     def parse(self, df: DataFrame) -> TableParseResult[Competition]:
 

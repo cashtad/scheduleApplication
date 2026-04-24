@@ -8,6 +8,7 @@ from PySide6.QtCore import Signal, Qt
 from PySide6.QtGui import QResizeEvent
 from PySide6.QtWidgets import (
     QFileDialog,
+    QDialog,
     QHBoxLayout,
     QInputDialog,
     QLabel,
@@ -18,18 +19,12 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from src.application.contracts import TableKey, get_table_spec
 from src.presentation.qt.controllers import UiController
 from src.presentation.qt.dialogs import MappingDialog
 from src.session import TableStatus
 
 _DOT_STYLE = "border-radius: 8px; width: 16px; height: 16px; background-color: {color};"
-
-_TABLE_LABELS = {
-    "competitions": "Soutěže",
-    "competitors": "Soutěžící",
-    "jury": "Porotci",
-    "schedule": "Harmonogram",
-}
 
 @dataclass(frozen=True, slots=True)
 class PanelStatusUiState:
@@ -170,10 +165,11 @@ class TableLoadPanel(QWidget):
         self._controller = controller
         self._on_schedule_preview_changed = on_schedule_preview_changed
         self._full_path = ""
+        self._table_spec = get_table_spec(table_key)
 
         root = QVBoxLayout(self)
 
-        title = QLabel(_TABLE_LABELS.get(table_key, table_key))
+        title = QLabel(self._table_spec.label_cz)
         title.setStyleSheet("font-weight: 600;")
         root.addWidget(title)
 
@@ -187,7 +183,9 @@ class TableLoadPanel(QWidget):
         root.addLayout(status_row)
 
         self._path_label = QLabel()
-        self._path_label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+        self._path_label.setSizePolicy(
+            QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred
+        )
         self._path_label.setMinimumWidth(50)
         root.addWidget(self._path_label)
 
@@ -245,7 +243,9 @@ class TableLoadPanel(QWidget):
             return
         self._path_label.setToolTip(self._full_path)
         elided = self._path_label.fontMetrics().elidedText(
-            self._full_path, Qt.ElideMiddle, self._path_label.width()
+            self._full_path,
+            Qt.TextElideMode.ElideMiddle,
+            self._path_label.width(),
         )
         self._path_label.setText(elided)
 
@@ -479,10 +479,10 @@ class TableLoadPanel(QWidget):
             self,
             "Existující mapování",
             "Bylo nalezeno použitelné uložené mapování.\nPoužít ho automaticky?",
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.Yes,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.Yes,
         )
-        if answer != QMessageBox.Yes:
+        if answer != QMessageBox.StandardButton.Yes:
             return False
 
         ok, message = self._controller.apply_mapping_and_mark_ready(
@@ -503,7 +503,7 @@ class TableLoadPanel(QWidget):
             existing_mapping=context.reusable_mapping or context.previous_mapping,
             parent=self,
         )
-        if dialog.exec() != MappingDialog.Accepted:
+        if dialog.exec() != QDialog.DialogCode.Accepted:
             return False
 
         ok, message = self._controller.apply_mapping_and_mark_ready(
@@ -519,7 +519,7 @@ class TableLoadPanel(QWidget):
 
     def _finalize_success(self, df: DataFrame) -> None:
         if (
-            self._table_key == "schedule"
+            self._table_key == TableKey.SCHEDULE.value
             and self._on_schedule_preview_changed is not None
         ):
             self._on_schedule_preview_changed(df)

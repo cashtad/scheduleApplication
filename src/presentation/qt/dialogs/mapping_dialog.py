@@ -23,7 +23,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from src.application.contracts import TABLE_MAPPING_SCHEMAS, MappingField
+from src.application.contracts import MappingField, get_table_spec
 
 _MAPPING_HIGHLIGHT_COLORS = [
     QColor("#BBDEFB"),
@@ -55,8 +55,8 @@ class MappingDialog(QDialog):
 
         self._table_key = table_key
         self._df = df
-        schema = TABLE_MAPPING_SCHEMAS.get(table_key)
-        self._fields: list[MappingField] = list(schema.fields) if schema else []
+        self._table_spec = get_table_spec(table_key)
+        self._fields: list[MappingField] = list(self._table_spec.mapping_schema.fields)
 
         self._combos: dict[str, QComboBox] = {}
         self._line_edits: dict[str, QLineEdit] = {}
@@ -79,7 +79,7 @@ class MappingDialog(QDialog):
         for r, row in enumerate(df.itertuples(index=False)):
             for c, val in enumerate(row):
                 item = QStandardItem(str(val))
-                item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
+                item.setFlags(Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable)
                 item.setBackground(_MAPPING_DEFAULT_BG)
                 item.setForeground(_MAPPING_DEFAULT_FG)
                 self._model.setItem(r, c, item)
@@ -118,9 +118,11 @@ class MappingDialog(QDialog):
 
         root.addWidget(group)
 
-        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        buttons.button(QDialogButtonBox.Ok).setText("Potvrdit")
-        buttons.button(QDialogButtonBox.Cancel).setText("Zrušit")
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
+        buttons.button(QDialogButtonBox.StandardButton.Ok).setText("Potvrdit")
+        buttons.button(QDialogButtonBox.StandardButton.Cancel).setText("Zrušit")
         buttons.accepted.connect(self._on_accept)
         buttons.rejected.connect(self.reject)
         root.addWidget(buttons)

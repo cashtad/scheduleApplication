@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from src.application.contracts import TableKey
 from src.domain import JuryMember
 from .assignment_table_parser_base import AssignmentTableParserBase
 from .errors import UserFacingParseError
@@ -21,7 +22,7 @@ class JuryTableParser(AssignmentTableParserBase[JuryMember]):
         mapping: dict[str, str],
         config: JuryParserConfig | None = None,
     ) -> None:
-        super().__init__(table_key="jury", mapping=mapping)
+        super().__init__(table_key=TableKey.JURY.value, mapping=mapping)
         self._config = config or JuryParserConfig()
 
     @property

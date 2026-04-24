@@ -5,6 +5,7 @@ from typing import Any
 
 from pandas import DataFrame, to_datetime, to_timedelta
 
+from src.application.contracts import TableKey
 from src.domain import Performance
 from src.ingestion.dto import IngestionIssue, TableParseResult
 from .base_table_parser import BaseTableParser
@@ -13,7 +14,7 @@ from .errors import UserFacingParseError
 
 class ScheduleTableParser(BaseTableParser[Performance]):
     def __init__(self, mapping: dict[str, str]) -> None:
-        super().__init__(table_key="schedule", mapping=mapping)
+        super().__init__(table_key=TableKey.SCHEDULE.value, mapping=mapping)
 
     def parse(self, df: DataFrame) -> TableParseResult[Performance]:
 

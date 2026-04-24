@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from src.application.contracts import TABLE_MAPPING_SCHEMAS
+from src.application.contracts import TableKey, get_table_spec
 from src.session import TableRuntimeState
 
 
@@ -38,7 +38,8 @@ class MappingValidationService:
         mapping: dict[str, str],
         current_columns: list[str],
     ) -> MappingValidationResult:
-        schema = TABLE_MAPPING_SCHEMAS[table_key]
+        spec = get_table_spec(table_key)
+        schema = spec.mapping_schema
         existing = set(current_columns)
 
         for field in schema.fields:
@@ -64,14 +65,14 @@ class MappingValidationService:
                 )
 
         assignment_check = self._validate_assignment_prefix(
-            table_key=table_key,
+            uses_assignment_columns=spec.uses_assignment_columns,
             mapping=mapping,
             current_columns=current_columns,
         )
         if assignment_check is not None:
             return assignment_check
 
-        jury_check = self._validate_jury_name_shape(table_key=table_key, mapping=mapping)
+        jury_check = self._validate_jury_name_shape(table_key=spec.key, mapping=mapping)
         if jury_check is not None:
             return jury_check
 
@@ -79,11 +80,11 @@ class MappingValidationService:
 
     @staticmethod
     def _validate_assignment_prefix(
-        table_key: str,
+        uses_assignment_columns: bool,
         mapping: dict[str, str],
         current_columns: list[str],
     ) -> MappingValidationResult | None:
-        if table_key not in {"competitors", "jury"}:
+        if not uses_assignment_columns:
             return None
 
         prefix = (mapping.get("assignment_prefix") or "").strip()
@@ -110,10 +111,10 @@ class MappingValidationService:
 
     @staticmethod
     def _validate_jury_name_shape(
-        table_key: str,
+        table_key: TableKey,
         mapping: dict[str, str],
     ) -> MappingValidationResult | None:
-        if table_key != "jury":
+        if table_key != TableKey.JURY:
             return None
 
         fullname = (mapping.get("fullname") or "").strip()

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from src.application.dto import PrepareDataResult
 from src.application.services import TableInputFactory
-from src.application.services.session_runtime_data_sync_service import (
-    SessionRuntimeDataSyncService,
+from src.application.services.schedule_table_runtime_data_sync_service import (
+    ScheduleTableRuntimeDataSyncService,
 )
 from src.application.services.session_status_sync_service import SessionStatusSyncService
 from src.ingestion import TableIngestionService
@@ -15,7 +15,7 @@ class PrepareDataUseCase:
         self,
         table_ingestion_service: TableIngestionService,
         session_status_sync_service: SessionStatusSyncService,
-        session_runtime_data_sync_service: SessionRuntimeDataSyncService,
+        session_runtime_data_sync_service: ScheduleTableRuntimeDataSyncService,
     ) -> None:
         self._table_ingestion_service = table_ingestion_service
         self._session_status_sync_service = session_status_sync_service

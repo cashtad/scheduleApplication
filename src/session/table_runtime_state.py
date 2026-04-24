@@ -16,7 +16,7 @@ class TableStatus(Enum):
 
 @dataclass(slots=True)
 class TableRuntimeState:
-    table_key: str
+    table_key: str #TODO: поменять на работу с TableKey
     file_path: str | None = None
     sheet_name: str | None = None
     column_mapping: dict[str, str] = field(default_factory=dict)

@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from src.application.contracts import required_table_keys
 from src.application.services import TableInputFactory
 from src.application.services.session_status_sync_service import SessionStatusSyncService
 from src.application.use_cases.save_session_use_case import SaveSessionUseCase
 from src.ingestion import TableIngestionService
-from src.session import AppSession, REQUIRED_TABLE_KEYS, TableStatus
+from src.session import AppSession, TableStatus
 
 
 @dataclass(frozen=True, slots=True)
@@ -37,5 +38,5 @@ class RevalidateSessionUseCase:
         self._save_session_use_case.execute(session)
 
         return RevalidateSessionResult(
-            statuses={k: session.get_table(k).status for k in REQUIRED_TABLE_KEYS}
+            statuses={k: session.get_table(k).status for k in required_table_keys()}
         )

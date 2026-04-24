@@ -6,6 +6,7 @@ from typing import Iterable
 
 from pandas import DataFrame
 
+from src.application.contracts import TableKey
 from src.application.services.mapping_validation_service import MappingValidationService
 from src.ingestion.dto import (
     FullIngestionResult,
@@ -47,25 +48,26 @@ class TableIngestionService:
             mapping_validation_service or MappingValidationService()
         )
 
+    #TODO: стоит переделать, чтобы не было 4 отдельный метода для парсинга, а только 1 для всех таблиц
     def ingest(self, inputs: Iterable[TableInput]) -> FullIngestionResult:
         raw_tables: dict[str, DataFrame | None] = {}
 
         by_key = {x.table_key: x for x in inputs}
 
         competitions_result, competitions_schema, competitions_raw_df = self._ingest_competitions(
-            by_key.get("competitions")
+            by_key.get(TableKey.COMPETITIONS.value)
         )
-        raw_tables["competitions"] = competitions_raw_df
+        raw_tables[TableKey.COMPETITIONS.value] = competitions_raw_df
         competitors_result, competitors_schema, competitors_raw_df = self._ingest_competitors(
-            by_key.get("competitors")
+            by_key.get(TableKey.COMPETITORS.value)
         )
-        raw_tables["competitors"] = competitors_raw_df
-        jury_result, jury_schema, jury_raw_df = self._ingest_jury(by_key.get("jury"))
-        raw_tables["jury"] = jury_raw_df
+        raw_tables[TableKey.COMPETITORS.value] = competitors_raw_df
+        jury_result, jury_schema, jury_raw_df = self._ingest_jury(by_key.get(TableKey.JURY.value))
+        raw_tables[TableKey.JURY.value] = jury_raw_df
         schedule_result, schedule_schema, schedule_raw_df = self._ingest_schedule(
-            by_key.get("schedule")
+            by_key.get(TableKey.SCHEDULE.value)
         )
-        raw_tables["schedule"] = schedule_raw_df
+        raw_tables[TableKey.SCHEDULE.value] = schedule_raw_df
         schema_issues = (
             competitions_schema + competitors_schema + jury_schema + schedule_schema
         )
@@ -89,8 +91,8 @@ class TableIngestionService:
     ) -> tuple[TableParseResult[Competition], list[IngestionIssue], DataFrame | None]:
         if table_input is None:
             return (
-                self._empty_parse_result("competitions"),
-                [self._missing_table_issue("competitions")],
+                self._empty_parse_result(TableKey.COMPETITIONS.value),
+                [self._missing_table_issue(TableKey.COMPETITIONS.value)],
                 None,
             )
 
@@ -102,8 +104,8 @@ class TableIngestionService:
     ) -> tuple[TableParseResult[Competitor], list[IngestionIssue], DataFrame | None]:
         if table_input is None:
             return (
-                self._empty_parse_result("competitors"),
-                [self._missing_table_issue("competitors")],
+                self._empty_parse_result(TableKey.COMPETITORS.value),
+                [self._missing_table_issue(TableKey.COMPETITORS.value)],
                 None,
             )
 
@@ -121,8 +123,8 @@ class TableIngestionService:
     ) -> tuple[TableParseResult[JuryMember], list[IngestionIssue], DataFrame | None]:
         if table_input is None:
             return (
-                self._empty_parse_result("jury"),
-                [self._missing_table_issue("jury")],
+                self._empty_parse_result(TableKey.JURY.value),
+                [self._missing_table_issue(TableKey.JURY.value)],
                 None,
             )
 
@@ -140,8 +142,8 @@ class TableIngestionService:
     ) -> tuple[TableParseResult[Performance], list[IngestionIssue], DataFrame | None]:
         if table_input is None:
             return (
-                self._empty_parse_result("schedule"),
-                [self._missing_table_issue("schedule")],
+                self._empty_parse_result(TableKey.SCHEDULE.value),
+                [self._missing_table_issue(TableKey.SCHEDULE.value)],
                 None,
             )
 

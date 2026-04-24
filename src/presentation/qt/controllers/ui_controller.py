@@ -15,7 +15,8 @@ from src.application.dto import (
     WorkflowStatus
 )
 from src.application.services import MappingValidationService
-from src.session import AppSession, REQUIRED_TABLE_KEYS, TableRuntimeState, TableStatus
+from src.application.contracts import required_table_keys
+from src.session import AppSession, TableRuntimeState, TableStatus
 
 
 class UiController:
@@ -62,13 +63,13 @@ class UiController:
         return self._excel_reader.get_sheet_names(file_path)
 
     def required_table_keys(self) -> tuple[str, ...]:
-        return REQUIRED_TABLE_KEYS
+        return required_table_keys()
 
     def get_table_state(self, table_key: str) -> TableRuntimeState:
         return self._session.get_table(table_key)
 
     def get_table_statuses(self) -> dict[str, TableStatus]:
-        return {k: self._session.get_table(k).status for k in REQUIRED_TABLE_KEYS}
+        return {k: self._session.get_table(k).status for k in required_table_keys()}
 
     def set_file(self, table_key: str, file_path: str) -> None:
         self._session_service.set_file(self._session, table_key, file_path)

@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from src.application.contracts import TableKey
 from src.domain import Competitor
 from .assignment_table_parser_base import AssignmentTableParserBase
 from .errors import UserFacingParseError
@@ -22,7 +23,7 @@ class CompetitorTableParser(AssignmentTableParserBase[Competitor]):
         mapping: dict[str, str],
         config: CompetitorParserConfig | None = None,
     ) -> None:
-        super().__init__(table_key="competitors", mapping=mapping)
+        super().__init__(table_key=TableKey.COMPETITORS.value, mapping=mapping)
         self._config = config or CompetitorParserConfig()
 
     @property
