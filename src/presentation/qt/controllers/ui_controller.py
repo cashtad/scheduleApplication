@@ -15,7 +15,7 @@ from src.application.dto import (
     WorkflowStatus
 )
 from src.application.services import MappingValidationService
-from src.application.contracts import required_table_keys
+from src.application.contracts import TableKey, required_table_keys
 from src.session import AppSession, TableRuntimeState, TableStatus
 
 
@@ -159,7 +159,7 @@ class UiController:
         return True, ""
 
     def get_last_schedule_df(self) -> DataFrame | None:
-        return self._session.get_table("schedule").raw_df
+        return self._session.get_table(TableKey.SCHEDULE.value).raw_df
 
     # --- Data quality / report helpers ---
 

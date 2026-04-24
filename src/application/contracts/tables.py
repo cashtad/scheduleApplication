@@ -116,12 +116,6 @@ TABLE_REGISTRY: dict[TableKey, TableSpec] = {
     ),
 }
 
-_TABLE_MAPPING_SCHEMAS: dict[str, TableMappingSchema] = {
-    spec.table_key: spec.mapping_schema for spec in TABLE_REGISTRY.values()
-}
-
-_TABLE_LABELS: dict[str, str] = {spec.table_key: spec.label_cz for spec in TABLE_REGISTRY.values()}
-
 
 def _normalize_table_key(table_key: str | TableKey) -> TableKey:
     return table_key if isinstance(table_key, TableKey) else TableKey(table_key)
