@@ -94,8 +94,16 @@ class MainWindow(QMainWindow):
     def _refresh_analyze_button_state(self) -> None:
         self._analyze_button.setEnabled(self._controller.can_run_analysis())
 
+    def _refresh_table_panels_state(self) -> None:
+        # Analysis preparation can update table statuses in session runtime,
+        # so panels must be re-rendered immediately after workflow run.
+        for panel in self._panels.values():
+            panel.refresh()
+        self._refresh_analyze_button_state()
+
     def _on_run_analysis(self) -> None:
         result = self._controller.run_analysis()
+        self._refresh_table_panels_state()
         self._analysis_panel.update_from_result(result)
 
         if result.status == WorkflowStatus.FAILED:

@@ -31,15 +31,117 @@ _TABLE_LABELS = {
     "schedule": "Harmonogram",
 }
 
+@dataclass(frozen=True, slots=True)
+class PanelStatusUiState:
+    status_text: str
+    color: str
+    status_tooltip: str
+    edit_visible: bool
+    edit_enabled: bool
+    edit_text: str
+    edit_tooltip: str
+    select_text: str
+    select_enabled: bool
+    select_tooltip: str
+
+
 _STATUS_UI = {
-    TableStatus.EMPTY: ("Nevybráno", "#9E9E9E"),
-    TableStatus.FILE_SELECTED: ("Soubor vybrán", "#29B6F6"),
-    TableStatus.SHEET_SELECTED: ("List vybrán", "#FFA726"),
-    TableStatus.MAPPED: ("Namapováno", "#FFCA28"),
-    TableStatus.READY: ("Připraveno", "#66BB6A"),
-    TableStatus.BROKEN_PATH: ("Neplatná cesta", "#EF5350"),
-    TableStatus.BROKEN_SHEET: ("Neplatný list", "#EF5350"),
-    TableStatus.MAPPING_STALE: ("Mapování zastaralé", "#AB47BC"),
+    TableStatus.EMPTY: PanelStatusUiState(
+        status_text="Nevybráno",
+        color="#9E9E9E",
+        status_tooltip="Nejprve vyberte soubor a list.",
+        edit_visible=False,
+        edit_enabled=False,
+        edit_text="Pracovat s vybraným listem",
+        edit_tooltip="Nejprve vyberte soubor.",
+        select_text="Načíst",
+        select_enabled=True,
+        select_tooltip="Vyberte Excel soubor.",
+    ),
+    TableStatus.FILE_SELECTED: PanelStatusUiState(
+        status_text="Soubor vybrán",
+        color="#29B6F6",
+        status_tooltip="Soubor je vybrán, je potřeba zvolit list.",
+        edit_visible=True,
+        edit_enabled=True,
+        edit_text="Vybrat list",
+        edit_tooltip="Vyberte list v aktuálním souboru.",
+        select_text="Vybrat jiný",
+        select_enabled=True,
+        select_tooltip="Zvolit jiný soubor.",
+    ),
+    TableStatus.SHEET_SELECTED: PanelStatusUiState(
+        status_text="List vybrán",
+        color="#FFA726",
+        status_tooltip="List je vybrán, nastavte mapování sloupců.",
+        edit_visible=True,
+        edit_enabled=True,
+        edit_text="Namapovat sloupce",
+        edit_tooltip="Otevřít mapování pro vybraný list.",
+        select_text="Vybrat jiný",
+        select_enabled=True,
+        select_tooltip="Zvolit jiný soubor.",
+    ),
+    TableStatus.MAPPED: PanelStatusUiState(
+        status_text="Namapováno",
+        color="#FFCA28",
+        status_tooltip="Mapování je uloženo, tabulka čeká na validaci.",
+        edit_visible=True,
+        edit_enabled=True,
+        edit_text="Upravit mapování",
+        edit_tooltip="Upravit mapování vybraného listu.",
+        select_text="Vybrat jiný",
+        select_enabled=True,
+        select_tooltip="Zvolit jiný soubor.",
+    ),
+    TableStatus.READY: PanelStatusUiState(
+        status_text="Připraveno",
+        color="#66BB6A",
+        status_tooltip="Tabulka je připravena pro analýzu.",
+        edit_visible=True,
+        edit_enabled=True,
+        edit_text="Upravit mapování",
+        edit_tooltip="Upravit mapování vybraného listu.",
+        select_text="Vybrat jiný",
+        select_enabled=True,
+        select_tooltip="Zvolit jiný soubor.",
+    ),
+    TableStatus.BROKEN_PATH: PanelStatusUiState(
+        status_text="Neplatná cesta",
+        color="#EF5350",
+        status_tooltip="Soubor nebyl nalezen. Vyberte platný soubor.",
+        edit_visible=False,
+        edit_enabled=False,
+        edit_text="Pracovat s vybraným listem",
+        edit_tooltip="Soubor není dostupný.",
+        select_text="Vybrat soubor",
+        select_enabled=True,
+        select_tooltip="Zvolte platný soubor.",
+    ),
+    TableStatus.BROKEN_SHEET: PanelStatusUiState(
+        status_text="Neplatný list",
+        color="#EF5350",
+        status_tooltip="Původní list neexistuje, vyberte jiný.",
+        edit_visible=True,
+        edit_enabled=True,
+        edit_text="Vybrat list",
+        edit_tooltip="Vyberte jiný list v aktuálním souboru.",
+        select_text="Vybrat jiný",
+        select_enabled=True,
+        select_tooltip="Zvolit jiný soubor.",
+    ),
+    TableStatus.MAPPING_STALE: PanelStatusUiState(
+        status_text="Mapování zastaralé",
+        color="#AB47BC",
+        status_tooltip="Sloupce se změnily, upravte mapování.",
+        edit_visible=True,
+        edit_enabled=True,
+        edit_text="Upravit mapování",
+        edit_tooltip="Upravte mapování podle aktuálních sloupců.",
+        select_text="Vybrat jiný",
+        select_enabled=True,
+        select_tooltip="Zvolit jiný soubor.",
+    ),
 }
 
 
@@ -104,19 +206,33 @@ class TableLoadPanel(QWidget):
     def refresh(self) -> None:
         state = self._controller.get_table_state(self._table_key)
         status = state.status
-        text, color = _STATUS_UI.get(status, (status.value, "#9E9E9E"))
-        self._dot.setStyleSheet(_DOT_STYLE.format(color=color))
-        self._status_label.setText(text)
+        ui = _STATUS_UI.get(
+            status,
+            PanelStatusUiState(
+                status_text=status.value,
+                color="#9E9E9E",
+                status_tooltip="",
+                edit_visible=False,
+                edit_enabled=False,
+                edit_text="Pracovat s vybraným listem",
+                edit_tooltip="",
+                select_text="Načíst",
+                select_enabled=True,
+                select_tooltip="",
+            ),
+        )
+        self._dot.setStyleSheet(_DOT_STYLE.format(color=ui.color))
+        self._status_label.setText(ui.status_text)
+        self._status_label.setToolTip(ui.status_tooltip)
 
-        has_current_selection = bool(state.file_path and state.sheet_name)
-        self._edit_selected_btn.setVisible(has_current_selection)
-        self._edit_selected_btn.setEnabled(has_current_selection)
-        if status in {TableStatus.MAPPED, TableStatus.READY, TableStatus.MAPPING_STALE}:
-            self._edit_selected_btn.setText("Upravit mapování")
-        else:
-            self._edit_selected_btn.setText("Pracovat s vybraným listem")
+        self._edit_selected_btn.setVisible(ui.edit_visible)
+        self._edit_selected_btn.setEnabled(ui.edit_enabled)
+        self._edit_selected_btn.setText(ui.edit_text)
+        self._edit_selected_btn.setToolTip(ui.edit_tooltip)
 
-        self._select_other_btn.setText("Vybrat jiný" if has_current_selection else "Načíst")
+        self._select_other_btn.setText(ui.select_text)
+        self._select_other_btn.setEnabled(ui.select_enabled)
+        self._select_other_btn.setToolTip(ui.select_tooltip)
 
         self._full_path = state.file_path if state.file_path else ""
         self._update_path_label()
@@ -155,6 +271,36 @@ class TableLoadPanel(QWidget):
         self.refresh()
 
     def _on_edit_selected_clicked(self) -> None:
+        state = self._controller.get_table_state(self._table_key)
+        status = state.status
+
+        if status in {TableStatus.EMPTY, TableStatus.BROKEN_PATH}:
+            QMessageBox.information(
+                self,
+                "Vybraná tabulka",
+                "Nejprve vyberte platný soubor tabulky.",
+            )
+            self.refresh()
+            return
+
+        if status in {TableStatus.FILE_SELECTED, TableStatus.BROKEN_SHEET}:
+            context = self._build_load_context_for_new_sheet_in_current_file()
+            if context is None:
+                return
+
+            self._controller.set_sheet(self._table_key, context.sheet_name)
+
+            if self._try_auto_apply_reusable_mapping(context):
+                self._finalize_success(context.df)
+                return
+
+            if self._open_mapping_dialog_and_apply(context):
+                self._finalize_success(context.df)
+                return
+
+            self.refresh()
+            return
+
         context = self._build_load_context_from_current_selection()
         if context is None:
             return
@@ -164,6 +310,45 @@ class TableLoadPanel(QWidget):
             return
 
         self.refresh()
+
+    def _build_load_context_for_new_sheet_in_current_file(
+        self,
+    ) -> TableLoadContext | None:
+        state = self._controller.get_table_state(self._table_key)
+        if not state.file_path:
+            QMessageBox.information(
+                self,
+                "Vybraná tabulka",
+                "Nejprve vyberte soubor tabulky.",
+            )
+            self.refresh()
+            return None
+
+        previous_mapping = dict(state.column_mapping)
+        file_path = state.file_path
+        sheet_name = self._choose_sheet_name(file_path)
+        if sheet_name is None:
+            return None
+
+        df = self._read_dataframe(file_path, sheet_name)
+        if df is None:
+            return None
+
+        current_columns = [str(c) for c in df.columns]
+        reusable_mapping = self._controller.get_applicable_mapping_for_columns(
+            table_key=self._table_key,
+            mapping=previous_mapping,
+            current_columns=current_columns,
+        )
+
+        return TableLoadContext(
+            file_path=file_path,
+            sheet_name=sheet_name,
+            df=df,
+            current_columns=current_columns,
+            previous_mapping=previous_mapping,
+            reusable_mapping=reusable_mapping,
+        )
 
     def _build_load_context_from_new_selection(self) -> TableLoadContext | None:
         previous_mapping = dict(
