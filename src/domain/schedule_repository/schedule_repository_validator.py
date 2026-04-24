@@ -1,313 +1,83 @@
 from __future__ import annotations
 
+from collections.abc import Callable
+
 from .schedule_repository import ScheduleRepository
 from .schedule_repository_validation import (
     ScheduleRepositoryValidationIssue,
     ScheduleRepositoryValidationReport,
     ValidationIssueSeverity,
 )
+from .validation_checks import (
+    check_amount_of_rounds,
+    check_competitions_not_empty,
+    check_competitions_not_used,
+    check_competitors,
+    check_competitors_not_empty,
+    check_duplicate_performances,
+    check_jury_members,
+    check_jury_members_not_empty,
+    check_performances_connection_to_competitions,
+    check_performances_not_empty,
+)
+
+ValidationCheck = Callable[
+    [ScheduleRepository],
+    list[ScheduleRepositoryValidationIssue],
+]
 
 
 class ScheduleRepositoryValidator:
+    # Deterministic order of checks. Keep this sequence stable unless
+    # there is an explicit product decision to change validation behavior.
+    _CHECK_PIPELINE: tuple[ValidationCheck, ...] = (
+        check_performances_connection_to_competitions,
+        check_duplicate_performances,
+        check_competitors,
+        check_jury_members,
+        check_competitions_not_used,
+        check_jury_members_not_empty,
+        check_competitions_not_empty,
+        check_performances_not_empty,
+        check_competitors_not_empty,
+        check_amount_of_rounds,
+    )
 
     @staticmethod
-    def check_performances_connection_to_competitions(
-        repository: ScheduleRepository,
-    ) -> list[ScheduleRepositoryValidationIssue]:
-        issues: list[ScheduleRepositoryValidationIssue] = []
-        competition_ids = set(repository.competitions_by_id.keys())
-
-        for (
-            competition_id,
-            performances,
-        ) in repository.performances_by_competition_id.items():
-            if competition_id not in competition_ids:
-                issues.append(
-                    ScheduleRepositoryValidationIssue(
-                        code="UNKNOWN_COMPETITION_IN_PERFORMANCE",
-                        message=f"Vystoupení odkazuje na neznámé ID soutěže={competition_id}",
-                        severity=ValidationIssueSeverity.WARNING,
-                        context={"competition_id": competition_id},
-                    )
-                )
-
-        return issues
-
-    @staticmethod
-    def check_duplicate_performances(
-        repository: ScheduleRepository,
-    ) -> list[ScheduleRepositoryValidationIssue]:
-        issues: list[ScheduleRepositoryValidationIssue] = []
-        seen_keys: set[tuple] = set()
-
-        for value in repository.performances_by_competition_id.values():
-            for performance in value:
-                key = (
-                    performance.competition_id,
-                    performance.start_time,
-                    performance.end_time,
-                    performance.round_type.strip().lower(),
-                )
-                if key in seen_keys:
-                    issues.append(
-                        ScheduleRepositoryValidationIssue(
-                            code="DUPLICATE_PERFORMANCE",
-                            message="Bylo nalezeno duplicitní vystoupení v rámci soutěže",
-                            severity=ValidationIssueSeverity.ERROR,
-                            context={
-                                "competition_id": performance.competition_id,
-                                "source_row": performance.source_row,
-                            },
-                        )
-                    )
-                else:
-                    seen_keys.add(key)
-        return issues
-
-    @staticmethod
-    def check_competitors(
-        repository: ScheduleRepository,
-    ) -> list[ScheduleRepositoryValidationIssue]:
-
-        issues: list[ScheduleRepositoryValidationIssue] = []
-
-        competition_ids = set(repository.competitions_by_id.keys())
-
-        for competitor in repository.competitors:
-            missing = sorted(set(competitor.competition_ids) - competition_ids)
-            if missing:
-                issues.append(
-                    ScheduleRepositoryValidationIssue(
-                        code="COMPETITOR_UNKNOWN_COMPETITION",
-                        message=f"Soutěžící '{competitor.dancer_1_name}' odkazuje na neznámá ID soutěží {missing}",
-                        severity=ValidationIssueSeverity.ERROR,
-                        context={"missing_competition_ids": tuple(missing)},
-                    )
-                )
-
-            if not repository.list_assignments_of_human(competitor):
-                issues.append(
-                    ScheduleRepositoryValidationIssue(
-                        code="COMPETITOR_WITHOUT_PERFORMANCES",
-                        message=f"Soutěžící '{competitor.dancer_1_name}' nemá v harmonogramu žádná vystoupení",
-                        severity=ValidationIssueSeverity.WARNING,
-                        context={"competitor_name": competitor.dancer_1_name},
-                    )
-                )
-        return issues
-
-    @staticmethod
-    def check_jury_members(
+    def _run_checks_in_order(
         repository: ScheduleRepository,
     ) -> list[ScheduleRepositoryValidationIssue]:
         issues: list[ScheduleRepositoryValidationIssue] = []
 
-        competition_ids = set(repository.competitions_by_id.keys())
-
-        for jury_member in repository.jury_members:
-            missing = sorted(set(jury_member.competition_ids) - competition_ids)
-            if missing:
-                issues.append(
-                    ScheduleRepositoryValidationIssue(
-                        code="JURY_UNKNOWN_COMPETITION",
-                        message=f"Člen poroty '{jury_member.fullname}' odkazuje na neznámá ID soutěží {missing}",
-                        severity=ValidationIssueSeverity.WARNING,
-                        context={"missing_competition_ids": tuple(missing)},
-                    )
-                )
-
-            if not repository.list_assignments_of_human(jury_member):
-                issues.append(
-                    ScheduleRepositoryValidationIssue(
-                        code="JURY_WITHOUT_PERFORMANCES",
-                        message=f"Člen poroty '{jury_member.fullname}' nemá v harmonogramu žádná vystoupení",
-                        severity=ValidationIssueSeverity.WARNING,
-                        context={"jury_member_fullname": jury_member.fullname},
-                    )
-                )
-        return issues
-
-    @staticmethod
-    def check_competitions_not_used(
-        repository: ScheduleRepository,
-    ) -> list[ScheduleRepositoryValidationIssue]:
-        issues: list[ScheduleRepositoryValidationIssue] = []
-        competitions = set(repository.competitions_by_id.values())
-
-        for competition in competitions:
-            if not repository.list_performances_by_competition_id(competition.id):
-                issues.append(
-                    ScheduleRepositoryValidationIssue(
-                        code="COMPETITION_WITHOUT_PERFORMANCES",
-                        message=f"Soutěž '{competition.name}' (ID: {competition.id}) nemá žádná vystoupení",
-                        severity=ValidationIssueSeverity.WARNING,
-                        context={"competition_id": competition.id},
-                    )
-                )
-        return issues
-
-    @staticmethod
-    def check_competitions_not_empty(
-        repository: ScheduleRepository,
-    ) -> list[ScheduleRepositoryValidationIssue]:
-        issues: list[ScheduleRepositoryValidationIssue] = []
-        competition_ids = set(repository.competitions_by_id.keys())
-
-        if not competition_ids:
-            issues.append(
-                ScheduleRepositoryValidationIssue(
-                    code="NO_COMPETITIONS_PARSED",
-                    message="Nenalezena žádná soutěž. Zkontrolujte, zda je správně zvolena a namapována tabulka s informacemi o soutěžích.",
-                    severity=ValidationIssueSeverity.ERROR,
-                    context={},
-                )
-            )
+        for check in ScheduleRepositoryValidator._CHECK_PIPELINE:
+            issues.extend(check(repository))
 
         return issues
 
     @staticmethod
-    def check_competitors_not_empty(
-        repository: ScheduleRepository,
+    def _deduplicate_issues(
+        issues: list[ScheduleRepositoryValidationIssue],
     ) -> list[ScheduleRepositoryValidationIssue]:
-        issues: list[ScheduleRepositoryValidationIssue] = []
-        competitors = repository.competitors
-
-        if not competitors:
-            issues.append(
-                ScheduleRepositoryValidationIssue(
-                    code="NO_COMPETITORS_PARSED",
-                    message="Nenalezen žádný soutěžící. Zkontrolujte, zda je správně zvolena a namapována tabulka s informacemi o soutěžících.",
-                    severity=ValidationIssueSeverity.ERROR,
-                    context={},
-                )
-            )
-
-        return issues
+        # Dedup policy: "last write wins" by dedup_key; this keeps behavior
+        # compatible with the previous monolithic validator implementation.
+        unique: dict[tuple, ScheduleRepositoryValidationIssue] = {}
+        for issue in issues:
+            unique[issue.dedup_key()] = issue
+        return list(unique.values())
 
     @staticmethod
-    def check_jury_members_not_empty(
-        repository: ScheduleRepository,
-    ) -> list[ScheduleRepositoryValidationIssue]:
-        issues: list[ScheduleRepositoryValidationIssue] = []
-        jury_members = repository.jury_members
-
-        if not jury_members:
-            issues.append(
-                ScheduleRepositoryValidationIssue(
-                    code="NO_JURY_MEMBERS_PARSED",
-                    message="Nenalezen žádný člen poroty. Zkontrolujte, zda je správně zvolena a namapována tabulka s členy poroty.",
-                    severity=ValidationIssueSeverity.WARNING,
-                    context={},
-                )
-            )
-        return issues
-
-    @staticmethod
-    def check_performances_not_empty(
-        repository: ScheduleRepository,
-    ) -> list[ScheduleRepositoryValidationIssue]:
-        issues: list[ScheduleRepositoryValidationIssue] = []
-        performances = set(repository.performances_by_competition_id.keys())
-
-        if not performances:
-            issues.append(
-                ScheduleRepositoryValidationIssue(
-                    code="NO_PERFORMANCES_PARSED",
-                    message="Nenalezena žádná vystoupení. Zkontrolujte, zda je správně zvolena a namapována tabulka s harmonogramem.",
-                    severity=ValidationIssueSeverity.ERROR,
-                    context={},
-                )
-            )
-        return issues
-
-    @staticmethod
-    def check_amount_of_rounds(
-            repository: ScheduleRepository,
-    ) -> list[ScheduleRepositoryValidationIssue]:
-        issues: list[ScheduleRepositoryValidationIssue] = []
-
-        competitions = repository.competitions_by_id.values()
-        for competition in competitions:
-            performances = repository.list_performances_by_competition_id(competition.id)
-            amount = len(performances)
-            if competition.amount_of_rounds and competition.amount_of_rounds != amount:
-                issues.append(
-                    ScheduleRepositoryValidationIssue(
-                        code="WRONG_AMOUNT_OF_ROUNDS",
-                        message=f"Soutěž '{competition.name}' (ID: {competition.id}) má v harmonogramu {amount} kol/vystoupení, ale v informacích o soutěži je očekáváno {competition.amount_of_rounds}.",
-                        severity=ValidationIssueSeverity.WARNING,
-                        context={"competition_id": competition.id, "expected_amount_of_rounds": competition.amount_of_rounds, "actual_amount_of_rounds": len(performances) },
-                    )
-                )
-
-        return issues
+    def _split_by_severity(
+        issues: list[ScheduleRepositoryValidationIssue],
+    ) -> tuple[list[ScheduleRepositoryValidationIssue], list[ScheduleRepositoryValidationIssue]]:
+        errors = [i for i in issues if i.severity == ValidationIssueSeverity.ERROR]
+        warnings = [i for i in issues if i.severity == ValidationIssueSeverity.WARNING]
+        return errors, warnings
 
 
     @staticmethod
     def validate(repository: ScheduleRepository) -> ScheduleRepositoryValidationReport:
-        issues: list[ScheduleRepositoryValidationIssue] = []
-
-        connection_issues = (
-            ScheduleRepositoryValidator.check_performances_connection_to_competitions(
-                repository
-            )
-        )
-        issues.extend(connection_issues)
-
-        duplicate_issues = ScheduleRepositoryValidator.check_duplicate_performances(
-            repository
-        )
-        issues.extend(duplicate_issues)
-
-        competitors_issues = ScheduleRepositoryValidator.check_competitors(repository)
-        issues.extend(competitors_issues)
-
-        jury_issues = ScheduleRepositoryValidator.check_jury_members(repository)
-        issues.extend(jury_issues)
-
-        competitions_issues = ScheduleRepositoryValidator.check_competitions_not_used(
-            repository
-        )
-        issues.extend(competitions_issues)
-
-        # We discuessed this moment, decided to not treat empty jury members as an error,
-        # because it will not stop the flow of the program. So I made it like a warning
-        jury_empty_issue = ScheduleRepositoryValidator.check_jury_members_not_empty(
-            repository
-        )
-        issues.extend(jury_empty_issue)
-
-        competitions_empty_issues = (
-            ScheduleRepositoryValidator.check_competitions_not_empty(repository)
-        )
-        issues.extend(competitions_empty_issues)
-
-        performances_empty_issues = (
-            ScheduleRepositoryValidator.check_performances_not_empty(repository)
-        )
-        issues.extend(performances_empty_issues)
-
-        competitors_empty_issues = (
-            ScheduleRepositoryValidator.check_competitors_not_empty(repository)
-        )
-        issues.extend(competitors_empty_issues)
-
-        wrong_amount_of_performances_issues = (
-            ScheduleRepositoryValidator.check_amount_of_rounds(repository)
-        )
-        issues.extend(wrong_amount_of_performances_issues)
-
-        # Deduplicate
-        unique: dict[tuple, ScheduleRepositoryValidationIssue] = {}
-        for issue in issues:
-            unique[issue.dedup_key()] = issue
-
-        deduped_issues = list(unique.values())
-        errors = [
-            i for i in deduped_issues if i.severity == ValidationIssueSeverity.ERROR
-        ]
-        warnings = [
-            i for i in deduped_issues if i.severity == ValidationIssueSeverity.WARNING
-        ]
+        issues = ScheduleRepositoryValidator._run_checks_in_order(repository)
+        deduped_issues = ScheduleRepositoryValidator._deduplicate_issues(issues)
+        errors, warnings = ScheduleRepositoryValidator._split_by_severity(deduped_issues)
 
         return ScheduleRepositoryValidationReport(errors=errors, warnings=warnings)

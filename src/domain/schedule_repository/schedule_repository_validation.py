@@ -18,6 +18,7 @@ class ScheduleRepositoryValidationIssue:
     context: dict[str, Any] = field(default_factory=dict)
 
     def dedup_key(self) -> tuple:
+        # Stable key used by validator dedup policy.
         context_items = tuple(sorted(self.context.items(), key=lambda x: x[0]))
         return self.code, self.severity.value, self.message, context_items
 
