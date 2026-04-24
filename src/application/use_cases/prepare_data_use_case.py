@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from src.application.dto import PrepareDataResult
+from src.application.services import TableInputFactory
 from src.application.services.session_runtime_data_sync_service import (
     SessionRuntimeDataSyncService,
 )
 from src.application.services.session_status_sync_service import SessionStatusSyncService
-from src.ingestion import TableInput, TableIngestionService
-from src.session import AppSession, REQUIRED_TABLE_KEYS
+from src.ingestion import TableIngestionService
+from src.session import AppSession
 
 
 class PrepareDataUseCase:
@@ -23,21 +24,7 @@ class PrepareDataUseCase:
     def execute(self, session: AppSession) -> PrepareDataResult:
         session.ensure_required_tables()
 
-        inputs: list[TableInput] = []
-        for table_key in REQUIRED_TABLE_KEYS:
-            ts = session.get_table(table_key)
-            if not ts.file_path:
-                continue
-
-            inputs.append(
-                TableInput(
-                    table_key=table_key,
-                    file_path=ts.file_path,
-                    sheet_name=ts.sheet_name,
-                    mapping=dict(ts.column_mapping),
-                    column_signature=list(ts.column_signature),
-                )
-            )
+        inputs = TableInputFactory.build_for_required_tables(session)
 
         ingestion_result = self._table_ingestion_service.ingest(inputs)
         self._session_status_sync_service.sync_after_ingestion(

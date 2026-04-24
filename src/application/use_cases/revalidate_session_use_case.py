@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from src.application.services import TableInputFactory
 from src.application.services.session_status_sync_service import SessionStatusSyncService
 from src.application.use_cases.save_session_use_case import SaveSessionUseCase
-from src.ingestion import TableInput, TableIngestionService
+from src.ingestion import TableIngestionService
 from src.session import AppSession, REQUIRED_TABLE_KEYS, TableStatus
 
 
@@ -27,21 +28,7 @@ class RevalidateSessionUseCase:
     def execute(self, session: AppSession) -> RevalidateSessionResult:
         session.ensure_required_tables()
 
-        inputs: list[TableInput] = []
-        for table_key in REQUIRED_TABLE_KEYS:
-            table = session.get_table(table_key)
-            if not table.file_path:
-                continue
-
-            inputs.append(
-                TableInput(
-                    table_key=table_key,
-                    file_path=table.file_path,
-                    sheet_name=table.sheet_name,
-                    mapping=dict(table.column_mapping),
-                    column_signature=list(table.column_signature),
-                )
-            )
+        inputs = TableInputFactory.build_for_required_tables(session)
 
         ingestion_result = self._table_ingestion_service.ingest(inputs)
         self._session_status_sync_service.sync_after_ingestion(
