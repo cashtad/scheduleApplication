@@ -54,13 +54,13 @@ class CompetitorTableParser(AssignmentTableParserBase[Competitor]):
         row: Any,
         assignment_selection: AssignmentColumnsSelection,
     ) -> Competitor:
-        count_raw = row[self.mapping["count"]]
         p1_raw = row[self.mapping["p1_name_surname"]]
         p2_raw = row[self.mapping["p2_name_surname"]]
 
-        count = self._parse_count_or_raise(count_raw)
         dancer_1_name = self.as_str(p1_raw)
-        dancer_2_name = self._parse_second_name(count=count, raw_value=p2_raw)
+        dancer_2_name = self._parse_second_name(raw_value=p2_raw)
+
+        count = 2 if dancer_2_name else 1
 
         competition_ids = self._extract_assignments(
             row=row,
@@ -74,36 +74,7 @@ class CompetitorTableParser(AssignmentTableParserBase[Competitor]):
             competition_ids=competition_ids,
         )
 
-    def _parse_count_or_raise(self, raw_value: Any) -> int:
-        if self.is_empty(raw_value):
-            raise UserFacingParseError(
-                code="COUNT_EMPTY",
-                message="Pole 'count' je prázdné",
-                column_key="count",
-            )
-
-        count_text = self.as_str(raw_value)
-        if count_text not in {"1", "2"}:
-            raise UserFacingParseError(
-                code="COUNT_INVALID",
-                message=f"Pole 'count' musí být 1 nebo 2, ale je '{count_text}'",
-                column_key="count",
-                context={"value": count_text},
-            )
-
-        return int(count_text)
-
-    def _parse_second_name(self, count: int, raw_value: Any) -> str | None:
-        if count == 1:
-            # enforce None for solo entries
-            return None
-
+    def _parse_second_name(self, raw_value: Any) -> str | None:
         value = self.as_str(raw_value)
-        if not value:
-            raise UserFacingParseError(
-                code="SECOND_NAME_REQUIRED",
-                message="Pole 'p2_name_surname' je povinné, když count=2",
-                column_key="p2_name_surname",
-            )
         return value
 

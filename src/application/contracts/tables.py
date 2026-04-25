@@ -79,7 +79,6 @@ TABLE_REGISTRY: dict[TableKey, TableSpec] = {
         mapping_schema=_build_schema(
             TableKey.COMPETITORS,
             (
-                MappingField("count", "Počet soutěžících páru", True),
                 MappingField("p1_name_surname", "Jméno soutěžícího 1", True),
                 MappingField("p2_name_surname", "Jméno soutěžícího 2", False),
                 MappingField("assignment_prefix", "Prefix pro ID soutěží (např. '#')", False, virtual=True),

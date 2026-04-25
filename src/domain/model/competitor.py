@@ -8,9 +8,9 @@ from .base_human import Human
 
 @dataclass(frozen=True, slots=True)
 class Competitor(Human):
-    participants_per_entry: int
     dancer_1_name: str
     dancer_2_name: Optional[str]
+    participants_per_entry: int
 
     def __str__(self) -> str:
         if self.participants_per_entry == 1:
