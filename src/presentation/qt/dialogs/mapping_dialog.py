@@ -23,8 +23,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from application.contracts import TableKey
-from src.application.contracts import MappingField, get_table_spec
+from src.application.contracts import MappingField, get_table_spec, TableKey
+from src.presentation.qt.controllers.prefix_detection import detect_prefixes, PrefixDetectionResult
 
 _MAPPING_HIGHLIGHT_COLORS = [
     QColor("#BBDEFB"),
@@ -196,48 +196,56 @@ class MappingDialog(QDialog):
         self._refresh_highlights()
 
     def _auto_detect_prefix(self, field_key: str) -> None:
-        groups: dict[str, list[int]] = {}
-        for col in [str(c) for c in self._df.columns]:
-            m = _PREFIX_RE.match(col)
-            if not m:
-                continue
-            prefix, num = m.group(1), int(m.group(2))
-            groups.setdefault(prefix, []).append(num)
+        columns = [str(c) for c in self._df.columns]
 
-        candidates: list[tuple[str, int]] = []
-        for prefix, nums in groups.items():
-            nums = sorted(nums)
-            if len(nums) >= 2 and nums == list(range(1, len(nums) + 1)):
-                candidates.append((prefix, len(nums)))
+        result: PrefixDetectionResult = detect_prefixes(columns)
 
-        if not candidates:
-            QMessageBox.information(self, "Automatická detekce", "Prefix se nepodařilo detekovat.")
+        if not result.candidates:
+            QMessageBox.information(
+                self,
+                "Automatická detekce",
+                "Prefix se nepodařilo detekovat.",
+            )
             return
 
-        if len(candidates) == 1:
-            self._line_edits[field_key].setText(candidates[0][0])
+        if len(result.candidates) == 1:
+            self._line_edits[field_key].setText(result.candidates[0].prefix)
             return
 
-        labels = [f"{p or 'bez prefixu'} ({n} sloupců)" for p, n in candidates]
+        labels = [
+            f"{c.prefix or 'bez prefixu'} ({c.size} sloupců)"
+            for c in result.candidates
+        ]
+
         selected, ok = QInputDialog.getItem(
-            self, "Vyberte prefix", "Nalezeno více kandidátů. Vyberte prefix:", labels, 0, False
+            self,
+            "Vyberte prefix",
+            "Nalezeno více kandidátů. Vyberte prefix:",
+            labels,
+            0,
+            False,
         )
+
         if ok and selected:
             idx = labels.index(selected)
-            self._line_edits[field_key].setText(candidates[idx][0])
+            chosen = result.candidates[idx]
+            self._line_edits[field_key].setText(chosen.prefix)
 
     def _update_prefix_hint(self, field_key: str, prefix: str) -> None:
         label = self._prefix_hint_labels.get(field_key)
         if label is None:
             return
 
-        cols = [str(c) for c in self._df.columns]
-        if prefix == "":
-            matched = [c for c in cols if c.strip().isdigit()]
-        else:
-            matched = [c for c in cols if c.startswith(prefix)]
+        columns = [str(c) for c in self._df.columns]
+        result: PrefixDetectionResult = detect_prefixes(columns)
 
-        label.setText(f"→ {len(matched)} sloupců")
+        matched_count = 0
+        for candidate in result.candidates:
+            if candidate.prefix == prefix:
+                matched_count = candidate.size
+                break
+
+        label.setText(f"→ {matched_count} sloupců")
 
     def _refresh_highlights(self) -> None:
         rows = self._model.rowCount()
@@ -259,7 +267,15 @@ class MappingDialog(QDialog):
             color = self._field_color(field.key)
 
             if field.key.endswith("_prefix"):
-                indices = [i for i, name in enumerate(df_cols) if name.startswith(val)]
+                result: PrefixDetectionResult = detect_prefixes(df_cols)
+
+                matched_columns = []
+                for candidate in result.candidates:
+                    if candidate.prefix == val:
+                        matched_columns = candidate.columns
+                        break
+
+                indices = [i for i, name in enumerate(df_cols) if name in matched_columns]
             else:
                 indices = [i for i, name in enumerate(df_cols) if name == val]
 
