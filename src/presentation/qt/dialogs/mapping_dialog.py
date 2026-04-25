@@ -262,8 +262,6 @@ class MappingDialog(QDialog):
         col_colors: dict[int, QColor] = {}
         for field in self._fields:
             val = self._selected_values.get(field.key, "")
-            if not val:
-                continue
             color = self._field_color(field.key)
 
             if field.key.endswith("_prefix"):
