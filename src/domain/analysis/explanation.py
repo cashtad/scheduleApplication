@@ -30,48 +30,6 @@ class ExplanationGenerator:
         "SimultaneousJudging": "Současné rozhodování",
     }
 
-    def generate_console_report(self, result: ScheduleAnalysisResult) -> str:
-        summary = result.get_summary()
-        lines: list[str] = [
-            "=" * 80,
-            "ANALÝZA HARMONOGRAMU TANEČNÍ SOUTĚŽE",
-            "=" * 80,
-            "",
-            f"📝 Celkem porušení: {summary['total_violations']}",
-            f"   🔴 Kritických: {summary['critical_count']}",
-            f"   🟡 Středních: {summary['medium_count']}",
-            f"   🟢 Nízkých: {summary['low_count']}",
-            "",
-        ]
-
-        if not result.violations:
-            lines.extend(
-                [
-                    "✅ Nebyla zjištěna žádná porušení! Rozvrh je sestavený ideálně.",
-                    "=" * 80,
-                ]
-            )
-            return "\n".join(lines)
-
-        lines.extend(["-" * 80, "PORUŠENÍ PODLE PRAVIDEL", "-" * 80, ""])
-
-        for rule_name, violations in result.violations_by_rule.items():
-            rule_name_cs = self.RULE_NAMES_CS.get(rule_name, rule_name)
-            lines.append(f"📌 {rule_name_cs}: {len(violations)} porušení")
-
-            # deterministic sorting: severity first, then description
-            sorted_violations = sorted(
-                violations,
-                key=lambda v: (self._severity_order(v.severity), v.description),
-            )
-
-            for violation in sorted_violations:
-                lines.append(self._format_violation_console(violation))
-            lines.append("")
-
-        lines.append("=" * 80)
-        return "\n".join(lines)
-
     def generate_html_report(
         self, result: ScheduleAnalysisResult, output_path: str
     ) -> str:
@@ -199,24 +157,6 @@ class ExplanationGenerator:
 </html>
 """
         return html
-
-    def _format_violation_console(self, violation: Violation) -> str:
-        icon = self.SEVERITY_ICONS[violation.severity]
-        severity_name = self.SEVERITY_NAMES_CS[violation.severity]
-        text = f"  {icon} [{severity_name}] {violation.description}"
-
-        if "start_time" in violation.details and "end_time" in violation.details:
-            start = violation.details["start_time"]
-            end = violation.details["end_time"]
-            text += f"\n     Čas: {start.strftime('%H:%M')} - {end.strftime('%H:%M')}"
-
-        if "gap_minutes" in violation.details:
-            text += f"\n     Přestávka: {violation.details['gap_minutes']:.0f} minut"
-
-        if "duration_minutes" in violation.details:
-            text += f"\n     Délka: {violation.details['duration_minutes']:.0f} minut"
-
-        return text
 
     def _format_violation_html(self, violation: Violation) -> str:
         severity_class = violation.severity.value
