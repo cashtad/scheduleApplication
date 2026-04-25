@@ -23,7 +23,7 @@ class CompetitorTableParser(AssignmentTableParserBase[Competitor]):
         mapping: dict[str, str],
         config: CompetitorParserConfig | None = None,
     ) -> None:
-        super().__init__(table_key=TableKey.COMPETITORS.value, mapping=mapping)
+        super().__init__(table_key=TableKey.COMPETITORS, mapping=mapping)
         self._config = config or CompetitorParserConfig()
 
     @property

@@ -22,7 +22,7 @@ class JuryTableParser(AssignmentTableParserBase[JuryMember]):
         mapping: dict[str, str],
         config: JuryParserConfig | None = None,
     ) -> None:
-        super().__init__(table_key=TableKey.JURY.value, mapping=mapping)
+        super().__init__(table_key=TableKey.JURY, mapping=mapping)
         self._config = config or JuryParserConfig()
 
     @property

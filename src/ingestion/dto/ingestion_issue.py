@@ -4,13 +4,16 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
+from application.contracts import TableKey
+
+
 class IngestionSeverity(Enum):
     ERROR = "error"
     WARNING = "warning"
 
 @dataclass(frozen=True, slots=True)
 class IngestionIssue:
-    table_key: str
+    table_key: TableKey
     code: str
     message: str
     severity: IngestionSeverity

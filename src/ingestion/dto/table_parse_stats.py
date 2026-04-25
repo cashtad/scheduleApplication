@@ -2,10 +2,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from application.contracts import TableKey
+
 
 @dataclass(frozen=True, slots=True)
 class TableParseStats:
-    table_key: str
+    table_key: TableKey
     total_rows: int
     parsed_rows: int
     skipped_rows: int

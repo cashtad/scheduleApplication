@@ -23,6 +23,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from application.contracts import TableKey
 from src.application.contracts import MappingField, get_table_spec
 
 _MAPPING_HIGHLIGHT_COLORS = [
@@ -44,7 +45,7 @@ _PREFIX_RE = re.compile(r"^(.*?)(\d+)$")
 class MappingDialog(QDialog):
     def __init__(
         self,
-        table_key: str,
+        table_key: TableKey,
         df: pd.DataFrame,
         existing_mapping: Optional[dict[str, str]] = None,
         parent=None,

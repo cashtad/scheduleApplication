@@ -155,7 +155,7 @@ class TableLoadPanel(QWidget):
 
     def __init__(
         self,
-        table_key: str,
+        table_key: TableKey,
         controller: UiController,
         on_schedule_preview_changed: Callable[[object], None] | None = None,
         parent=None,

@@ -4,6 +4,9 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
+from application.contracts import TableKey
+
+
 class TableStatus(Enum):
     EMPTY = "empty"
     FILE_SELECTED = "file_selected"
@@ -16,7 +19,7 @@ class TableStatus(Enum):
 
 @dataclass(slots=True)
 class TableRuntimeState:
-    table_key: str #TODO: поменять на работу с TableKey
+    table_key: TableKey
     file_path: str | None = None
     sheet_name: str | None = None
     column_mapping: dict[str, str] = field(default_factory=dict)

@@ -62,24 +62,24 @@ class UiController:
     def get_sheet_names(self, file_path: str) -> list[str | int]:
         return self._excel_reader.get_sheet_names(file_path)
 
-    def required_table_keys(self) -> tuple[str, ...]:
+    def required_table_keys(self) -> tuple[TableKey, ...]:
         return required_table_keys()
 
-    def get_table_state(self, table_key: str) -> TableRuntimeState:
+    def get_table_state(self, table_key: TableKey) -> TableRuntimeState:
         return self._session.get_table(table_key)
 
     def get_table_statuses(self) -> dict[str, TableStatus]:
         return {k: self._session.get_table(k).status for k in required_table_keys()}
 
-    def set_file(self, table_key: str, file_path: str) -> None:
+    def set_file(self, table_key: TableKey, file_path: str) -> None:
         self._session_service.set_file(self._session, table_key, file_path)
 
-    def set_sheet(self, table_key: str, sheet_name: str) -> None:
+    def set_sheet(self, table_key: TableKey, sheet_name: str) -> None:
         self._session_service.set_sheet(self._session, table_key, sheet_name)
 
     def set_mapping(
         self,
-        table_key: str,
+        table_key: TableKey,
         column_mapping: dict[str, str],
         current_columns: Iterable[str],
     ) -> None:
@@ -90,7 +90,7 @@ class UiController:
             current_columns=current_columns,
         )
 
-    def mark_ready(self, table_key: str) -> None:
+    def mark_ready(self, table_key: TableKey) -> None:
         self._session_service.mark_ready(self._session, table_key)
 
     def can_run_analysis(self) -> bool:
@@ -109,7 +109,7 @@ class UiController:
 
     def validate_mapping_preflight(
         self,
-        table_key: str,
+        table_key: TableKey,
         mapping: dict[str, str],
         current_columns: list[str],
     ) -> tuple[bool, str]:
@@ -122,7 +122,7 @@ class UiController:
 
     def get_applicable_saved_mapping(
         self,
-        table_key: str,
+        table_key: TableKey,
         current_columns: list[str],
     ) -> dict[str, str] | None:
         table = self._session.get_table(table_key)
@@ -133,7 +133,7 @@ class UiController:
 
     def get_applicable_mapping_for_columns(
         self,
-        table_key: str,
+        table_key: TableKey,
         mapping: dict[str, str],
         current_columns: list[str],
     ) -> dict[str, str] | None:
@@ -144,7 +144,7 @@ class UiController:
 
     def apply_mapping_and_mark_ready(
         self,
-        table_key: str,
+        table_key: TableKey,
         mapping: dict[str, str],
         current_columns: list[str],
     ) -> tuple[bool, str]:
@@ -159,7 +159,7 @@ class UiController:
         return True, ""
 
     def get_last_schedule_df(self) -> DataFrame | None:
-        return self._session.get_table(TableKey.SCHEDULE.value).raw_df
+        return self._session.get_table(TableKey.SCHEDULE).raw_df
 
     # --- Data quality / report helpers ---
 

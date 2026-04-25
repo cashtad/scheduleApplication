@@ -14,7 +14,7 @@ from .errors import UserFacingParseError
 
 class ScheduleTableParser(BaseTableParser[Performance]):
     def __init__(self, mapping: dict[str, str]) -> None:
-        super().__init__(table_key=TableKey.SCHEDULE.value, mapping=mapping)
+        super().__init__(table_key=TableKey.SCHEDULE, mapping=mapping)
 
     def parse(self, df: DataFrame) -> TableParseResult[Performance]:
 

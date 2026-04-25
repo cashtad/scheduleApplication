@@ -122,7 +122,7 @@ class MainWindow(QMainWindow):
                 self, "Analýza zablokována", message or "Analýza je zablokována."
             )
             return
-
+        #TODO: add info about warnings
         QMessageBox.information(
             self,
             "Analýza dokončena",

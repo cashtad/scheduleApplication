@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Generic, TypeVar
 
+from application.contracts import TableKey
 from .ingestion_issue import IngestionIssue, IngestionSeverity
 from .table_parse_stats import TableParseStats
 
@@ -11,7 +12,7 @@ T = TypeVar("T")
 
 @dataclass(frozen=True, slots=True)
 class TableParseResult(Generic[T]):
-    table_key: str
+    table_key: TableKey
     items: list[T] = field(default_factory=list)
     issues: list[IngestionIssue] = field(default_factory=list)
     total_rows: int = 0

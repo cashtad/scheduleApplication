@@ -2,14 +2,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from src.application.contracts import required_table_keys
+from src.application.contracts import required_table_keys, TableKey
 
 from .table_runtime_state import TableRuntimeState
 
 
 SESSION_VERSION: int = 2
 
-# TODO: поменять работу со стрингом на работу с TableKey
 @dataclass(slots=True)
 class AppSession:
     version: int = SESSION_VERSION
@@ -20,7 +19,7 @@ class AppSession:
         for table_key in required_table_keys():
             self.tables.setdefault(table_key, TableRuntimeState(table_key=table_key))
 
-    def get_table(self, table_key: str) -> TableRuntimeState:
+    def get_table(self, table_key: TableKey) -> TableRuntimeState:
         self.ensure_required_tables()
         return self.tables[table_key]
 

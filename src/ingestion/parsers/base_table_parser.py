@@ -6,6 +6,7 @@ from typing import Any, Generic, TypeVar, cast
 
 from pandas import DataFrame, isna
 
+from application.contracts import TableKey
 from src.ingestion.dto import IngestionIssue, IngestionSeverity, TableParseResult
 from .errors import UserFacingParseError
 
@@ -14,16 +15,16 @@ T = TypeVar("T")
 
 @dataclass(frozen=True, slots=True)
 class ParseContext:
-    table_key: str
+    table_key: TableKey
     mapping: dict[str, str]
 
 
 class BaseTableParser(ABC, Generic[T]):
-    def __init__(self, table_key: str, mapping: dict[str, str]) -> None:
+    def __init__(self, table_key: TableKey, mapping: dict[str, str]) -> None:
         self._ctx = ParseContext(table_key=table_key, mapping=dict(mapping))
 
     @property
-    def table_key(self) -> str:
+    def table_key(self) -> TableKey:
         return self._ctx.table_key
 
     @property

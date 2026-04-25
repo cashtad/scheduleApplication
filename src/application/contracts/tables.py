@@ -121,10 +121,10 @@ def _normalize_table_key(table_key: str | TableKey) -> TableKey:
     return table_key if isinstance(table_key, TableKey) else TableKey(table_key)
 
 
-def get_table_spec(table_key: str | TableKey) -> TableSpec:
+def get_table_spec(table_key: TableKey) -> TableSpec:
     return TABLE_REGISTRY[_normalize_table_key(table_key)]
 
 
-def required_table_keys() -> tuple[str, ...]:
-    return tuple(spec.table_key for spec in TABLE_REGISTRY.values())
+def required_table_keys() -> tuple[TableKey, ...]:
+    return tuple(TABLE_REGISTRY.keys())
 

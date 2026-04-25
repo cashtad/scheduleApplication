@@ -13,5 +13,5 @@ class ScheduleTableRuntimeDataSyncService:
         raw_tables: dict[str, DataFrame | None],
     ) -> None:
         session.ensure_required_tables()
-        schedule_key = TableKey.SCHEDULE.value
+        schedule_key = TableKey.SCHEDULE
         session.get_table(schedule_key).raw_df = raw_tables.get(schedule_key)

@@ -12,7 +12,7 @@ from .base_table_parser import BaseTableParser
 
 class CompetitionTableParser(BaseTableParser[Competition]):
     def __init__(self, mapping: dict[str, str]) -> None:
-        super().__init__(table_key=TableKey.COMPETITIONS.value, mapping=mapping)
+        super().__init__(table_key=TableKey.COMPETITIONS, mapping=mapping)
 
     def parse(self, df: DataFrame) -> TableParseResult[Competition]:
 

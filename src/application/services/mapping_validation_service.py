@@ -34,7 +34,7 @@ class MappingValidationService:
 
     def validate_mapping(
         self,
-        table_key: str,
+        table_key: TableKey,
         mapping: dict[str, str],
         current_columns: list[str],
     ) -> MappingValidationResult:

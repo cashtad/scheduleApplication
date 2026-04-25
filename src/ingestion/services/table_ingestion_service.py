@@ -50,24 +50,24 @@ class TableIngestionService:
 
     #TODO: стоит переделать, чтобы не было 4 отдельный метода для парсинга, а только 1 для всех таблиц
     def ingest(self, inputs: Iterable[TableInput]) -> FullIngestionResult:
-        raw_tables: dict[str, DataFrame | None] = {}
+        raw_tables: dict[TableKey, DataFrame | None] = {}
 
         by_key = {x.table_key: x for x in inputs}
 
         competitions_result, competitions_schema, competitions_raw_df = self._ingest_competitions(
-            by_key.get(TableKey.COMPETITIONS.value)
+            by_key.get(TableKey.COMPETITIONS)
         )
-        raw_tables[TableKey.COMPETITIONS.value] = competitions_raw_df
+        raw_tables[TableKey.COMPETITIONS] = competitions_raw_df
         competitors_result, competitors_schema, competitors_raw_df = self._ingest_competitors(
-            by_key.get(TableKey.COMPETITORS.value)
+            by_key.get(TableKey.COMPETITORS)
         )
-        raw_tables[TableKey.COMPETITORS.value] = competitors_raw_df
-        jury_result, jury_schema, jury_raw_df = self._ingest_jury(by_key.get(TableKey.JURY.value))
-        raw_tables[TableKey.JURY.value] = jury_raw_df
+        raw_tables[TableKey.COMPETITORS] = competitors_raw_df
+        jury_result, jury_schema, jury_raw_df = self._ingest_jury(by_key.get(TableKey.JURY))
+        raw_tables[TableKey.JURY] = jury_raw_df
         schedule_result, schedule_schema, schedule_raw_df = self._ingest_schedule(
-            by_key.get(TableKey.SCHEDULE.value)
+            by_key.get(TableKey.SCHEDULE)
         )
-        raw_tables[TableKey.SCHEDULE.value] = schedule_raw_df
+        raw_tables[TableKey.SCHEDULE] = schedule_raw_df
         schema_issues = (
             competitions_schema + competitors_schema + jury_schema + schedule_schema
         )
@@ -91,8 +91,8 @@ class TableIngestionService:
     ) -> tuple[TableParseResult[Competition], list[IngestionIssue], DataFrame | None]:
         if table_input is None:
             return (
-                self._empty_parse_result(TableKey.COMPETITIONS.value),
-                [self._missing_table_issue(TableKey.COMPETITIONS.value)],
+                self._empty_parse_result(TableKey.COMPETITIONS),
+                [self._missing_table_issue(TableKey.COMPETITIONS)],
                 None,
             )
 
@@ -104,8 +104,8 @@ class TableIngestionService:
     ) -> tuple[TableParseResult[Competitor], list[IngestionIssue], DataFrame | None]:
         if table_input is None:
             return (
-                self._empty_parse_result(TableKey.COMPETITORS.value),
-                [self._missing_table_issue(TableKey.COMPETITORS.value)],
+                self._empty_parse_result(TableKey.COMPETITORS),
+                [self._missing_table_issue(TableKey.COMPETITORS)],
                 None,
             )
 
@@ -123,8 +123,8 @@ class TableIngestionService:
     ) -> tuple[TableParseResult[JuryMember], list[IngestionIssue], DataFrame | None]:
         if table_input is None:
             return (
-                self._empty_parse_result(TableKey.JURY.value),
-                [self._missing_table_issue(TableKey.JURY.value)],
+                self._empty_parse_result(TableKey.JURY),
+                [self._missing_table_issue(TableKey.JURY)],
                 None,
             )
 
@@ -142,8 +142,8 @@ class TableIngestionService:
     ) -> tuple[TableParseResult[Performance], list[IngestionIssue], DataFrame | None]:
         if table_input is None:
             return (
-                self._empty_parse_result(TableKey.SCHEDULE.value),
-                [self._missing_table_issue(TableKey.SCHEDULE.value)],
+                self._empty_parse_result(TableKey.SCHEDULE),
+                [self._missing_table_issue(TableKey.SCHEDULE)],
                 None,
             )
 
@@ -337,7 +337,7 @@ class TableIngestionService:
     # --------------------------
 
     @staticmethod
-    def _missing_table_issue(table_key: str) -> IngestionIssue:
+    def _missing_table_issue(table_key: TableKey) -> IngestionIssue:
         return IngestionIssue(
             table_key=table_key,
             code="TABLE_INPUT_MISSING",
@@ -346,7 +346,7 @@ class TableIngestionService:
         )
 
     @staticmethod
-    def _empty_parse_result(table_key: str) -> TableParseResult:
+    def _empty_parse_result(table_key: TableKey) -> TableParseResult:
         return TableParseResult(
             table_key=table_key,
             items=[],
