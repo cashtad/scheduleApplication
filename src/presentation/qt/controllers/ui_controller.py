@@ -162,10 +162,6 @@ class UiController:
         return self._session.get_table(TableKey.SCHEDULE).raw_df
 
     # --- Data quality / report helpers ---
-
-    def get_last_workflow_status(self) -> WorkflowStatus | None:
-        return self._last_workflow_result.status if self._last_workflow_result else None
-
     def get_last_quality_report(self) -> DataQualityReport | None:
         return (
             self._last_workflow_result.quality_report
