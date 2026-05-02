@@ -1,5 +1,5 @@
-pandas
-openpyxl
-pyyaml
-PySide6
-platformdirs
+pandas~=2.3.3
+PySide6~=6.10.2
+PyYAML~=6.0.3
+platformdirs~=4.9.4
+openpyxl~=3.1.2
