@@ -43,32 +43,41 @@ class DataQualityReportDialog(QDialog):
         root = QVBoxLayout(self)
 
         summary_group = QGroupBox("Souhrn")
-        summary_layout = QVBoxLayout(summary_group)
+        summary_layout = QHBoxLayout(summary_group)
+
+        summary_left = QVBoxLayout()
 
         readiness = report.readiness_result
         decision_text = "POVOLENO ✅" if readiness.is_allowed else "BLOKOVÁNO ❌"
-        summary_layout.addWidget(
+        summary_left.addWidget(
             QLabel(f"Rozhodnutí připravenosti: <b>{decision_text}</b>")
         )
 
-        summary_layout.addWidget(
+        summary_left.addWidget(
             QLabel(
                 f"Upozornění (celkem): {report.prepare_data_result.total_warnings_count + len(report.repository_validation_report.warnings)}"
             )
         )
 
-        summary_layout.addWidget(
+        summary_left.addWidget(
             QLabel(f"Celkem řádků: {report.prepare_data_result.total_rows}")
         )
-        summary_layout.addWidget(
+        summary_left.addWidget(
             QLabel(
                 f"Chyby řádků: {report.prepare_data_result.total_row_errors_count} "
                 f"({report.prepare_data_result.row_error_rate:.1%})"
             )
         )
-        summary_layout.addWidget(
+        summary_left.addWidget(
             QLabel(f"Chyby schématu: {report.prepare_data_result.schema_errors_count}")
         )
+
+        summary_left.addStretch()
+
+        summary_right = self._create_entity_counts_widget(report.prepare_data_result)
+
+        summary_layout.addLayout(summary_left, 1)
+        summary_layout.addWidget(summary_right, 0, Qt.AlignmentFlag.AlignTop)
 
         root.addWidget(summary_group)
 
@@ -198,3 +207,28 @@ class DataQualityReportDialog(QDialog):
             return
         for line in lines:
             list_widget.addItem(QListWidgetItem(line))
+
+    @staticmethod
+    def _create_entity_counts_widget(prepare_data_result) -> QWidget:
+        widget = QWidget()
+        layout = QVBoxLayout(widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(4)
+
+        title = QLabel("Počet načtených entit:")
+        title.setStyleSheet("font-weight: 600;")
+        layout.addWidget(title)
+
+        entity_counts = (
+            ("Soutěže", len(prepare_data_result.competitions)),
+            ("Soutěžící", len(prepare_data_result.competitors)),
+            ("Vystoupení", len(prepare_data_result.performances)),
+            ("Porotci", len(prepare_data_result.jury_members)),
+        )
+
+        for label, count in entity_counts:
+            layout.addWidget(QLabel(f"{label}: <b>{count}</b>"))
+
+        layout.addStretch()
+        return widget
+
