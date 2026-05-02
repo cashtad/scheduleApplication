@@ -10,6 +10,7 @@ from .schedule_analysis_result import ScheduleAnalysisResult
 
 
 class InferenceEngine:
+    #TODO: change so it will load the rules each run
     def __init__(self, rules_config: RulesConfig) -> None:
         self.rules = load_rules_from_config(rules_config)
 

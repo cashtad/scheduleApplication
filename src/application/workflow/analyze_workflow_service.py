@@ -74,7 +74,7 @@ class AnalyzeWorkflowService:
             return AnalyzeWorkflowResult(
                 status=WorkflowStatus.FAILED,
                 quality_report=self._build_fallback_quality_report(str(exc)),
-                error_message=str(exc),
+                error_message=f"Došlo k neočekávané chybě během zpracování:\n\n{str(exc)}",
             )
 
     def _build_fallback_quality_report(self, error_message: str) -> DataQualityReport:

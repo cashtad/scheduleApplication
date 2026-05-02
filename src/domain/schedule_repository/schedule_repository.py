@@ -40,7 +40,7 @@ class ScheduleRepository:
 
     def add_competition(self, competition: Competition) -> None:
         if competition.id in self._competitions_by_id:
-            raise RepositoryBuildError(f"Competition with id={competition.id} already exists")
+            raise RepositoryBuildError(f"Soutěž s ID {competition.id} se vyskytla více než jednou, nelze vytvořit repozitář. Zkontrolujte prosím tabulky a nastavené mapování.")
         self._competitions_by_id[competition.id] = competition
 
     def add_competitions(self, competitions: Iterable[Competition]) -> None:
