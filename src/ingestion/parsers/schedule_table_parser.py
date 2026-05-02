@@ -26,7 +26,7 @@ class ScheduleTableParser(BaseTableParser[Performance]):
         for row_index, row in df.iterrows():
             safe_row_index = self.as_row_index(row_index)
             try:
-                performance = self._parse_row(row_index=safe_row_index, row=row)
+                performance = self._parse_row(row_index=row_index, row=row)
                 if performance is None:
                     issues.append(
                         self.make_row_warning(
@@ -59,11 +59,11 @@ class ScheduleTableParser(BaseTableParser[Performance]):
         )
 
     def _parse_row(self, row_index: int, row: Any) -> Performance | None:
-        competition_raw = row[self.mapping["competition_id"]]
-        if self.is_empty(competition_raw):
+        competition_id_raw = row[self.mapping["competition_id"]]
+        if self.is_empty(competition_id_raw):
             return None
 
-        competition_id = self.as_int(competition_raw, column_key="competition_id")
+        competition_id = self.as_int(competition_id_raw, column_key="competition_id")
         start_time = self._parse_datetime(row[self.mapping["start_time"]])
         duration_minutes = self._parse_duration_minutes(row[self.mapping["duration"]])
         round_type = self.as_str(row[self.mapping["round_type"]])
