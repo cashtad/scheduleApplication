@@ -227,7 +227,7 @@ class DataQualityReportDialog(QDialog):
         )
 
         for label, count in entity_counts:
-            layout.addWidget(QLabel(f"{label}: <b>{count}</b>"))
+            layout.addWidget(QLabel(f"{label}: {count}"))
 
         layout.addStretch()
         return widget
