@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from ..analysis import Severity
+
+from src.domain.analysis import Severity
 
 
 @dataclass(frozen=True, slots=True)
