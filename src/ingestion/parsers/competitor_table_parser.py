@@ -56,7 +56,6 @@ class CompetitorTableParser(AssignmentTableParserBase[Competitor]):
         try:
             assignment_selection = self._select_assignment_columns(df)
         except Exception as exc:
-            #TODO: check
             issues.append(
                 self.make_issue_from_exception(
                     exc=exc,

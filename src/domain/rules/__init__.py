@@ -14,7 +14,7 @@ from .simultaneous_rule import SimultaneousRule
 
 def load_rules_from_config(
     config: RulesConfig,
-) -> list[ARule]:  # TODO: looks bad, extract to different class like loader
+) -> list[ARule]:
     return [
         MaxContinuousDancingRule(config.max_continuous_dancing),
         CostumeChangeTimeRule(config.costume_change_time),

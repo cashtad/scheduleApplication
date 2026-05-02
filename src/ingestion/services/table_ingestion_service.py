@@ -48,7 +48,6 @@ class TableIngestionService:
             mapping_validation_service or MappingValidationService()
         )
 
-    #TODO: стоит переделать, чтобы не было 4 отдельный метода для парсинга, а только 1 для всех таблиц
     def ingest(self, inputs: Iterable[TableInput]) -> FullIngestionResult:
         raw_tables: dict[TableKey, DataFrame | None] = {}
 

@@ -70,7 +70,7 @@ class AnalyzeWorkflowService:
 
         except (
             Exception
-        ) as exc:  # TODO может стоит обрабатывать разные ошибки по разному
+        ) as exc:
             return AnalyzeWorkflowResult(
                 status=WorkflowStatus.FAILED,
                 quality_report=self._build_fallback_quality_report(str(exc)),
