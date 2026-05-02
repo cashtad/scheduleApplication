@@ -15,9 +15,9 @@ class CompetitionTableParser(BaseTableParser[Competition]):
         super().__init__(table_key=TableKey.COMPETITIONS, mapping=mapping)
 
     def parse(self, df: DataFrame) -> TableParseResult[Competition]:
-
         issues: list[IngestionIssue] = []
         items: list[Competition] = []
+
         total_rows = len(df.index)
         parsed_rows = 0
 
@@ -49,10 +49,8 @@ class CompetitionTableParser(BaseTableParser[Competition]):
         name = self.as_str(row[self.mapping["name"]])
         discipline = self.as_str(row[self.mapping["discipline"]])
 
-        amount_of_rounds = None
         amount_of_rounds_col = self.mapping.get("amount_of_rounds")
-        if amount_of_rounds_col:
-            amount_of_rounds = self.as_int(row[amount_of_rounds_col], column_key="amount_of_rounds")
+        amount_of_rounds = self.as_int(row[amount_of_rounds_col], column_key="amount_of_rounds") if amount_of_rounds_col else None
 
         return Competition(
             id=id_value,

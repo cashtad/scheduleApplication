@@ -3,12 +3,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from pandas import DataFrame
+
 from src.application.contracts import TableKey
 from src.domain import Competitor
 from .assignment_table_parser_base import AssignmentTableParserBase
-from .errors import UserFacingParseError
 from src.ingestion.services import AssignmentColumnsMode, AssignmentColumnsSelection
-
+from src.ingestion.dto import IngestionSeverity, TableParseResult, IngestionIssue
 
 @dataclass(frozen=True, slots=True)
 class CompetitorParserConfig:
@@ -45,9 +46,59 @@ class CompetitorTableParser(AssignmentTableParserBase[Competitor]):
     def _row_error_context(self, row_index: int) -> dict[str, Any] | None:
         return {"row_index": row_index}
 
-    # --------------------------
-    # Internal parsing
-    # --------------------------
+    def parse(self, df: DataFrame) -> TableParseResult[Competitor]:
+        issues: list[IngestionIssue] = []
+        items: list[Competitor] = []
+
+        total_rows = len(df.index)
+        parsed_rows = 0
+
+        try:
+            assignment_selection = self._select_assignment_columns(df)
+        except Exception as exc:
+            #TODO: check
+            issues.append(
+                self.make_issue_from_exception(
+                    exc=exc,
+                    default_code="ASSIGNMENT_COLUMNS_NOT_FOUND",
+                    default_message="Nepodařilo se určit sloupce přiřazení soutěží. Zkontrolujte mapování prefixu nebo názvy sloupců.",
+                    severity=IngestionSeverity.WARNING,
+                    context={
+                        "assignment_mode": self.assignment_mode.value,
+                        "assignment_prefix": self.mapping.get("assignment_prefix"),
+                    },
+                )
+            )
+            return self.build_result(
+                items=items,
+                issues=issues,
+                total_rows=total_rows,
+                parsed_rows=parsed_rows,
+            )
+
+        for row_index, row in df.iterrows():
+            safe_row_index = self.as_row_index(row_index)
+            try:
+                parsed = self._parse_row(row=row, assignment_selection=assignment_selection)
+                items.append(parsed)
+                parsed_rows += 1
+            except Exception as exc:
+                issues.append(
+                    self.make_row_error_from_exception(
+                        row_index=safe_row_index,
+                        exc=exc,
+                        default_code=self.row_parse_error_code,
+                        default_message=self.row_parse_error_message,
+                        context=self._row_error_context(safe_row_index),
+                    )
+                )
+
+        return self.build_result(
+            items=items,
+            issues=issues,
+            total_rows=total_rows,
+            parsed_rows=parsed_rows,
+        )
 
     def _parse_row(
         self,

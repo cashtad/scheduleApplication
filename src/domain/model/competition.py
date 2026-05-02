@@ -8,7 +8,7 @@ class Competition:
     id: int
     name: str
     discipline: str
-    amount_of_rounds: int | None  # 1-more
+    amount_of_rounds: int | None  # 0-more
 
     def __str__(self) -> str:
         return f"Competition #{self.id} - {self.name}"

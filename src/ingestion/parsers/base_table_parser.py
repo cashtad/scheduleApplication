@@ -78,7 +78,7 @@ class BaseTableParser(ABC, Generic[T]):
     @staticmethod
     def as_row_index(value: Any) -> int:
         try:
-            return int(value)
+            return int(value) + 2
         except (TypeError, ValueError):
             return -1
 
@@ -99,23 +99,6 @@ class BaseTableParser(ABC, Generic[T]):
             row_index=row_index,
             column_key=column_key,
             context=context or {},
-        )
-
-    def make_row_error(
-        self,
-        row_index: int,
-        message: str,
-        code: str = "ROW_PARSE_ERROR",
-        column_key: str | None = None,
-        context: dict[str, Any] | None = None,
-    ) -> IngestionIssue:
-        return self.make_issue(
-            code=code,
-            message=message,
-            severity=IngestionSeverity.ERROR,
-            row_index=row_index,
-            column_key=column_key,
-            context=context,
         )
 
     def make_issue_from_exception(
