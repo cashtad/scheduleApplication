@@ -1,16 +1,16 @@
 from __future__ import annotations
 
 from application.contracts import TableKey
-from src.application.contracts import required_table_keys
+from src.application.contracts import all_table_keys
 from src.ingestion import TableInput
 from src.session import AppSession
 
 
 class TableInputFactory:
     @staticmethod
-    def build_for_required_tables(
+    def build_for_tables(
         session: AppSession,
-        table_keys: tuple[TableKey, ...] = required_table_keys(),
+        table_keys: tuple[TableKey, ...] = all_table_keys(),
     ) -> list[TableInput]:
         inputs: list[TableInput] = []
 
@@ -30,4 +30,3 @@ class TableInputFactory:
             )
 
         return inputs
-

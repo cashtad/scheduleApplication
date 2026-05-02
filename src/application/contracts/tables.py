@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-"""Unified registry for the four fixed tables used by the application."""
-
 from dataclasses import dataclass
 from enum import Enum
 
@@ -49,6 +47,7 @@ class TableSpec:
     label_cz: str
     mapping_schema: TableMappingSchema
     uses_assignment_columns: bool = False
+    optional: bool = False
 
     @property
     def table_key(self) -> str:
@@ -86,20 +85,6 @@ TABLE_REGISTRY: dict[TableKey, TableSpec] = {
         ),
         uses_assignment_columns=True,
     ),
-    TableKey.JURY: TableSpec(
-        key=TableKey.JURY,
-        label_cz="Porota",
-        mapping_schema=_build_schema(
-            TableKey.JURY,
-            (
-                MappingField("fullname", "Celé jméno", False),
-                MappingField("name", "Jméno", False),
-                MappingField("surname", "Příjmení", False),
-                MappingField("assignment_prefix", "Prefix pro ID soutěží (např. '#')", False, virtual=True),
-            ),
-        ),
-        uses_assignment_columns=True,
-    ),
     TableKey.SCHEDULE: TableSpec(
         key=TableKey.SCHEDULE,
         label_cz="Harmonogram",
@@ -113,6 +98,21 @@ TABLE_REGISTRY: dict[TableKey, TableSpec] = {
             ),
         ),
     ),
+    TableKey.JURY: TableSpec(
+        key=TableKey.JURY,
+        label_cz="Porota",
+        mapping_schema=_build_schema(
+            TableKey.JURY,
+            (
+                MappingField("fullname", "Celé jméno", False),
+                MappingField("name", "Jméno", False),
+                MappingField("surname", "Příjmení", False),
+                MappingField("assignment_prefix", "Prefix pro ID soutěží (např. '#')", False, virtual=True),
+            ),
+        ),
+        uses_assignment_columns=True,
+        optional=True,
+    ),
 }
 
 
@@ -124,6 +124,13 @@ def get_table_spec(table_key: TableKey) -> TableSpec:
     return TABLE_REGISTRY[_normalize_table_key(table_key)]
 
 
-def required_table_keys() -> tuple[TableKey, ...]:
+def all_table_keys() -> tuple[TableKey, ...]:
     return tuple(TABLE_REGISTRY.keys())
 
+
+def analysis_table_keys() -> tuple[TableKey, ...]:
+    return tuple(k for k, spec in TABLE_REGISTRY.items() if not spec.optional)
+
+
+def optional_table_keys() -> tuple[TableKey, ...]:
+    return tuple(k for k, spec in TABLE_REGISTRY.items() if spec.optional)

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from src.application.contracts import required_table_keys
+from src.application.contracts import all_table_keys
 from src.application.services import TableInputFactory
 from src.application.services.session_status_sync_service import SessionStatusSyncService
 from src.application.use_cases.save_session_use_case import SaveSessionUseCase
@@ -29,7 +29,7 @@ class RevalidateSessionUseCase:
     def execute(self, session: AppSession) -> RevalidateSessionResult:
         session.ensure_required_tables()
 
-        inputs = TableInputFactory.build_for_required_tables(session)
+        inputs = TableInputFactory.build_for_tables(session)
 
         ingestion_result = self._table_ingestion_service.ingest(inputs)
         self._session_status_sync_service.sync_after_ingestion(
@@ -38,5 +38,5 @@ class RevalidateSessionUseCase:
         self._save_session_use_case.execute(session)
 
         return RevalidateSessionResult(
-            statuses={k: session.get_table(k).status for k in required_table_keys()}
+            statuses={k: session.get_table(k).status for k in all_table_keys()}
         )

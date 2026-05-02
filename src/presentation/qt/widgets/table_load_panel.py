@@ -38,6 +38,9 @@ class PanelStatusUiState:
     select_text: str
     select_enabled: bool
     select_tooltip: str
+    clear_visible: bool
+    clear_enabled: bool
+    clear_tooltip: str
 
 
 _STATUS_UI = {
@@ -52,6 +55,9 @@ _STATUS_UI = {
         select_text="Načíst",
         select_enabled=True,
         select_tooltip="Vyberte Excel soubor.",
+        clear_visible=False,
+        clear_enabled=False,
+        clear_tooltip="Tabulka není vybrána.",
     ),
     TableStatus.FILE_SELECTED: PanelStatusUiState(
         status_text="Soubor vybrán",
@@ -64,6 +70,9 @@ _STATUS_UI = {
         select_text="Vybrat jiný",
         select_enabled=True,
         select_tooltip="Zvolit jiný soubor.",
+        clear_visible=True,
+        clear_enabled=True,
+        clear_tooltip="Odebrat vybranou tabulku.",
     ),
     TableStatus.SHEET_SELECTED: PanelStatusUiState(
         status_text="List vybrán",
@@ -76,6 +85,9 @@ _STATUS_UI = {
         select_text="Vybrat jiný",
         select_enabled=True,
         select_tooltip="Zvolit jiný soubor.",
+        clear_visible=True,
+        clear_enabled=True,
+        clear_tooltip="Odebrat vybranou tabulku.",
     ),
     TableStatus.MAPPED: PanelStatusUiState(
         status_text="Namapováno",
@@ -88,6 +100,9 @@ _STATUS_UI = {
         select_text="Vybrat jiný",
         select_enabled=True,
         select_tooltip="Zvolit jiný soubor.",
+        clear_visible=True,
+        clear_enabled=True,
+        clear_tooltip="Odebrat vybranou tabulku.",
     ),
     TableStatus.READY: PanelStatusUiState(
         status_text="Připraveno",
@@ -100,6 +115,9 @@ _STATUS_UI = {
         select_text="Vybrat jiný",
         select_enabled=True,
         select_tooltip="Zvolit jiný soubor.",
+        clear_visible=True,
+        clear_enabled=True,
+        clear_tooltip="Odebrat vybranou tabulku.",
     ),
     TableStatus.BROKEN_PATH: PanelStatusUiState(
         status_text="Neplatná cesta",
@@ -112,6 +130,9 @@ _STATUS_UI = {
         select_text="Vybrat soubor",
         select_enabled=True,
         select_tooltip="Zvolte platný soubor.",
+        clear_visible=True,
+        clear_enabled=True,
+        clear_tooltip="Odebrat vybranou tabulku.",
     ),
     TableStatus.BROKEN_SHEET: PanelStatusUiState(
         status_text="Neplatný list",
@@ -124,6 +145,9 @@ _STATUS_UI = {
         select_text="Vybrat jiný",
         select_enabled=True,
         select_tooltip="Zvolit jiný soubor.",
+        clear_visible=True,
+        clear_enabled=True,
+        clear_tooltip="Odebrat vybranou tabulku.",
     ),
     TableStatus.MAPPING_STALE: PanelStatusUiState(
         status_text="Mapování zastaralé",
@@ -136,6 +160,9 @@ _STATUS_UI = {
         select_text="Vybrat jiný",
         select_enabled=True,
         select_tooltip="Zvolit jiný soubor.",
+        clear_visible=True,
+        clear_enabled=True,
+        clear_tooltip="Odebrat vybranou tabulku.",
     ),
 }
 
@@ -197,8 +224,14 @@ class TableLoadPanel(QWidget):
         self._select_other_btn = QPushButton()
         self._select_other_btn.clicked.connect(self._on_select_other_clicked)
         actions_row.addWidget(self._select_other_btn)
-        root.addLayout(actions_row)
 
+        # actions_row.addStretch()
+        self._clear_btn = QPushButton("✕")
+        self._clear_btn.setFixedWidth(28)
+        self._clear_btn.clicked.connect(self._on_clear_clicked)
+        actions_row.addWidget(self._clear_btn)
+
+        root.addLayout(actions_row)
         self.refresh()
 
     def refresh(self) -> None:
@@ -217,6 +250,9 @@ class TableLoadPanel(QWidget):
                 select_text="Načíst",
                 select_enabled=True,
                 select_tooltip="",
+                clear_visible=False,
+                clear_enabled=False,
+                clear_tooltip="",
             ),
         )
         self._dot.setStyleSheet(_DOT_STYLE.format(color=ui.color))
@@ -231,6 +267,10 @@ class TableLoadPanel(QWidget):
         self._select_other_btn.setText(ui.select_text)
         self._select_other_btn.setEnabled(ui.select_enabled)
         self._select_other_btn.setToolTip(ui.select_tooltip)
+
+        self._clear_btn.setVisible(ui.clear_visible)
+        self._clear_btn.setEnabled(ui.clear_enabled)
+        self._clear_btn.setToolTip(ui.clear_tooltip)
 
         self._full_path = state.file_path if state.file_path else ""
         self._update_path_label()
@@ -309,6 +349,10 @@ class TableLoadPanel(QWidget):
             self._finalize_success(context.df)
             return
 
+        self.refresh()
+
+    def _on_clear_clicked(self) -> None:
+        self._controller.clear_table(self._table_key)
         self.refresh()
 
     def _build_load_context_for_new_sheet_in_current_file(

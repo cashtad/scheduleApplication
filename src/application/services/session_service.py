@@ -29,6 +29,16 @@ class SessionService:
         table.status = self._transition_service.on_file_selected(table)
         self._save_session_use_case.execute(session)
 
+    def clear_table(self, session: AppSession, table_key: TableKey) -> None:
+        table = session.get_table(table_key)
+        table.file_path = None
+        table.sheet_name = None
+        table.column_mapping.clear()
+        table.column_signature.clear()
+        table.raw_df = None
+        table.status = self._transition_service.on_file_selected(table)
+        self._save_session_use_case.execute(session)
+
     def set_sheet(self, session: AppSession, table_key: TableKey, sheet_name: str) -> None:
         table = session.get_table(table_key)
         table.sheet_name = sheet_name

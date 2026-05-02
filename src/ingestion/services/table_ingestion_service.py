@@ -124,7 +124,7 @@ class TableIngestionService:
         if table_input is None:
             return (
                 self._empty_parse_result(TableKey.JURY),
-                [self._missing_table_issue(TableKey.JURY)],
+                [],
                 None,
             )
 

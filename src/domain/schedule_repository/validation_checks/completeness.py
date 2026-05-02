@@ -70,6 +70,7 @@ def check_jury_members_not_empty(
 		ScheduleRepositoryValidationIssue(
 			code="NO_JURY_MEMBERS_PARSED",
 			message="Nenalezen žádný člen poroty. Zkontrolujte, zda je správně zvolena a namapována tabulka s členy poroty.",
+			# TODO: изменить текст, если таблица не была выбрана, то можете игнорировать предупреждение
 			severity=ValidationIssueSeverity.WARNING,
 			context={},
 		)

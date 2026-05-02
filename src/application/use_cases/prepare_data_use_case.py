@@ -24,7 +24,7 @@ class PrepareDataUseCase:
     def execute(self, session: AppSession) -> PrepareDataResult:
         session.ensure_required_tables()
 
-        inputs = TableInputFactory.build_for_required_tables(session)
+        inputs = TableInputFactory.build_for_tables(session)
 
         ingestion_result = self._table_ingestion_service.ingest(inputs)
         self._session_status_sync_service.sync_after_ingestion(

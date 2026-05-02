@@ -53,7 +53,7 @@ class MainWindow(QMainWindow):
         layout = QVBoxLayout(root)
 
         self._panels: dict[str, TableLoadPanel] = {}
-        for table_key in self._controller.required_table_keys():
+        for table_key in self._controller.all_table_keys():
             panel = TableLoadPanel(
                 table_key=table_key,
                 controller=self._controller,
@@ -106,28 +106,33 @@ class MainWindow(QMainWindow):
         self._refresh_table_panels_state()
         self._analysis_panel.update_from_result(result)
 
-        if result.status == WorkflowStatus.FAILED:
-            QMessageBox.critical(
-                self, "Chyba analýzy", result.error_message or "Neznámá chyba."
-            )
-            return
-
-        if result.status == WorkflowStatus.BLOCKED:
-            reasons = result.quality_report.readiness_result.reasons
-            message = "\n".join(
-                f"- [{reason.severity.value}] {reason.code}: {reason.message_cz}"
-                for reason in reasons
-            )
-            QMessageBox.warning(
-                self, "Analýza zablokována", message or "Analýza je zablokována."
-            )
-            return
-        #TODO: add info about warnings
-        QMessageBox.information(
-            self,
-            "Analýza dokončena",
-            f"HTML zpráva: {result.html_report_path or 'nevygenerována'}",
-        )
+        match result.status:
+            case WorkflowStatus.FAILED:
+                QMessageBox.critical(
+                    self, "Chyba analýzy", result.error_message or "Neznámá chyba."
+                )
+                return
+            case WorkflowStatus.BLOCKED:
+                issues = result.quality_report.readiness_result.reasons
+                message = "\n".join(
+                    f"- [{issue.severity.value}] {issue.code}: {issue.message_cz}"
+                    for issue in issues
+                )
+                QMessageBox.warning(
+                    self, "Analýza zablokována", message or "Analýza je zablokována."
+                )
+                return
+            case WorkflowStatus.SUCCESS:
+                path_text = f"HTML zpráva: {result.html_report_path or 'nevygenerována'}"
+                issues = result.quality_report.readiness_result.reasons
+                if issues:
+                    warning_text = "Byly zjištěny nedokonalosti v datech, zkontrolujte záložku Kvalita dat"
+                QMessageBox.information(
+                    self,
+                    "Analýza dokončena",
+                    f"{path_text}\n\n{warning_text if issues else ''}",
+                )
+                return
 
     def _on_open_quality_report(self) -> None:
         report = self._controller.get_last_quality_report()
