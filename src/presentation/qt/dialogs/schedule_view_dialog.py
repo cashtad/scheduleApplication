@@ -79,7 +79,7 @@ class ScheduleViewDialog(QDialog):
         self._panel_scroll.setMaximumWidth(520)
         self._panel_scroll.hide()
 
-        splitter = QSplitter(Qt.Horizontal)
+        splitter = QSplitter(Qt.Orientation.Horizontal)
         splitter.addWidget(self._table)
         splitter.addWidget(self._panel_scroll)
         splitter.setStretchFactor(0, 3)
@@ -111,7 +111,7 @@ class ScheduleViewDialog(QDialog):
             "🔴 Kritické   🟡 Střední   🟢 Nízké   "
             "⚪ Bez narušení   🔵 Vybrané narušení"
         )
-        legend.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+        legend.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
         return legend
 
     def _build_table(self) -> QTableView:
@@ -141,15 +141,15 @@ class ScheduleViewDialog(QDialog):
     def _build_violation_panel() -> tuple[QWidget, QVBoxLayout]:
         container = QWidget()
         layout = QVBoxLayout(container)
-        layout.setAlignment(Qt.AlignTop)
+        layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         layout.setContentsMargins(8, 8, 8, 8)
         layout.setSpacing(10)
         return container, layout
 
     def _build_violation_card(self, violation: ViolationViewItem) -> QFrame:
         card = QFrame()
-        card.setFrameShape(QFrame.StyledPanel)
-        card.setFrameShadow(QFrame.Raised)
+        card.setFrameShape(QFrame.Shape.StyledPanel)
+        card.setFrameShadow(QFrame.Shadow.Raised)
 
         lay = QVBoxLayout(card)
         lay.setSpacing(4)
@@ -175,7 +175,7 @@ class ScheduleViewDialog(QDialog):
                 detail_lines.append(f"• {item.label}: {item.value}")
             details = QLabel("<br>".join(detail_lines))
             details.setWordWrap(True)
-            details.setTextInteractionFlags(Qt.TextSelectableByMouse)
+            details.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
             lay.addWidget(details)
         elif violation.details:
             detail_lines = ["<b>Podrobnosti:</b>"]
@@ -185,7 +185,7 @@ class ScheduleViewDialog(QDialog):
                 detail_lines.append(f"• {key}: {value}")
             details = QLabel("<br>".join(detail_lines))
             details.setWordWrap(True)
-            details.setTextInteractionFlags(Qt.TextSelectableByMouse)
+            details.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
             lay.addWidget(details)
 
         btn = QPushButton("🔵 Vybrat řádky")
@@ -209,7 +209,7 @@ class ScheduleViewDialog(QDialog):
             if item is None:
                 row_data = list(self._df.loc[df_idx])
                 item = QStandardItem(str(row_data[c]))
-                item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
+                item.setFlags(Qt.ItemFlag.ItemIsEnabled)
                 self._model.setItem(model_row, c, item)
 
             item.setBackground(bg)
