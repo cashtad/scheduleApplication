@@ -6,4 +6,5 @@ from src.domain import ScheduleAnalysisResult
 
 
 class HtmlReportWriterPort(Protocol):
-    def write(self, analysis_result: ScheduleAnalysisResult) -> str: ...
+    def write(self, analysis_result: ScheduleAnalysisResult) -> str:
+        ...

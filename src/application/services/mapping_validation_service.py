@@ -120,7 +120,7 @@ class MappingValidationService:
         fullname = (mapping.get("fullname") or "").strip()
         name = (mapping.get("name") or "").strip()
         surname = (mapping.get("surname") or "").strip()
-        if fullname or (name and surname):
+        if (fullname and not (name or surname)) or (not fullname and (name or surname)):
             return None
 
         return MappingValidationResult(

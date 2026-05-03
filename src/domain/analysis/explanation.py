@@ -198,10 +198,6 @@ class ExplanationGenerator:
         if "competition1" in details and "competition2" in details:
             html += f"        <p>🏆 Soutěže: {details['competition1']} ↔ {details['competition2']}</p>\n"
 
-        if violation.source_rows:
-            rows = ", ".join(str(r) for r in sorted(set(violation.source_rows)))
-            html += f"        <p>📍 Řádky harmonogramu: {rows}</p>\n"
-
         html += """
       </div>
     </div>
