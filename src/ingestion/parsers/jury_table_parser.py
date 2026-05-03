@@ -9,7 +9,7 @@ from src.application.contracts import TableKey
 from src.domain import JuryMember
 from .assignment_table_parser_base import AssignmentTableParserBase
 from src.ingestion.services import AssignmentColumnsMode, AssignmentColumnsSelection
-from src.ingestion.dto import IngestionSeverity, TableParseResult, IngestionIssue
+from src.ingestion.dto import TableParseResult, IngestionIssue
 
 
 

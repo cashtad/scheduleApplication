@@ -80,7 +80,7 @@ class MappingDialog(QDialog):
         for r, row in enumerate(df.itertuples(index=False)):
             for c, val in enumerate(row):
                 item = QStandardItem(str(val))
-                item.setFlags(Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable)
+                item.setFlags(Qt.ItemFlag.ItemIsEnabled)
                 item.setBackground(_MAPPING_DEFAULT_BG)
                 item.setForeground(_MAPPING_DEFAULT_FG)
                 self._model.setItem(r, c, item)
