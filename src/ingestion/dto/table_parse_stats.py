@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from application.contracts import TableKey
+from src.application.contracts import TableKey
 
 
 @dataclass(frozen=True, slots=True)

@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-from application.contracts import TableKey
+from src.application.contracts import TableKey
 
 
 class IngestionSeverity(Enum):

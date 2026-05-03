@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Generic, TypeVar
 
-from application.contracts import TableKey
+from src.application.contracts import TableKey
 from .ingestion_issue import IngestionIssue, IngestionSeverity
 from .table_parse_stats import TableParseStats
 

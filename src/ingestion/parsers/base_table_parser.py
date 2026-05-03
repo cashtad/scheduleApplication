@@ -6,7 +6,7 @@ from typing import Any, Generic, TypeVar, cast
 
 from pandas import DataFrame, isna
 
-from application.contracts import TableKey
+from src.application.contracts import TableKey
 from src.ingestion.dto import IngestionIssue, IngestionSeverity, TableParseResult
 from .errors import UserFacingParseError
 

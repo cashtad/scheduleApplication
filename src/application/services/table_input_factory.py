@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from application.contracts import TableKey
+from src.application.contracts import TableKey
 from src.application.contracts import all_table_keys
 from src.ingestion import TableInput
 from src.session import AppSession
