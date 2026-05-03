@@ -1,7 +1,7 @@
 #define MyAppName "Schedule Analyzer"
 #define MyAppVersion "1.0.0"
-#define MyAppPublisher "Leonid"
-#define MyAppExeName "schedule_analyzer.exe"
+#define MyAppPublisher "Leonid Malahov"
+#define MyAppExeName "Schedule Analyzer.exe"
 
 [Setup]
 AppId={{D3D221D5-851B-482E-91C9-C4CBF7154842}

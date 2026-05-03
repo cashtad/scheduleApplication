@@ -18,37 +18,20 @@ echo [2/3] Cleaning previous builds...
 if exist "build" rmdir /s /q "build"
 if exist "dist" rmdir /s /q "dist"
 
-call :build_onedir
-if %ERRORLEVEL% NEQ 0 goto :fail
-goto :done
-
-:build_onedir
-call :run_pyinstaller "schedule_analyzer.spec"
-if %ERRORLEVEL% NEQ 0 goto :fail
-call :post_onedir
+echo [3/3] Running PyInstaller with spec file: schedule_analyzer.spec
+python -m PyInstaller "schedule_analyzer.spec" --clean
 if %ERRORLEVEL% NEQ 0 goto :fail
 
-:run_pyinstaller
-echo [3/3] Running PyInstaller with spec file: %~1
-python -m PyInstaller %~1 --clean
-exit /b %ERRORLEVEL%
-
-:post_onedir
-set "ONEDIR_EXE=dist\schedule_analyzer\schedule_analyzer.exe"
+set "ONEDIR_EXE=dist\schedule_analyzer\Schedule Analyzer.exe"
 if not exist "%ONEDIR_EXE%" (
     echo ERROR: Build failed, executable not found at %ONEDIR_EXE%
-    exit /b 1
+    goto :fail
 )
-if exist "src\rules_config.yaml" (
-    copy /Y "src\rules_config.yaml" "dist\schedule_analyzer\rules_config.yaml" >nul
-)
-exit /b 0
 
-:done
 echo.
 echo ============================================================
-echo Successfully build. Output executable:
-echo - schedule_analyzer.exe: dist\schedule_analyzer\schedule_analyzer.exe
+echo Successfully built. Output executable:
+echo - Schedule Analyzer.exe: dist\schedule_analyzer\Schedule Analyzer.exe
 echo ============================================================
 popd
 exit /b 0

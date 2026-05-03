@@ -27,7 +27,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name="schedule_analyzer",
+    name="Schedule Analyzer",
     debug=False,
     strip=False,
     upx=True,
