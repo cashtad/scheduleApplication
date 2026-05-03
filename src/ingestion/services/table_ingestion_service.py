@@ -81,10 +81,6 @@ class TableIngestionService:
             raw_tables=raw_tables,
         )
 
-    # --------------------------
-    # Per-table ingestion
-    # --------------------------
-
     def _ingest_competitions(
         self, table_input: TableInput | None
     ) -> tuple[TableParseResult[Competition], list[IngestionIssue], DataFrame | None]:
@@ -206,7 +202,6 @@ class TableIngestionService:
             )
             issue_context = self._technical_exception_context(exc)
 
-            # Respect custom ingestion exceptions with stable code/message.
             parsed_code = getattr(exc, "code", None)
             parsed_message = getattr(exc, "message", None)
             if isinstance(parsed_code, str) and parsed_code:
@@ -229,9 +224,6 @@ class TableIngestionService:
 
         return parse_result, schema_issues, df
 
-    # --------------------------
-    # Schema checks
-    # --------------------------
     @staticmethod
     def _validate_file_path(table_input: TableInput) -> IngestionIssue | None:
         if not table_input.file_path:
@@ -330,10 +322,6 @@ class TableIngestionService:
             severity=IngestionSeverity.ERROR,
             context=context,
         )
-
-    # --------------------------
-    # Helpers
-    # --------------------------
 
     @staticmethod
     def _missing_table_issue(table_key: TableKey) -> IngestionIssue:

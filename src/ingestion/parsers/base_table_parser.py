@@ -34,10 +34,6 @@ class BaseTableParser(ABC, Generic[T]):
     @abstractmethod
     def parse(self, df: DataFrame) -> TableParseResult[T]: ...
 
-    # --------------------------
-    # Row helpers
-    # --------------------------
-
     @staticmethod
     def is_empty(value: Any) -> bool:
         try:
@@ -72,7 +68,6 @@ class BaseTableParser(ABC, Generic[T]):
 
     @staticmethod
     def row_to_dict(row: Any) -> dict[str, Any]:
-        # pandas Series -> dict
         return cast(dict[str, Any], dict(row.items()))
 
     @staticmethod

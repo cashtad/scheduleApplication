@@ -44,7 +44,6 @@ class AnalysisViewPresenter:
         "SimultaneousJudging": "Současné rozhodování",
     }
 
-    # Internal tuning/config fields are intentionally hidden from end users.
     _HIDDEN_KEYS = {
         "threshold_minutes",
         "required_minutes",

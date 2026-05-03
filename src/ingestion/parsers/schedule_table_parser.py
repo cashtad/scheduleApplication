@@ -91,14 +91,12 @@ class ScheduleTableParser(BaseTableParser[Performance]):
                 column_key="start_time",
             )
 
-        # strict formats first
         for fmt in ("%H:%M", "%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M"):
             try:
                 return datetime.strptime(text, fmt)
             except ValueError:
                 pass
 
-        # pandas fallback
         try:
             return to_datetime(text, errors="raise").to_pydatetime()
         except Exception:

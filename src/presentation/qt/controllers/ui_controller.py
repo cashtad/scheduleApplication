@@ -163,7 +163,6 @@ class UiController:
     def get_last_schedule_df(self) -> DataFrame | None:
         return self._session.get_table(TableKey.SCHEDULE).raw_df
 
-    # --- Data quality / report helpers ---
     def get_last_quality_report(self) -> DataQualityReport | None:
         return (
             self._last_workflow_result.quality_report

@@ -88,15 +88,12 @@ class MainWindow(QMainWindow):
         self._refresh_analyze_button_state()
 
     def _on_schedule_preview_changed(self, _df) -> None:
-        # schedule raw_df is now maintained in session runtime via ingestion flow
         return
 
     def _refresh_analyze_button_state(self) -> None:
         self._analyze_button.setEnabled(self._controller.can_run_analysis())
 
     def _refresh_table_panels_state(self) -> None:
-        # Analysis preparation can update table statuses in session runtime,
-        # so panels must be re-rendered immediately after workflow run.
         for panel in self._panels.values():
             panel.refresh()
         self._refresh_analyze_button_state()

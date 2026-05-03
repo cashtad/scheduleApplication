@@ -225,7 +225,6 @@ class TableLoadPanel(QWidget):
         self._select_other_btn.clicked.connect(self._on_select_other_clicked)
         actions_row.addWidget(self._select_other_btn)
 
-        # actions_row.addStretch()
         self._clear_btn = QPushButton("✕")
         self._clear_btn.setFixedWidth(28)
         self._clear_btn.clicked.connect(self._on_clear_clicked)

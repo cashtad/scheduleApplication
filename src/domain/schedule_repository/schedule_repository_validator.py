@@ -28,8 +28,6 @@ ValidationCheck = Callable[
 
 
 class ScheduleRepositoryValidator:
-    # Deterministic order of checks. Keep this sequence stable unless
-    # there is an explicit product decision to change validation behavior.
     _CHECK_PIPELINE: tuple[ValidationCheck, ...] = (
         check_performances_connection_to_competitions,
         check_duplicate_performances,
@@ -58,8 +56,6 @@ class ScheduleRepositoryValidator:
     def _deduplicate_issues(
         issues: list[ScheduleRepositoryValidationIssue],
     ) -> list[ScheduleRepositoryValidationIssue]:
-        # Dedup policy: "last write wins" by dedup_key; this keeps behavior
-        # compatible with the previous monolithic validator implementation.
         unique: dict[tuple, ScheduleRepositoryValidationIssue] = {}
         for issue in issues:
             unique[issue.dedup_key()] = issue

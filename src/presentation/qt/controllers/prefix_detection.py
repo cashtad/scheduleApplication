@@ -27,7 +27,6 @@ class PrefixDetectionResult:
     candidates: List[PrefixCandidate]
     best_prefix: str | None
 
-    # ---------- helpers for UI ----------
 
     def find_by_prefix(self, prefix: str) -> PrefixCandidate | None:
         for c in self.candidates:
@@ -42,11 +41,6 @@ class PrefixDetectionResult:
     def count_for_prefix(self, prefix: str) -> int:
         candidate = self.find_by_prefix(prefix)
         return candidate.size if candidate else 0
-
-
-# ---------------------------------------------------------------------------
-# Public API
-# ---------------------------------------------------------------------------
 
 def detect_prefixes(columns: Iterable[str]) -> PrefixDetectionResult:
     parsed_columns = [str(c).strip() for c in columns]
