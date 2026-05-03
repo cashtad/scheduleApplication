@@ -1,6 +1,6 @@
 #define MyAppName "Schedule Analyzer"
 #define MyAppVersion "1.0.0"
-#define MyAppPublisher "Leonid Malahov"
+#define MyAppPublisher "Leonid Malakhov"
 #define MyAppExeName "Schedule Analyzer.exe"
 
 [Setup]
@@ -15,7 +15,7 @@ DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
 OutputDir=..\artifacts\installer
-OutputBaseFilename=schedule_analyzer_setup
+OutputBaseFilename=Schedule Analyzer Setup
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
