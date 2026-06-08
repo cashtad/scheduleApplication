@@ -39,7 +39,7 @@ if not exist "artifacts\installer" mkdir "artifacts\installer"
 if %ERRORLEVEL% NEQ 0 goto :fail
 
 echo [3/3] Success.
-echo Installer output: artifacts\installer\schedule_analyzer_setup.exe
+echo Installer output: artifacts\installer\Schedule Analyzer Setup.exe
 popd
 exit /b 0
 
