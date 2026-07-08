@@ -14,6 +14,10 @@ costume_change_time:
   disciplines:
     - "lat"
     - "stt"
+    - "solat"
+    - "sostt"
+    - "sosttlat"
+    
   thresholds:
     critical: 3
     medium: 5
